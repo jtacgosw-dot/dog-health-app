@@ -1,5 +1,5 @@
 import Foundation
 
 struct APIConfig {
-    static let baseURL = "http://localhost:3000/api"
+    static let baseURL = "https://dog-health-app.onrender.com/api"
 }
