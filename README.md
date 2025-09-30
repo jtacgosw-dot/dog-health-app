@@ -298,11 +298,24 @@ Configure the following secrets in GitHub repository settings:
 ```bash
 APPLE_ID                    # Your Apple ID email
 APPLE_APP_PASSWORD         # App-specific password from Apple ID
-APPLE_TEAM_ID              # Your Apple Developer Team ID
+APPLE_TEAM_ID              # Your Apple Developer Team ID (10-character string)
 APPLE_CERTIFICATE_P12      # Base64 encoded .p12 certificate
 APPLE_CERTIFICATE_PASSWORD # Password for .p12 certificate
 APPLE_PROVISIONING_PROFILE # Base64 encoded provisioning profile
 ```
+
+**To get these values:**
+
+1. **APPLE_ID**: Your Apple Developer account email
+2. **APPLE_APP_PASSWORD**: Generate at [appleid.apple.com](https://appleid.apple.com) → Sign-In and Security → App-Specific Passwords
+3. **APPLE_TEAM_ID**: Found in Apple Developer portal → Membership → Team ID
+4. **APPLE_CERTIFICATE_P12**: 
+   - Export iOS Distribution certificate from Keychain Access as .p12
+   - Convert to base64: `base64 -i certificate.p12 | pbcopy`
+5. **APPLE_CERTIFICATE_PASSWORD**: Password you set when exporting the .p12
+6. **APPLE_PROVISIONING_PROFILE**:
+   - Download App Store provisioning profile from Apple Developer portal
+   - Convert to base64: `base64 -i profile.mobileprovision | pbcopy`
 
 ### Manual TestFlight Build
 1. Open `ios-app/DogHealthApp.xcodeproj` in Xcode
@@ -355,6 +368,34 @@ Since TestFlight requires Apple Developer credentials, you can test the app usin
 - **Entitlements are mocked as active** to bypass Apple credentials requirement
 - **TestFlight upload requires** Apple Developer Program membership and certificates
 - **Sign in with Apple** will work in sandbox mode but requires Apple Developer configuration for production
+
+### Expected App Flow with Mocked Entitlements
+With the current mocking configuration, the app flow will be:
+
+1. **Onboarding Screen** → User taps "Get Started" → `hasCompletedOnboarding = true`
+2. **Safety Disclaimer Screen** → User taps "I Understand" → `hasAcceptedDisclaimer = true`
+3. **Sign in with Apple Screen** → User signs in → `isAuthenticated = true`, `hasActiveSubscription = true` (mocked)
+4. **Chat Screen** → Directly accessible (skips paywall due to mocked active subscription)
+5. **AI Chat Functionality** → Works with live backend API at `https://dog-health-app.onrender.com/api`
+
+### Testing the Complete Flow
+To test the app with mocked entitlements:
+
+1. **Build and run** the iOS app in Xcode or iOS Simulator
+2. **Navigate through onboarding** and accept the safety disclaimer
+3. **Sign in with Apple** (can use any Apple ID in development)
+4. **Verify chat screen appears** without showing paywall
+5. **Test chat functionality** by sending messages to the AI
+6. **Verify API connectivity** by checking network requests in Xcode console
+
+### Screenshots and UI Testing
+Key screens to capture for UI/UX review:
+- Onboarding screen with app introduction
+- Safety disclaimer with veterinary advice warning
+- Sign in with Apple authentication screen
+- Chat interface with message bubbles and input field
+- AI responses with safety disclaimers
+- Settings screen with account management options
 
 ## Safety & Compliance
 
