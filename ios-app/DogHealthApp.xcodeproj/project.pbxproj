@@ -15,6 +15,12 @@
 		A1234567890123456789013E /* DisclaimerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1234567890123456789013F /* DisclaimerView.swift */; };
 		A1234567890123456789014A /* ChatService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1234567890123456789014B /* ChatService.swift */; };
 		A1234567890123456789014C /* Message.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1234567890123456789014D /* Message.swift */; };
+		A1234567890123456789018A /* APIConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1234567890123456789018B /* APIConfig.swift */; };
+		A1234567890123456789018C /* AuthService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1234567890123456789018D /* AuthService.swift */; };
+		A1234567890123456789018E /* EntitlementsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1234567890123456789018F /* EntitlementsService.swift */; };
+		A1234567890123456789019A /* SubscriptionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1234567890123456789019B /* SubscriptionService.swift */; };
+		A1234567890123456789019C /* PaywallView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1234567890123456789019D /* PaywallView.swift */; };
+		A1234567890123456789019E /* SignInView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1234567890123456789019F /* SignInView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -27,6 +33,12 @@
 		A1234567890123456789014B /* ChatService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatService.swift; sourceTree = "<group>"; };
 		A1234567890123456789014D /* Message.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Message.swift; sourceTree = "<group>"; };
 		A1234567890123456789015A /* DogHealthApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DogHealthApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		A1234567890123456789018B /* APIConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIConfig.swift; sourceTree = "<group>"; };
+		A1234567890123456789018D /* AuthService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthService.swift; sourceTree = "<group>"; };
+		A1234567890123456789018F /* EntitlementsService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EntitlementsService.swift; sourceTree = "<group>"; };
+		A1234567890123456789019B /* SubscriptionService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscriptionService.swift; sourceTree = "<group>"; };
+		A1234567890123456789019D /* PaywallView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaywallView.swift; sourceTree = "<group>"; };
+		A1234567890123456789019F /* SignInView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignInView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -48,6 +60,7 @@
 				A1234567890123456789015D /* Views */,
 				A1234567890123456789015E /* Models */,
 				A1234567890123456789015F /* Services */,
+				A1234567890123456789020A /* Utils */,
 				A1234567890123456789012F /* Assets.xcassets */,
 			);
 			path = DogHealthApp;
@@ -59,6 +72,8 @@
 				A1234567890123456789013B /* ChatView.swift */,
 				A1234567890123456789013D /* OnboardingView.swift */,
 				A1234567890123456789013F /* DisclaimerView.swift */,
+				A1234567890123456789019D /* PaywallView.swift */,
+				A1234567890123456789019F /* SignInView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -75,6 +90,9 @@
 			isa = PBXGroup;
 			children = (
 				A1234567890123456789014B /* ChatService.swift */,
+				A1234567890123456789018D /* AuthService.swift */,
+				A1234567890123456789018F /* EntitlementsService.swift */,
+				A1234567890123456789019B /* SubscriptionService.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -93,6 +111,14 @@
 				A1234567890123456789015C /* DogHealthApp */,
 				A1234567890123456789016A /* Products */,
 			);
+			sourceTree = "<group>";
+		};
+		A1234567890123456789020A /* Utils */ = {
+			isa = PBXGroup;
+			children = (
+				A1234567890123456789018B /* APIConfig.swift */,
+			);
+			path = Utils;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -171,6 +197,12 @@
 				A1234567890123456789013E /* DisclaimerView.swift in Sources */,
 				A1234567890123456789014A /* ChatService.swift in Sources */,
 				A1234567890123456789014C /* Message.swift in Sources */,
+				A1234567890123456789018A /* APIConfig.swift in Sources */,
+				A1234567890123456789018C /* AuthService.swift in Sources */,
+				A1234567890123456789018E /* EntitlementsService.swift in Sources */,
+				A1234567890123456789019A /* SubscriptionService.swift in Sources */,
+				A1234567890123456789019C /* PaywallView.swift in Sources */,
+				A1234567890123456789019E /* SignInView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
