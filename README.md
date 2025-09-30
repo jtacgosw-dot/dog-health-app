@@ -284,6 +284,78 @@ The backend is deployed on Render at: https://dog-health-app.onrender.com
 - Account: `https://dog-health-app.onrender.com/api/account`
 - Webhook: `https://dog-health-app.onrender.com/api/webhook/apple-asn`
 
+## TestFlight Distribution
+
+### Prerequisites
+1. **Apple Developer Program membership** ($99/year)
+2. **App Store Connect access** with Admin or App Manager role
+3. **Certificates and Provisioning Profiles** configured in Apple Developer portal
+4. **App Store Connect API Key** for automated uploads
+
+### GitHub Secrets Configuration
+Configure the following secrets in GitHub repository settings:
+
+```bash
+APPLE_ID                    # Your Apple ID email
+APPLE_APP_PASSWORD         # App-specific password from Apple ID
+APPLE_TEAM_ID              # Your Apple Developer Team ID
+APPLE_CERTIFICATE_P12      # Base64 encoded .p12 certificate
+APPLE_CERTIFICATE_PASSWORD # Password for .p12 certificate
+APPLE_PROVISIONING_PROFILE # Base64 encoded provisioning profile
+```
+
+### Manual TestFlight Build
+1. Open `ios-app/DogHealthApp.xcodeproj` in Xcode
+2. Select "Any iOS Device" as destination
+3. Product → Archive
+4. In Organizer, select "Distribute App"
+5. Choose "App Store Connect" → "Upload"
+6. Follow prompts to upload to TestFlight
+
+### Automated TestFlight Build
+1. Configure GitHub Secrets (see above)
+2. Set `APPLE_CERTIFICATES_AVAILABLE: 'true'` in workflow
+3. Push to main branch or create PR
+4. GitHub Actions will build and upload to TestFlight automatically
+
+### Testing the App
+1. Install TestFlight app on iPhone
+2. Accept TestFlight invite (sent via email)
+3. Install Dog Health app from TestFlight
+4. Test complete flow:
+   - Onboarding screen
+   - Safety disclaimer acceptance
+   - Sign in with Apple (use sandbox Apple ID)
+   - Chat screen should be accessible (entitlements mocked as active)
+   - Test AI chat functionality with live backend
+
+### Alternative Testing Without TestFlight
+Since TestFlight requires Apple Developer credentials, you can test the app using:
+
+1. **iOS Simulator** (requires Xcode on macOS):
+   ```bash
+   cd ios-app
+   xcodebuild -project DogHealthApp.xcodeproj \
+     -scheme DogHealthApp \
+     -destination 'platform=iOS Simulator,name=iPhone 15' \
+     build
+   ```
+
+2. **Local Device Testing** (requires development provisioning profile):
+   - Connect iPhone via USB
+   - Enable Developer Mode in iPhone Settings
+   - Build and run from Xcode
+
+3. **GitHub Actions Build Verification**:
+   - Push changes to trigger workflow
+   - Check that build completes successfully
+   - Download build artifacts for manual testing
+
+### Current Limitations
+- **Entitlements are mocked as active** to bypass Apple credentials requirement
+- **TestFlight upload requires** Apple Developer Program membership and certificates
+- **Sign in with Apple** will work in sandbox mode but requires Apple Developer configuration for production
+
 ## Safety & Compliance
 
 - All AI responses include safety disclaimers
