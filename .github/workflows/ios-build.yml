@@ -32,7 +32,7 @@ jobs:
         xcodebuild -project DogHealthApp.xcodeproj \
           -scheme DogHealthApp \
           -configuration Debug \
-          -destination 'platform=iOS Simulator,name=iPhone 15' \
+          -destination 'platform=iOS Simulator,name=iPhone 16' \
           build
           
     - name: Build iOS app archive (requires signing)
