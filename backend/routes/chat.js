@@ -1,5 +1,7 @@
 const express = require('express');
 const OpenAI = require('openai');
+const supabase = require('../utils/supabase');
+const { authenticateToken } = require('../middleware/auth');
 const router = express.Router();
 
 const openai = new OpenAI({
@@ -20,9 +22,38 @@ const SYSTEM_PROMPT = `You are a helpful assistant providing general information
 
 Remember: You are providing general information only, not medical advice. Always encourage users to consult with qualified veterinary professionals for their dog's health needs.`;
 
-router.post('/', async (req, res) => {
+router.post('/', authenticateToken, async (req, res) => {
   try {
     const { message, conversationHistory = [] } = req.body;
+    const userId = req.user.userId;
+
+    const { data: entitlement, error: entitlementError } = await supabase
+      .from('entitlements')
+      .select('*')
+      .eq('user_id', userId)
+      .single();
+
+    if (entitlementError || !entitlement || !entitlement.is_active) {
+      return res.status(403).json({ 
+        error: 'Active subscription required',
+        requiresSubscription: true
+      });
+    }
+
+    const isActive = entitlement.is_active && 
+      (!entitlement.renews_at || new Date(entitlement.renews_at) > new Date());
+
+    if (!isActive) {
+      await supabase
+        .from('entitlements')
+        .update({ is_active: false, updated_at: new Date().toISOString() })
+        .eq('user_id', userId);
+
+      return res.status(403).json({ 
+        error: 'Subscription expired',
+        requiresSubscription: true
+      });
+    }
 
     if (!message || typeof message !== 'string' || message.trim().length === 0) {
       return res.status(400).json({ 

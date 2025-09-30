@@ -9,6 +9,12 @@ struct ContentView: View {
                 OnboardingView()
             } else if !appState.hasAcceptedDisclaimer {
                 DisclaimerView()
+            } else if !appState.isAuthenticated {
+                SignInView()
+            } else if appState.isLoading {
+                LoadingView()
+            } else if !appState.hasActiveSubscription {
+                PaywallView()
             } else {
                 ChatView()
             }

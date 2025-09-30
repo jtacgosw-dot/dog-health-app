@@ -5,6 +5,11 @@ const rateLimit = require('express-rate-limit');
 require('dotenv').config();
 
 const chatRoutes = require('./routes/chat');
+const authRoutes = require('./routes/auth');
+const iapRoutes = require('./routes/iap');
+const entitlementsRoutes = require('./routes/entitlements');
+const accountRoutes = require('./routes/account');
+const webhookRoutes = require('./routes/webhook');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -21,6 +26,11 @@ const limiter = rateLimit({
 app.use(limiter);
 
 app.use('/api/chat', chatRoutes);
+app.use('/api/auth', authRoutes);
+app.use('/api/iap', iapRoutes);
+app.use('/api/entitlements', entitlementsRoutes);
+app.use('/api/account', accountRoutes);
+app.use('/api/webhook', webhookRoutes);
 
 app.get('/api/health', (req, res) => {
   res.json({ 
@@ -36,7 +46,12 @@ app.get('/', (req, res) => {
     version: '1.0.0',
     endpoints: [
       'GET /api/health',
-      'POST /api/chat'
+      'POST /api/chat',
+      'POST /api/auth/apple',
+      'POST /api/iap/verify',
+      'GET /api/entitlements',
+      'DELETE /api/account',
+      'POST /api/webhook/apple-asn'
     ]
   });
 });

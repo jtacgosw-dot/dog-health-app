@@ -4,7 +4,7 @@ import Foundation
 class ChatService: ObservableObject {
     @Published var messages: [Message] = []
     
-    private let baseURL = "http://localhost:3000/api"
+    private let baseURL = APIConfig.baseURL
     private var conversationHistory: [ChatMessage] = []
     
     func addWelcomeMessage() {
@@ -53,6 +53,10 @@ class ChatService: ObservableObject {
             throw ChatError.invalidURL
         }
         
+        guard let token = AppState().userToken else {
+            throw ChatError.unauthorized
+        }
+        
         let request = ChatRequest(
             message: message,
             conversationHistory: conversationHistory,
@@ -62,12 +66,17 @@ class ChatService: ObservableObject {
         var urlRequest = URLRequest(url: url)
         urlRequest.httpMethod = "POST"
         urlRequest.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        urlRequest.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         urlRequest.httpBody = try JSONEncoder().encode(request)
         
         let (data, response) = try await URLSession.shared.data(for: urlRequest)
         
         guard let httpResponse = response as? HTTPURLResponse else {
             throw ChatError.invalidResponse
+        }
+        
+        if httpResponse.statusCode == 401 || httpResponse.statusCode == 403 {
+            throw ChatError.unauthorized
         }
         
         guard httpResponse.statusCode == 200 else {
@@ -83,6 +92,7 @@ enum ChatError: Error, LocalizedError {
     case invalidResponse
     case serverError(Int)
     case decodingError
+    case unauthorized
     
     var errorDescription: String? {
         switch self {
@@ -94,6 +104,8 @@ enum ChatError: Error, LocalizedError {
             return "Server error: \(code)"
         case .decodingError:
             return "Failed to decode response"
+        case .unauthorized:
+            return "Authentication required"
         }
     }
 }
