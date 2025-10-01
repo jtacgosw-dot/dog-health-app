@@ -62,7 +62,7 @@
 				A1234567890123456789015D /* Views */,
 				A1234567890123456789015E /* Models */,
 				A1234567890123456789015F /* Services */,
-				A1234567890123456789020A /* Utils */,
+				A1234567890123456789021A /* Utils */,
 				A1234567890123456789012F /* Assets.xcassets */,
 			);
 			path = DogHealthApp;
@@ -115,7 +115,7 @@
 			);
 			sourceTree = "<group>";
 		};
-		A1234567890123456789020A /* Utils */ = {
+		A1234567890123456789021A /* Utils */ = {
 			isa = PBXGroup;
 			children = (
 				A1234567890123456789018B /* APIConfig.swift */,
