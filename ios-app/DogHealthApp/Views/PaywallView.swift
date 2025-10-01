@@ -19,7 +19,7 @@ struct PaywallView: View {
                     .fontWeight(.bold)
                     .multilineTextAlignment(.center)
                 
-                Text("Get unlimited access to your AI dog health assistant")
+                Text("Get unlimited access to your AI Petly assistant")
                     .font(.body)
                     .foregroundColor(.secondary)
                     .multilineTextAlignment(.center)
@@ -57,7 +57,7 @@ struct PaywallView: View {
                     restorePurchases()
                 }
                 .font(.footnote)
-                .foregroundColor(.blue)
+                .foregroundColor(PetlyColors.primaryGreen)
                 .disabled(isPurchasing)
                 
                 if let errorMessage = errorMessage {
@@ -137,7 +137,7 @@ struct FeatureRow: View {
         HStack(spacing: 16) {
             Image(systemName: icon)
                 .font(.title2)
-                .foregroundColor(.blue)
+                .foregroundColor(PetlyColors.primaryGreen)
                 .frame(width: 30)
             
             VStack(alignment: .leading, spacing: 4) {
@@ -181,7 +181,7 @@ struct SubscriptionButton: View {
             }
             .padding()
             .frame(maxWidth: .infinity)
-            .background(Color.blue)
+            .background(PetlyColors.primaryGreen)
             .foregroundColor(.white)
             .cornerRadius(12)
         }

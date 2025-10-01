@@ -8,7 +8,7 @@ struct OnboardingView: View {
         VStack {
             TabView(selection: $currentPage) {
                 OnboardingPageView(
-                    title: "Welcome to Dog Health",
+                    title: "Welcome to Petly",
                     subtitle: "Your AI companion for dog care questions",
                     imageName: "heart.fill",
                     description: "Get helpful information about your dog's health, nutrition, and care from our AI assistant."
@@ -46,7 +46,7 @@ struct OnboardingView: View {
                     .foregroundColor(.white)
                     .frame(maxWidth: .infinity)
                     .padding()
-                    .background(Color.blue)
+                    .background(PetlyColors.primaryGreen)
                     .cornerRadius(12)
             }
             .padding(.horizontal)
@@ -67,7 +67,7 @@ struct OnboardingPageView: View {
             
             Image(systemName: imageName)
                 .font(.system(size: 80))
-                .foregroundColor(.blue)
+                .foregroundColor(PetlyColors.primaryGreen)
             
             VStack(spacing: 16) {
                 Text(title)

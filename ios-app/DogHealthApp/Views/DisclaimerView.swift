@@ -75,7 +75,7 @@ struct DisclaimerView: View {
                         .foregroundColor(.white)
                         .frame(maxWidth: .infinity)
                         .padding()
-                        .background(hasScrolledToBottom ? Color.blue : Color.gray)
+                        .background(hasScrolledToBottom ? PetlyColors.primaryGreen : Color.gray)
                         .cornerRadius(12)
                 }
                 .disabled(!hasScrolledToBottom)
