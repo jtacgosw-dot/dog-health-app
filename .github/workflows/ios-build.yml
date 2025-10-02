@@ -35,27 +35,26 @@ jobs:
           -destination 'platform=iOS Simulator,name=iPhone 16' \
           build
           
-    - name: Build iOS app archive (requires signing)
-      if: ${{ env.APPLE_CERTIFICATES_AVAILABLE == 'true' }}
+    - name: Setup Apple certificates and provisioning profiles
+      if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/devin/')
+      uses: apple-actions/import-codesign-certs@v2
+      with:
+        p12-file-base64: ${{ secrets.APPLE_CERTIFICATE_P12 }}
+        p12-password: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+        
+    - name: Download provisioning profiles
+      if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/devin/')
+      uses: apple-actions/download-provisioning-profiles@v1
+      with:
+        bundle-id: com.johnathongordon.doghealthapp
+        issuer-id: ${{ secrets.APPLE_ISSUER_ID }}
+        api-key-id: ${{ secrets.APPLE_KEY_ID }}
+        api-private-key: ${{ secrets.APPLE_PRIVATE_KEY }}
+        
+    - name: Build iOS app archive
+      if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/devin/')
       run: |
         cd ios-app
-        # Install certificates and provisioning profiles
-        echo "${{ secrets.APPLE_CERTIFICATE_P12 }}" | base64 --decode > certificate.p12
-        echo "${{ secrets.APPLE_PROVISIONING_PROFILE }}" | base64 --decode > profile.mobileprovision
-        
-        # Import certificate to keychain
-        security create-keychain -p "" build.keychain
-        security import certificate.p12 -k build.keychain -P "${{ secrets.APPLE_CERTIFICATE_PASSWORD }}" -T /usr/bin/codesign
-        security list-keychains -s build.keychain
-        security default-keychain -s build.keychain
-        security unlock-keychain -p "" build.keychain
-        security set-key-partition-list -S apple-tool:,apple: -s -k "" build.keychain
-        
-        # Install provisioning profile
-        mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
-        cp profile.mobileprovision ~/Library/MobileDevice/Provisioning\ Profiles/
-        
-        # Build archive
         xcodebuild -project DogHealthApp.xcodeproj \
           -scheme DogHealthApp \
           -configuration Release \
@@ -63,27 +62,26 @@ jobs:
           -archivePath DogHealthApp.xcarchive \
           archive
           
-    - name: Export IPA (requires Apple Developer credentials)
-      if: ${{ env.APPLE_CERTIFICATES_AVAILABLE == 'true' }}
+    - name: Export IPA
+      if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/devin/')
       run: |
         cd ios-app
         # Update ExportOptions.plist with team ID
-        sed -i '' "s/{{ secrets.APPLE_TEAM_ID }}/${{ secrets.APPLE_TEAM_ID }}/g" ExportOptions.plist
+        sed -i '' "s/FM5C46MW5P/${{ secrets.APPLE_TEAM_ID }}/g" ExportOptions.plist
         
         xcodebuild -exportArchive \
           -archivePath DogHealthApp.xcarchive \
           -exportPath . \
           -exportOptionsPlist ExportOptions.plist
           
-    - name: Upload to TestFlight (requires Apple Developer credentials)
-      if: ${{ env.APPLE_CERTIFICATES_AVAILABLE == 'true' }}
-      run: |
-        cd ios-app
-        xcrun altool --upload-app \
-          --type ios \
-          --file DogHealthApp.ipa \
-          --username "${{ secrets.APPLE_ID }}" \
-          --password "${{ secrets.APPLE_APP_PASSWORD }}"
+    - name: Upload to TestFlight
+      if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/devin/')
+      uses: apple-actions/upload-testflight-build@v1
+      with:
+        app-path: ios-app/DogHealthApp.ipa
+        issuer-id: ${{ secrets.APPLE_ISSUER_ID }}
+        api-key-id: ${{ secrets.APPLE_KEY_ID }}
+        api-private-key: ${{ secrets.APPLE_PRIVATE_KEY }}
           
     - name: Upload build artifacts
       uses: actions/upload-artifact@v4
@@ -93,6 +91,3 @@ jobs:
           ios-app/DogHealthApp.xcarchive
           ios-app/*.ipa
         retention-days: 30
-        
-    env:
-      APPLE_CERTIFICATES_AVAILABLE: 'false'  # Set to 'true' when credentials are configured

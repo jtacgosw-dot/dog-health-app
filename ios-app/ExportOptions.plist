@@ -5,7 +5,7 @@
     <key>method</key>
     <string>app-store</string>
     <key>teamID</key>
-    <string>{{ secrets.APPLE_TEAM_ID }}</string>
+    <string>FM5C46MW5P</string>
     <key>uploadBitcode</key>
     <false/>
     <key>uploadSymbols</key>
