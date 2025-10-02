@@ -36,14 +36,14 @@ jobs:
           build
           
     - name: Setup Apple certificates and provisioning profiles
-      if: (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/devin/')) && secrets.APPLE_CERTIFICATE_P12 != ''
+      if: (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/devin/')) && secrets.APPLE_CERTIFICATE_P12
       uses: apple-actions/import-codesign-certs@v2
       with:
         p12-file-base64: ${{ secrets.APPLE_CERTIFICATE_P12 }}
         p12-password: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
         
     - name: Download provisioning profiles
-      if: (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/devin/')) && secrets.APPLE_ISSUER_ID != ''
+      if: (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/devin/')) && secrets.APPLE_ISSUER_ID
       uses: apple-actions/download-provisioning-profiles@v1
       with:
         bundle-id: com.johnathongordon.doghealthapp
@@ -52,7 +52,7 @@ jobs:
         api-private-key: ${{ secrets.APPLE_PRIVATE_KEY }}
         
     - name: Build iOS app archive
-      if: (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/devin/')) && secrets.APPLE_CERTIFICATE_P12 != ''
+      if: (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/devin/')) && secrets.APPLE_CERTIFICATE_P12
       run: |
         cd ios-app
         xcodebuild -project DogHealthApp.xcodeproj \
@@ -63,7 +63,7 @@ jobs:
           archive
           
     - name: Export IPA
-      if: (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/devin/')) && secrets.APPLE_CERTIFICATE_P12 != ''
+      if: (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/devin/')) && secrets.APPLE_CERTIFICATE_P12
       run: |
         cd ios-app
         # Update ExportOptions.plist with team ID
@@ -75,7 +75,7 @@ jobs:
           -exportOptionsPlist ExportOptions.plist
           
     - name: Upload to TestFlight
-      if: (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/devin/')) && secrets.APPLE_ISSUER_ID != ''
+      if: (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/devin/')) && secrets.APPLE_ISSUER_ID
       uses: apple-actions/upload-testflight-build@v1
       with:
         app-path: ios-app/DogHealthApp.ipa
