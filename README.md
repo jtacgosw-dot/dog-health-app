@@ -406,3 +406,5 @@ Key screens to capture for UI/UX review:
 - Sign in with Apple provides privacy-focused authentication
 - Account deletion removes all user data for GDPR compliance
 - Subscription validation prevents unauthorized access to premium features
+
+<!-- Trigger CI to test updated APPLE_PRIVATE_KEY secret format -->
