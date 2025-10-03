@@ -1,0 +1,66 @@
+name: iOS Build and TestFlight
+
+on:
+  push:
+    branches: [ main, 'devin/*' ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: macos-latest
+    env:
+      APPLE_ISSUER_ID: ${{ secrets.APPLE_ISSUER_ID }}
+      APPLE_KEY_ID: ${{ secrets.APPLE_KEY_ID }}
+      APPLE_PRIVATE_KEY: ${{ secrets.APPLE_PRIVATE_KEY }}
+      APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+      BUNDLE_ID: ${{ secrets.BUNDLE_ID }}
+      MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
+      FASTLANE_APPLE_APPLICATION_SPECIFIC_PASSWORD: ${{ secrets.FASTLANE_APPLE_APPLICATION_SPECIFIC_PASSWORD }}
+      MATCH_GIT_BASIC_AUTHORIZATION: ${{ secrets.MATCH_GIT_BASIC_AUTHORIZATION }}
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Show Xcode version
+      run: xcodebuild -version
+      
+    - name: Build iOS app for simulator
+      run: |
+        cd ios-app
+        xcodebuild -project DogHealthApp.xcodeproj \
+          -scheme DogHealthApp \
+          -configuration Debug \
+          -destination 'platform=iOS Simulator,name=iPhone SE (3rd generation)' \
+          build
+          
+    - name: Setup Ruby and Fastlane
+      if: ${{ (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/devin/')) && env.APPLE_ISSUER_ID != '' }}
+      uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: '3.0'
+        bundler-cache: true
+        working-directory: ios-app
+        
+    - name: Create Apple API Key file
+      if: ${{ (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/devin/')) && env.APPLE_ISSUER_ID != '' }}
+      run: |
+        cd ios-app
+        mkdir -p fastlane
+        echo "${{ secrets.APPLE_PRIVATE_KEY }}" > fastlane/AuthKey.p8
+        
+    - name: Run Fastlane beta lane
+      if: ${{ (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/devin/')) && env.APPLE_ISSUER_ID != '' }}
+      run: |
+        cd ios-app
+        bundle exec fastlane beta
+          
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: ios-build
+        path: |
+          ios-app/DogHealthApp.xcarchive
+          ios-app/*.ipa
+        retention-days: 30

@@ -1,0 +1,5 @@
+git_url("https://github.com/jtacgosw-dot/certificates")
+storage_mode("git")
+type("appstore")
+app_identifier(["com.johnathongordon.doghealthapp"])
+team_id("FM5C46MW5P")

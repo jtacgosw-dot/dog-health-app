@@ -13,14 +13,14 @@ struct SignInView: View {
             VStack(spacing: 20) {
                 Image(systemName: "person.circle.fill")
                     .font(.system(size: 80))
-                    .foregroundColor(.blue)
+                    .foregroundColor(PetlyColors.primaryGreen)
                 
                 Text("Sign In Required")
                     .font(.largeTitle)
                     .fontWeight(.bold)
                     .multilineTextAlignment(.center)
                 
-                Text("Sign in with your Apple ID to access your personalized dog health assistant")
+                Text("Sign in with your Apple ID to access your personalized Petly assistant")
                     .font(.body)
                     .foregroundColor(.secondary)
                     .multilineTextAlignment(.center)

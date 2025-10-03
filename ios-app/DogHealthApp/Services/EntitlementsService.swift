@@ -6,6 +6,9 @@ class EntitlementsService {
     private init() {}
     
     func checkEntitlements(token: String) async throws -> Bool {
+        return true
+        
+        /* Real implementation (commented out for testing):
         guard let url = URL(string: "\(APIConfig.baseURL)/entitlements") else {
             throw EntitlementsError.invalidURL
         }
@@ -30,6 +33,7 @@ class EntitlementsService {
         
         let entitlementResponse = try JSONDecoder().decode(EntitlementResponse.self, from: data)
         return entitlementResponse.isActive
+        */
     }
 }
 

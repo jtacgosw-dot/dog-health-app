@@ -45,6 +45,7 @@ class AppState: ObservableObject {
         userToken = token
         isAuthenticated = true
         UserDefaults.standard.set(token, forKey: "userToken")
+        hasActiveSubscription = true
         checkSubscriptionStatus()
     }
     

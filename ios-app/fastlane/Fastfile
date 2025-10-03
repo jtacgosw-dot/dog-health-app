@@ -1,0 +1,44 @@
+default_platform(:ios)
+
+platform :ios do
+  desc "Push a new beta build to TestFlight"
+  lane :beta do
+    setup_ci if ENV['CI']
+    
+    match(
+      type: 'appstore',
+      app_identifier: 'com.johnathongordon.doghealthapp',
+      team_id: 'FM5C46MW5P',
+      readonly: false
+    )
+    
+    build_app(
+      scheme: 'DogHealthApp',
+      export_method: 'app-store',
+      export_options: {
+        teamID: 'FM5C46MW5P',
+        method: 'app-store',
+        uploadBitcode: false,
+        uploadSymbols: true,
+        compileBitcode: false
+      }
+    )
+    
+    upload_to_testflight(
+      skip_waiting_for_build_processing: true,
+      api_key_path: 'fastlane/AuthKey.p8'
+    )
+  end
+  
+  desc "Setup certificates and provisioning profiles"
+  lane :certificates do
+    setup_ci if ENV['CI']
+    
+    match(
+      type: 'appstore',
+      app_identifier: 'com.johnathongordon.doghealthapp',
+      team_id: 'FM5C46MW5P',
+      readonly: false
+    )
+  end
+end
