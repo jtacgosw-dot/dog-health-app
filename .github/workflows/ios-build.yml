@@ -31,7 +31,7 @@ jobs:
         xcodebuild -project DogHealthApp.xcodeproj \
           -scheme DogHealthApp \
           -configuration Debug \
-          -destination 'platform=iOS Simulator,name=Any iOS Simulator Device' \
+          -destination 'platform=iOS Simulator,name=iPhone SE (3rd generation)' \
           build
           
     - name: Setup Apple certificates and provisioning profiles
