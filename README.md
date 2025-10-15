@@ -475,3 +475,4 @@ For iOS certificate generation, we evaluated several options:
 <!-- Trigger CI to test updated APPLE_PRIVATE_KEY secret format -->
 # Trigger CI to test Fastlane Match with configured secrets
 # Test Fastlane Match with configured GitHub secrets
+# Trigger CI with updated MATCH_GIT_BASIC_AUTHORIZATION secret
