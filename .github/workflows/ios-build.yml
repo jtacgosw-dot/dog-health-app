@@ -52,7 +52,9 @@ jobs:
       run: |
         cd ios-app
         mkdir -p fastlane
-        echo "${{ secrets.APPLE_PRIVATE_KEY }}" > fastlane/AuthKey.p8
+        cat << 'EOF' > fastlane/AuthKey.p8
+        ${{ secrets.APPLE_PRIVATE_KEY }}
+        EOF
         
     - name: Run Fastlane beta lane
       if: ${{ (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/devin/')) && env.APPLE_ISSUER_ID != '' }}
