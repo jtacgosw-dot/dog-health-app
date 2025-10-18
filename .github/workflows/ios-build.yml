@@ -1,4 +1,4 @@
-# iOS Build and TestFlight workflow with Apple API key authentication
+# iOS Build and TestFlight workflow with Apple API key authentication - trigger for 2FA
 name: iOS Build and TestFlight
 
 on:
