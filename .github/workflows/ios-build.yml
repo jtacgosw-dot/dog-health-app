@@ -47,14 +47,6 @@ jobs:
         bundler-cache: true
         working-directory: ios-app
         
-    - name: Create Apple API Key file
-      if: ${{ (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/devin/')) && env.APPLE_ISSUER_ID != '' }}
-      run: |
-        cd ios-app
-        mkdir -p fastlane
-        cat << 'EOF' > fastlane/AuthKey.p8
-        ${{ secrets.APPLE_PRIVATE_KEY }}
-        EOF
         
     - name: Run Fastlane beta lane
       if: ${{ (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/devin/')) && env.APPLE_ISSUER_ID != '' }}

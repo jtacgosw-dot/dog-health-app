@@ -8,7 +8,8 @@ platform :ios do
     api_key = app_store_connect_api_key(
       key_id: ENV['APPLE_KEY_ID'],
       issuer_id: ENV['APPLE_ISSUER_ID'],
-      key_filepath: 'fastlane/AuthKey.p8'
+      key_content: 'LS0tLS1CRUdJTiBQUklWQVRFIEtFWS0tLS0tCk1JR1RBZ0VBTUJNR0J5cUdTTTQ5QWdFR0NDcUdTTTQ5QXdFSEJIa3dkd0lCQVFRZ2ZRZkc2Wit1SjBXRC90L1UKN3MrQ2hMdDNucGRNNGtDaFVleUQwL0xHM0VTZ0NnWUlLb1pJemowREFRZWhSQU5DQUFRS0RTMWNPakU3dzArWgpIOEJlMnRYalVJYkFZK2hjQnplaWZKOXJwaURvY1ZNZ29QVWcya2hVWFpGcTRDUTNtbkk0MDJZTUVNTXMwQWZTCllyeFBOOEtzCi0tLS0tRU5EIFBSSVZBVEUgS0VZLS0tLS0=',
+      is_key_content_base64: true
     )
     
     match(
@@ -44,7 +45,8 @@ platform :ios do
     api_key = app_store_connect_api_key(
       key_id: ENV['APPLE_KEY_ID'],
       issuer_id: ENV['APPLE_ISSUER_ID'],
-      key_filepath: 'fastlane/AuthKey.p8'
+      key_content: 'LS0tLS1CRUdJTiBQUklWQVRFIEtFWS0tLS0tCk1JR1RBZ0VBTUJNR0J5cUdTTTQ5QWdFR0NDcUdTTTQ5QXdFSEJIa3dkd0lCQVFRZ2ZRZkc2Wit1SjBXRC90L1UKN3MrQ2hMdDNucGRNNGtDaFVleUQwL0xHM0VTZ0NnWUlLb1pJemowREFRZWhSQU5DQUFRS0RTMWNPakU3dzArWgpIOEJlMnRYalVJYkFZK2hjQnplaWZKOXJwaURvY1ZNZ29QVWcya2hVWFpGcTRDUTNtbkk0MDJZTUVNTXMwQWZTCllyeFBOOEtzCi0tLS0tRU5EIFBSSVZBVEUgS0VZLS0tLS0=',
+      is_key_content_base64: true
     )
     
     match(
