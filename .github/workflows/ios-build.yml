@@ -1,35 +1,40 @@
-# iOS Build and TestFlight workflow with Apple API key authentication - trigger for 2FA
-name: iOS Build and TestFlight
+name: iOS Build & TestFlight
 
 on:
+  workflow_dispatch:
   push:
     branches: [ main, 'devin/*' ]
   pull_request:
     branches: [ main ]
-  workflow_dispatch:
 
 jobs:
   build:
-    runs-on: macos-latest
+    runs-on: macos-14
     env:
-      APPLE_ISSUER_ID: ${{ secrets.APPLE_ISSUER_ID }}
-      APPLE_KEY_ID: ${{ secrets.APPLE_KEY_ID }}
-      APPLE_PRIVATE_KEY: ${{ secrets.APPLE_PRIVATE_KEY }}
-      APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
-      BUNDLE_ID: ${{ secrets.BUNDLE_ID }}
       MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
-      FASTLANE_APPLE_APPLICATION_SPECIFIC_PASSWORD: ${{ secrets.FASTLANE_APPLE_APPLICATION_SPECIFIC_PASSWORD }}
-      MATCH_GIT_BASIC_AUTHORIZATION: ${{ secrets.MATCH_GIT_BASIC_AUTHORIZATION }}
-      FASTLANE_USER: ${{ secrets.FASTLANE_USER }}
-      FASTLANE_PASSWORD: ${{ secrets.FASTLANE_PASSWORD }}
+      APPLE_KEY_ID: ${{ secrets.APPLE_KEY_ID }}
+      APPLE_ISSUER_ID: ${{ secrets.APPLE_ISSUER_ID }}
+      APPLE_PRIVATE_KEY_B64: ${{ secrets.APPLE_PRIVATE_KEY_B64 }}
+      FASTLANE_DISABLE_COLORS: "1"
+      LANG: en_US.UTF-8
+      TZ: UTC
     
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
       
-    - name: Show Xcode version
-      run: xcodebuild -version
-      
+    - name: Set up Ruby
+      uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: '3.2'
+        bundler-cache: true
+        working-directory: ios-app
+
+    - name: Set up Xcode
+      uses: maxim-lobanov/setup-xcode@v1
+      with: 
+        xcode-version: latest-stable
+
     - name: Build iOS app for simulator
       run: |
         cd ios-app
@@ -38,22 +43,46 @@ jobs:
           -configuration Debug \
           -destination 'platform=iOS Simulator,name=iPhone SE (3rd generation)' \
           build
-          
-    - name: Setup Ruby and Fastlane
+
+    - name: Recreate App Store Connect API key files
       if: ${{ (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/devin/')) && env.APPLE_ISSUER_ID != '' }}
-      uses: ruby/setup-ruby@v1
-      with:
-        ruby-version: '3.0'
-        bundler-cache: true
-        working-directory: ios-app
-        
-        
-    - name: Run Fastlane beta lane
+      run: |
+        cd ios-app
+        mkdir -p .keys
+        echo "$APPLE_PRIVATE_KEY_B64" | base64 --decode > .keys/AuthKey_${APPLE_KEY_ID}.p8
+        cat > .keys/api_key.json <<EOF
+        {
+          "key_id": "${APPLE_KEY_ID}",
+          "issuer_id": "${APPLE_ISSUER_ID}",
+          "key": "$(python3 -c "
+        import json
+        with open('.keys/AuthKey_${APPLE_KEY_ID}.p8', 'r') as f:
+            content = f.read()
+        print(content.replace('\n', '\\n'))
+        ")"
+        }
+        EOF
+
+    - name: Unlock keychain
+      if: ${{ (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/devin/')) && env.APPLE_ISSUER_ID != '' }}
+      run: |
+        security create-keychain -p "" build.keychain
+        security default-keychain -s build.keychain
+        security unlock-keychain -p "" build.keychain
+        security set-keychain-settings build.keychain
+
+    - name: Verify API key works
+      if: ${{ (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/devin/')) && env.APPLE_ISSUER_ID != '' }}
+      run: |
+        cd ios-app
+        bundle exec fastlane run app_store_connect_api_key key_filepath:.keys/AuthKey_${APPLE_KEY_ID}.p8 key_id:${APPLE_KEY_ID} issuer_id:${APPLE_ISSUER_ID}
+
+    - name: Build & Upload to TestFlight
       if: ${{ (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/devin/')) && env.APPLE_ISSUER_ID != '' }}
       run: |
         cd ios-app
         bundle exec fastlane beta
-          
+
     - name: Upload build artifacts
       uses: actions/upload-artifact@v4
       with:
