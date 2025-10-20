@@ -8,7 +8,7 @@ platform :ios do
     api_key = app_store_connect_api_key(
       key_id: ENV['APPLE_KEY_ID'],
       issuer_id: ENV['APPLE_ISSUER_ID'],
-      key_content: File.read('.keys/AuthKey_' + ENV['APPLE_KEY_ID'] + '.p8'),
+      key_content: File.read(File.expand_path('../.keys/AuthKey_' + ENV['APPLE_KEY_ID'] + '.p8', __dir__)),
       in_house: false
     )
     
@@ -49,7 +49,7 @@ platform :ios do
     api_key = app_store_connect_api_key(
       key_id: ENV['APPLE_KEY_ID'],
       issuer_id: ENV['APPLE_ISSUER_ID'],
-      key_content: File.read('.keys/AuthKey_' + ENV['APPLE_KEY_ID'] + '.p8'),
+      key_content: File.read(File.expand_path('../.keys/AuthKey_' + ENV['APPLE_KEY_ID'] + '.p8', __dir__)),
       in_house: false
     )
     
