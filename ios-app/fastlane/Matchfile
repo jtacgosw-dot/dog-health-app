@@ -1,4 +1,4 @@
-git_url("https://github.com/jtacgosw-dot/certificates")
+git_url("git@github.com:jtacgosw-dot/certificates.git")
 storage_mode("git")
 type("appstore")
 app_identifier(["com.johnathongordon.doghealthapp"])

@@ -23,6 +23,16 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
       
+    - name: Start ssh-agent and add deploy key
+      uses: webfactory/ssh-agent@v0.9.0
+      with:
+        ssh-private-key: ${{ secrets.MATCH_CERTS_DEPLOY_KEY }}
+
+    - name: Trust GitHub host
+      run: |
+        mkdir -p ~/.ssh
+        ssh-keyscan -t rsa,ecdsa,ed25519 github.com >> ~/.ssh/known_hosts
+      
     - name: Set up Ruby
       uses: ruby/setup-ruby@v1
       with:
