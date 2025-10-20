@@ -9,7 +9,8 @@ platform :ios do
       key_id: ENV['APPLE_KEY_ID'],
       issuer_id: ENV['APPLE_ISSUER_ID'],
       key_content: ENV['APPLE_PRIVATE_KEY'],
-      is_key_content_base64: false
+      is_key_content_base64: false,
+      in_house: false
     )
     
     match(
@@ -46,7 +47,8 @@ platform :ios do
       key_id: ENV['APPLE_KEY_ID'],
       issuer_id: ENV['APPLE_ISSUER_ID'],
       key_content: ENV['APPLE_PRIVATE_KEY'],
-      is_key_content_base64: false
+      is_key_content_base64: false,
+      in_house: false
     )
     
     match(
