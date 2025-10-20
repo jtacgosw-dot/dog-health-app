@@ -45,9 +45,14 @@ jobs:
           build
 
     - name: Recreate App Store Connect API key files
-      if: ${{ (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/devin/')) && env.APPLE_ISSUER_ID != '' }}
+      if: ${{ ((github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/devin/'))) || (github.event_name == 'pull_request' && startsWith(github.head_ref, 'devin/'))) && env.APPLE_ISSUER_ID != '' }}
       run: |
         cd ios-app
+        echo "Debug: APPLE_PRIVATE_KEY_B64 length: ${#APPLE_PRIVATE_KEY_B64}"
+        if [ -z "$APPLE_PRIVATE_KEY_B64" ]; then
+          echo "ERROR: APPLE_PRIVATE_KEY_B64 is empty or not set"
+          exit 1
+        fi
         mkdir -p .keys
         echo "$APPLE_PRIVATE_KEY_B64" | base64 --decode > .keys/AuthKey_${APPLE_KEY_ID}.p8
         cat > .keys/api_key.json <<EOF
@@ -64,7 +69,7 @@ jobs:
         EOF
 
     - name: Unlock keychain
-      if: ${{ (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/devin/')) && env.APPLE_ISSUER_ID != '' }}
+      if: ${{ ((github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/devin/'))) || (github.event_name == 'pull_request' && startsWith(github.head_ref, 'devin/'))) && env.APPLE_ISSUER_ID != '' }}
       run: |
         security create-keychain -p "" build.keychain
         security default-keychain -s build.keychain
@@ -72,13 +77,13 @@ jobs:
         security set-keychain-settings build.keychain
 
     - name: Verify API key works
-      if: ${{ (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/devin/')) && env.APPLE_ISSUER_ID != '' }}
+      if: ${{ ((github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/devin/'))) || (github.event_name == 'pull_request' && startsWith(github.head_ref, 'devin/'))) && env.APPLE_ISSUER_ID != '' }}
       run: |
         cd ios-app
         bundle exec fastlane run app_store_connect_api_key key_filepath:.keys/AuthKey_${APPLE_KEY_ID}.p8 key_id:${APPLE_KEY_ID} issuer_id:${APPLE_ISSUER_ID}
 
     - name: Build & Upload to TestFlight
-      if: ${{ (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/devin/')) && env.APPLE_ISSUER_ID != '' }}
+      if: ${{ ((github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/devin/'))) || (github.event_name == 'pull_request' && startsWith(github.head_ref, 'devin/'))) && env.APPLE_ISSUER_ID != '' }}
       run: |
         cd ios-app
         bundle exec fastlane beta
