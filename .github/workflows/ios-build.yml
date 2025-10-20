@@ -86,6 +86,13 @@ jobs:
       if: ${{ ((github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/devin/'))) || (github.event_name == 'pull_request' && startsWith(github.head_ref, 'devin/'))) && env.APPLE_ISSUER_ID != '' }}
       run: |
         cd ios-app
+        echo "Debug: Current working directory: $(pwd)"
+        echo "Debug: Listing ios-app contents:"
+        ls -la
+        echo "Debug: Checking .keys directory:"
+        ls -la .keys/ || echo ".keys directory not found"
+        echo "Debug: Checking if AuthKey file exists:"
+        ls -la .keys/AuthKey_${APPLE_KEY_ID}.p8 || echo "AuthKey file not found"
         bundle exec fastlane beta
 
     - name: Upload build artifacts
