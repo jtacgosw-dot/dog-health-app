@@ -5,19 +5,12 @@ platform :ios do
   lane :beta do
     setup_ci if ENV['CI']
     
-    api_key = app_store_connect_api_key(
-      key_id: ENV['APPLE_KEY_ID'],
-      issuer_id: ENV['APPLE_ISSUER_ID'],
-      key_filepath: File.expand_path('../.keys/AuthKey_' + ENV['APPLE_KEY_ID'] + '.p8', __dir__),
-      in_house: false
-    )
-    
     match(
       type: "appstore",
       app_identifier: 'com.johnathongordon.doghealthapp',
       team_id: 'FM5C46MW5P',
       readonly: false,
-      api_key: api_key,
+      api_key_path: File.expand_path('../.keys/AuthKey_' + ENV['APPLE_KEY_ID'] + '.p8', __dir__),
       storage_mode: "git",
       git_url: "git@github.com:jtacgosw-dot/certificates.git",
       keychain_name: "build.keychain",
@@ -36,6 +29,13 @@ platform :ios do
       }
     )
     
+    api_key = app_store_connect_api_key(
+      key_id: ENV['APPLE_KEY_ID'],
+      issuer_id: ENV['APPLE_ISSUER_ID'],
+      key_filepath: File.expand_path('../.keys/AuthKey_' + ENV['APPLE_KEY_ID'] + '.p8', __dir__),
+      in_house: false
+    )
+    
     upload_to_testflight(
       skip_waiting_for_build_processing: true,
       api_key: api_key
@@ -46,19 +46,12 @@ platform :ios do
   lane :certificates do
     setup_ci if ENV['CI']
     
-    api_key = app_store_connect_api_key(
-      key_id: ENV['APPLE_KEY_ID'],
-      issuer_id: ENV['APPLE_ISSUER_ID'],
-      key_filepath: File.expand_path('../.keys/AuthKey_' + ENV['APPLE_KEY_ID'] + '.p8', __dir__),
-      in_house: false
-    )
-    
     match(
       type: "appstore",
       app_identifier: 'com.johnathongordon.doghealthapp',
       team_id: 'FM5C46MW5P',
       readonly: false,
-      api_key: api_key,
+      api_key_path: File.expand_path('../.keys/AuthKey_' + ENV['APPLE_KEY_ID'] + '.p8', __dir__),
       storage_mode: "git",
       git_url: "git@github.com:jtacgosw-dot/certificates.git",
       keychain_name: "build.keychain",
