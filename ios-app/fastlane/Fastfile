@@ -19,7 +19,7 @@ platform :ios do
       readonly: false,
       api_key: api_key,
       storage_mode: "git",
-      git_url: "https://github.com/jtacgosw-dot/certificates.git",
+      git_url: "git@github.com:jtacgosw-dot/certificates.git",
       keychain_name: "build.keychain",
       keychain_password: ""
     )
@@ -60,7 +60,7 @@ platform :ios do
       readonly: false,
       api_key: api_key,
       storage_mode: "git",
-      git_url: "https://github.com/jtacgosw-dot/certificates.git",
+      git_url: "git@github.com:jtacgosw-dot/certificates.git",
       keychain_name: "build.keychain",
       keychain_password: ""
     )
