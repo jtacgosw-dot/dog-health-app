@@ -9,7 +9,7 @@ class ChatService: ObservableObject {
     
     func addWelcomeMessage() {
         let welcomeMessage = Message(
-            content: "Hello! I'm your dog health assistant. I can help answer questions about your dog's symptoms, nutrition, care, and general wellness. What would you like to know?",
+            content: "Hi there, I'm Petly AI 🐾🐕\nYour pet's smart wellness companion! Tell me your pet's name and breed, and I'll create a personalized care plan tailored to their needs. Petly makes caring for your furry friend simple, smart, and stress-free.\nLet's get started—what's your pet's name?",
             isFromUser: false,
             hasDisclaimer: true
         )
