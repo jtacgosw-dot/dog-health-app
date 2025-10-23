@@ -112,55 +112,42 @@ dog-health-app/
 
 ### iOS App Setup
 
-1. **Install Fastlane dependencies:**
-   ```bash
-   cd ios-app
-   bundle install
-   ```
-
-2. **Open in Xcode**
+1. **Open in Xcode**
    ```bash
    open ios-app/DogHealthApp.xcodeproj
    ```
 
-3. **Configure App Store Connect**
+2. **Configure App Store Connect**
    - Set up your app in App Store Connect
    - Configure subscription products: `pup_monthly`, `pup_annual`
    - Enable Sign in with Apple capability
 
-4. **Update Bundle ID**
+3. **Update Bundle ID**
    - Set your bundle identifier in Xcode
    - Update `BUNDLE_ID` in backend `.env` to match
 
-5. **Build and Run**
+4. **Build and Run**
    - Select your target device/simulator
    - Press `Cmd+R` to build and run
 
-### TestFlight Deployment
+## iOS Deployment (Xcode Cloud)
 
-1. **Setup certificates (first time only):**
-   ```bash
-   cd ios-app
-   bundle exec fastlane certificates
-   ```
+The iOS app uses Xcode Cloud for automated building and TestFlight deployment.
 
-2. **Deploy to TestFlight:**
-   ```bash
-   bundle exec fastlane beta
-   ```
+### Setup
+1. Open `ios-app/DogHealthApp.xcodeproj` in Xcode
+2. Ensure automatic signing is enabled with Team ID: FM5C46MW5P
+3. In Xcode: Report Navigator → Cloud → Get Started
+4. Or in App Store Connect: Apps → DogHealthApp → Xcode Cloud → Create Workflow
 
-### GitHub Secrets Configuration
+### Workflow Configuration
+- **Start Condition**: Push to `main` branch
+- **Actions**: Archive (iOS)
+- **Post-Actions**: TestFlight Internal Testing
+- **Signing**: Automatic (uses Developer account certificates)
 
-For automated CI/CD, configure these secrets in your GitHub repository:
-
-- `APPLE_ISSUER_ID`: Your App Store Connect API issuer ID
-- `APPLE_KEY_ID`: Your App Store Connect API key ID  
-- `APPLE_PRIVATE_KEY`: Your App Store Connect API private key
-- `APPLE_TEAM_ID`: Your Apple Developer Team ID
-- `BUNDLE_ID`: Your app's bundle identifier
-- `MATCH_PASSWORD`: Password for encrypting certificates in Match
-- `FASTLANE_APPLE_APPLICATION_SPECIFIC_PASSWORD`: App-specific password for Apple ID
-- `MATCH_GIT_BASIC_AUTHORIZATION`: Base64 encoded git credentials for certificate repository
+### TestFlight
+Builds are automatically uploaded to TestFlight after successful archive.
 
 ## API Endpoints
 
@@ -431,36 +418,12 @@ Key screens to capture for UI/UX review:
 
 ## Certificate Management
 
-The project uses Fastlane Match for automated certificate and provisioning profile management:
+The project uses Xcode Cloud with automatic signing for seamless certificate management:
 
-- **Certificates are stored** in a private git repository and encrypted with a password
-- **GitHub Actions** automatically handles certificate setup during CI builds
-- **Local development** can use `bundle exec fastlane certificates` to sync certificates
-- **No manual CSR generation** required - Match handles everything automatically
-
-### Cloud-Based Mac Solutions Analysis
-
-For iOS certificate generation, we evaluated several options:
-
-1. **Fastlane Match (Chosen Solution)** - FREE
-   - Uses GitHub Actions macOS runners (included in free tier)
-   - Automated certificate and provisioning profile management
-   - Industry standard solution with excellent CI integration
-   - No additional costs beyond GitHub usage
-
-2. **MacStadium** - $109-399/month
-   - Dedicated Mac cloud instances
-   - Full macOS environment access
-   - Higher cost for occasional certificate generation needs
-
-3. **AWS EC2 Mac Instances** - $15.60-37.44/24hr minimum
-   - mac2 instances: $0.65/hr ($15.60/24hr minimum)
-   - mac2-m2 instances: $0.878/hr ($21.07/24hr minimum)  
-   - mac1 instances: $1.083/hr ($25.99/24hr minimum)
-   - mac2-m2pro instances: $1.56/hr ($37.44/24hr minimum)
-   - 24-hour minimum billing period on Dedicated Hosts
-
-**Recommendation:** Fastlane Match provides the most cost-effective and maintainable solution for automated iOS certificate management.
+- **Automatic Signing**: Xcode Cloud handles certificates and provisioning profiles automatically
+- **Apple-Hosted**: No need for external certificate storage or complex authentication
+- **Zero Configuration**: Works out of the box with Apple Developer account
+- **Secure**: Uses Apple's native infrastructure for certificate management
 
 ## Safety & Compliance
 
@@ -473,8 +436,3 @@ For iOS certificate generation, we evaluated several options:
 - Subscription validation prevents unauthorized access to premium features
 
 <!-- Trigger CI to test updated APPLE_PRIVATE_KEY secret format -->
-# Trigger CI to test Fastlane Match with configured secrets
-# Test Fastlane Match with configured GitHub secrets
-# Trigger CI with updated MATCH_GIT_BASIC_AUTHORIZATION secret
-# SSH deploy key fix - trigger CI
-# Testing updated SSH deploy key
