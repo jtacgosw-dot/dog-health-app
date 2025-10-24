@@ -130,24 +130,47 @@ dog-health-app/
    - Select your target device/simulator
    - Press `Cmd+R` to build and run
 
-## iOS Deployment (Xcode Cloud)
+## iOS Deployment (GitHub Actions)
 
-The iOS app uses Xcode Cloud for automated building and TestFlight deployment.
+The iOS app uses GitHub Actions for automated building and TestFlight deployment with simplified certificate management.
 
-### Setup
-1. Open `ios-app/DogHealthApp.xcodeproj` in Xcode
-2. Ensure automatic signing is enabled with Team ID: FM5C46MW5P
-3. In Xcode: Report Navigator → Cloud → Get Started
-4. Or in App Store Connect: Apps → DogHealthApp → Xcode Cloud → Create Workflow
+### Setup Requirements
 
-### Workflow Configuration
-- **Start Condition**: Push to `main` branch
-- **Actions**: Archive (iOS)
-- **Post-Actions**: TestFlight Internal Testing
-- **Signing**: Automatic (uses Developer account certificates)
+You'll need to export certificates from a Mac and add them as GitHub secrets:
+
+#### 1. Export Distribution Certificate (.p12)
+- Open **Keychain Access** on a Mac
+- Find your **"Apple Distribution"** certificate for Team ID `FM5C46MW5P`
+- Right-click → **Export** → Save as `.p12` with a password
+- Base64 encode: `base64 -i certificate.p12 | pbcopy`
+
+#### 2. Export Provisioning Profile
+- Go to [Apple Developer Portal](https://developer.apple.com/account/resources/profiles/list)
+- Download the **App Store** provisioning profile for `com.petly.doghealthapp`
+- Base64 encode: `base64 -i profile.mobileprovision | pbcopy`
+
+#### 3. Add GitHub Secrets
+Go to **Settings → Secrets and variables → Actions** in your GitHub repo and add:
+
+- `P12_BASE64`: Base64-encoded .p12 certificate
+- `P12_PASSWORD`: Password for the .p12 file  
+- `MOBILEPROVISION_BASE64`: Base64-encoded provisioning profile
+- `APPLE_KEY_ID`: App Store Connect API key ID
+- `APPLE_ISSUER_ID`: App Store Connect API issuer ID
+- `APPLE_PRIVATE_KEY_B64`: Base64-encoded .p8 private key
+
+### Workflow
+- **Trigger**: Push to `main` or `devin/*` branches
+- **Actions**: Import certificates → Build → Archive → Upload to TestFlight
+- **Signing**: Manual certificate import (no Match complexity)
 
 ### TestFlight
 Builds are automatically uploaded to TestFlight after successful archive.
+
+### Troubleshooting
+- Ensure provisioning profile name matches `DogHealthApp Distribution`
+- Verify certificate is for the correct Team ID: `FM5C46MW5P`
+- Check that bundle ID matches: `com.petly.doghealthapp`
 
 ## API Endpoints
 

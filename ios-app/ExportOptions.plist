@@ -13,8 +13,13 @@
     <key>compileBitcode</key>
     <false/>
     <key>signingStyle</key>
-    <string>automatic</string>
+    <string>manual</string>
     <key>destination</key>
     <string>upload</string>
+    <key>provisioningProfiles</key>
+    <dict>
+        <key>com.petly.doghealthapp</key>
+        <string>DogHealthApp Distribution</string>
+    </dict>
 </dict>
 </plist>
