@@ -1,94 +1,58 @@
-# Dependencies
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Node.js
 node_modules/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-
-# Environment variables
-.env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
-
-# Logs
-logs
-*.log
-
-# Runtime data
-pids
-*.pid
-*.seed
-*.pid.lock
-
-# Coverage directory used by tools like istanbul
-coverage/
-
-# nyc test coverage
-.nyc_output
-
-# Dependency directories
-node_modules/
-jspm_packages/
-
-# Optional npm cache directory
+package-lock.json
 .npm
 
-# Optional REPL history
-.node_repl_history
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
 
-# Output of 'npm pack'
-*.tgz
+# Xcode
+*.xcodeproj/*
+!*.xcodeproj/project.pbxproj
+!*.xcodeproj/xcshareddata/
+!*.xcworkspace/contents.xcworkspacedata
+/*.gcno
+**/xcshareddata/WorkspaceSettings.xcsettings
 
-# Yarn Integrity file
-.yarn-integrity
+# Build artifacts
+build/
+DerivedData/
+*.ipa
+*.dSYM.zip
+*.dSYM
 
-# dotenv environment variables file
-.env
+# Swift Package Manager
+.swiftpm/
+.build/
 
-# IDE files
+# CocoaPods
+Pods/
+*.xcworkspace
+!default.xcworkspace
+
+# Fastlane
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots/**/*.png
+fastlane/test_output
+
+# IDEs
 .vscode/
 .idea/
 *.swp
 *.swo
 *~
 
-# OS generated files
-.DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
-ehthumbs.db
-Thumbs.db
-
-# Xcode
-build/
-*.pbxuser
-!default.pbxuser
-*.mode1v3
-!default.mode1v3
-*.mode2v3
-!default.mode2v3
-*.perspectivev3
-!default.perspectivev3
-xcuserdata/
-*.xccheckout
-*.moved-aside
-DerivedData
-*.hmap
-*.ipa
-*.xcuserstate
-project.xcworkspace/
-
-# CocoaPods
-Pods/
-
-# Carthage
-Carthage/Build/
-
-# Swift Package Manager
-.build/
-Packages/
-Package.pins
-Package.resolved
+# Logs
+logs/
+*.log
