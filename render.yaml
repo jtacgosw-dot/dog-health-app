@@ -1,0 +1,33 @@
+services:
+  - type: web
+    name: dog-health-app
+    env: node
+    region: oregon
+    plan: free
+    buildCommand: cd backend && npm install
+    startCommand: cd backend && npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3000
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_ANON_KEY
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      - key: APPLE_TEAM_ID
+        sync: false
+      - key: APPLE_CLIENT_ID
+        value: com.johnathongordon.doghealthapp.signin
+      - key: APPLE_KEY_ID
+        sync: false
+      - key: APPLE_PRIVATE_KEY
+        sync: false
+      - key: APPLE_SHARED_SECRET
+        sync: false
+      - key: APPLE_BUNDLE_ID
+        value: com.johnathongordon.doghealthapp
+      - key: OPENAI_API_KEY
+        sync: false
