@@ -2,72 +2,179 @@ import SwiftUI
 
 struct OnboardingView: View {
     @EnvironmentObject var appState: AppState
+    @State private var selectedInterests: Set<String> = []
+    @State private var currentPage = 0
+    
+    let interests = [
+        "Increasing My Pet's Wellbeing",
+        "Nutrition",
+        "Tips & Tricks",
+        "Activity & Energy"
+    ]
     
     var body: some View {
-        VStack(spacing: 30) {
-            Spacer()
+        ZStack {
+            Color.petlyCream
+                .ignoresSafeArea()
+            
+            VStack(spacing: 30) {
+                Spacer()
+                
+                if currentPage == 0 {
+                    welcomePage
+                } else {
+                    interestsPage
+                }
+                
+                Spacer()
+                
+                pageIndicator
+                    .padding(.bottom, 40)
+            }
+            .padding()
+        }
+    }
+    
+    var welcomePage: some View {
+        VStack(spacing: 20) {
+            Text("Petly")
+                .font(.system(size: 48, weight: .bold, design: .serif))
+                .foregroundColor(.petlyDarkGreen)
             
             Image(systemName: "pawprint.fill")
                 .font(.system(size: 80))
-                .foregroundColor(.blue)
+                .foregroundColor(.petlyDarkGreen)
+                .padding(.vertical, 20)
             
-            Text("Dog Health App")
-                .font(.largeTitle)
-                .fontWeight(.bold)
-            
-            Text("AI-Powered Guidance for Dog Owners")
+            Text("Smart care tailored with love")
                 .font(.title3)
+                .foregroundColor(.petlyDarkGreen)
+                .multilineTextAlignment(.center)
+            
+            Text("AI THAT KNOWS YOUR PET")
+                .font(.caption)
+                .fontWeight(.semibold)
+                .foregroundColor(.petlyDarkGreen)
+                .padding(.top, 10)
+            
+            Text("Using AI, Petly tailors food, supplement, and lifestyle recommendations to your pet's unique age, breed, size, and health needs — helping them live longer, happier, and healthier lives.")
+                .font(.subheadline)
                 .foregroundColor(.secondary)
-            
-            Spacer()
-            
-            VStack(alignment: .leading, spacing: 20) {
-                DisclaimerText()
-            }
-            .padding()
-            .background(Color(.systemGray6))
-            .cornerRadius(12)
-            .padding(.horizontal)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal)
+                .padding(.top, 5)
             
             Button(action: {
-                appState.hasCompletedOnboarding = true
+                withAnimation {
+                    currentPage = 1
+                }
             }) {
-                Text("I Understand")
+                Text("Get Started")
                     .font(.headline)
                     .foregroundColor(.white)
                     .frame(maxWidth: .infinity)
                     .padding()
-                    .background(Color.blue)
-                    .cornerRadius(12)
+                    .background(Color.petlyDarkGreen)
+                    .cornerRadius(PetlyTheme.buttonCornerRadius)
+            }
+            .padding(.horizontal)
+            .padding(.top, 20)
+        }
+    }
+    
+    var interestsPage: some View {
+        VStack(spacing: 20) {
+            Text("What areas of")
+                .font(.title2)
+                .foregroundColor(.black)
+            
+            HStack(spacing: 0) {
+                Text("Petly")
+                    .font(.title2)
+                    .fontWeight(.bold)
+                    .foregroundColor(.black)
+                    .underline()
+                Text(" are you most")
+                    .font(.title2)
+                    .foregroundColor(.black)
+            }
+            
+            Text("excited to use?")
+                .font(.title2)
+                .foregroundColor(.black)
+            
+            Text("Let's personalize your experience!")
+                .font(.subheadline)
+                .foregroundColor(.secondary)
+                .padding(.bottom, 10)
+            
+            VStack(spacing: 12) {
+                ForEach(interests, id: \.self) { interest in
+                    InterestButton(
+                        title: interest,
+                        isSelected: selectedInterests.contains(interest)
+                    ) {
+                        if selectedInterests.contains(interest) {
+                            selectedInterests.remove(interest)
+                        } else {
+                            selectedInterests.insert(interest)
+                        }
+                    }
+                }
             }
             .padding(.horizontal)
             
-            Spacer()
+            Image(systemName: "pawprint.fill")
+                .font(.system(size: 60))
+                .foregroundColor(.petlyDarkGreen.opacity(0.3))
+                .padding(.top, 20)
+            
+            Button(action: {
+                appState.hasCompletedOnboarding = true
+            }) {
+                Text("Continue")
+                    .font(.headline)
+                    .foregroundColor(.white)
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .background(selectedInterests.isEmpty ? Color.gray : Color.petlyDarkGreen)
+                    .cornerRadius(PetlyTheme.buttonCornerRadius)
+            }
+            .disabled(selectedInterests.isEmpty)
+            .padding(.horizontal)
+            .padding(.top, 10)
         }
-        .padding()
+    }
+    
+    var pageIndicator: some View {
+        HStack(spacing: 8) {
+            ForEach(0..<2) { index in
+                Circle()
+                    .fill(index == currentPage ? Color.petlyDarkGreen : Color.gray.opacity(0.3))
+                    .frame(width: 8, height: 8)
+            }
+        }
     }
 }
 
-struct DisclaimerText: View {
+struct InterestButton: View {
+    let title: String
+    let isSelected: Bool
+    let action: () -> Void
+    
     var body: some View {
-        VStack(alignment: .leading, spacing: 15) {
-            Label("Important Disclaimer", systemImage: "exclamationmark.triangle.fill")
-                .font(.headline)
-                .foregroundColor(.orange)
-            
-            Text("This app provides educational guidance and information only.")
+        Button(action: action) {
+            Text(title)
                 .font(.subheadline)
-            
-            Text("It is NOT a substitute for professional veterinary care and does NOT provide medical diagnoses or veterinary advice.")
-                .font(.subheadline)
-                .fontWeight(.semibold)
-            
-            Text("Always consult with a licensed veterinarian for medical concerns about your pet.")
-                .font(.subheadline)
-            
-            Text("By continuing, you acknowledge that you understand this app is for educational purposes only.")
-                .font(.caption)
-                .foregroundColor(.secondary)
+                .foregroundColor(isSelected ? .white : .petlyDarkGreen)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 14)
+                .background(isSelected ? Color.petlySageGreen : Color.white)
+                .cornerRadius(PetlyTheme.buttonCornerRadius)
+                .overlay(
+                    RoundedRectangle(cornerRadius: PetlyTheme.buttonCornerRadius)
+                        .stroke(Color.petlySageGreen, lineWidth: 1)
+                )
         }
     }
 }
