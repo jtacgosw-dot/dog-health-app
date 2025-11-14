@@ -130,8 +130,16 @@ struct ChatRequest: Codable {
 }
 
 struct ChatResponse: Codable {
-    let message: Message
+    let success: Bool
     let conversationId: String
+    let message: ChatMessage
+}
+
+struct ChatMessage: Codable {
+    let id: String
+    let role: String
+    let content: String
+    let createdAt: String
 }
 
 struct ConversationsResponse: Codable {

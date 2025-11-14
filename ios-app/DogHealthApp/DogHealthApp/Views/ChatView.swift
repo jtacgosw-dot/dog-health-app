@@ -130,10 +130,10 @@ struct ChatView: View {
                     conversationId = response.conversationId
                     
                     let assistantMessage = Message(
-                        id: UUID().uuidString,
+                        id: response.message.id,
                         conversationId: response.conversationId,
                         role: .assistant,
-                        content: response.response,
+                        content: response.message.content,
                         timestamp: Date(),
                         feedback: nil
                     )
