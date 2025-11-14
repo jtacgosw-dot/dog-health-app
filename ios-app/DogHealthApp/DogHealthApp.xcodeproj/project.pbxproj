@@ -15,6 +15,12 @@
 		A1000011000000000000001 /* PaywallView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000012000000000000001 /* PaywallView.swift */; };
 		A1000013000000000000001 /* ChatView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000014000000000000001 /* ChatView.swift */; };
 		A1000015000000000000001 /* APIConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000016000000000000001 /* APIConfig.swift */; };
+
+		A0A1000034000000000000002 /* PetlyColors.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0A1000034000000000000001 /* PetlyColors.swift */; };
+		A0A1000034000000000000004 /* Dog.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0A1000034000000000000003 /* Dog.swift */; };
+		A0A1000034000000000000006 /* Message.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0A1000034000000000000005 /* Message.swift */; };
+		A0A1000034000000000000008 /* User.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0A1000034000000000000007 /* User.swift */; };
+		A0A100003400000000000000A /* APIService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0A1000034000000000000009 /* APIService.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -27,6 +33,12 @@
 		A1000012000000000000001 /* PaywallView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaywallView.swift; sourceTree = "<group>"; };
 		A1000014000000000000001 /* ChatView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatView.swift; sourceTree = "<group>"; };
 		A1000016000000000000001 /* APIConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIConfig.swift; sourceTree = "<group>"; };
+
+		A0A1000034000000000000001 /* PetlyColors.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PetlyColors.swift; sourceTree = "<group>"; };
+		A0A1000034000000000000003 /* Dog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Dog.swift; sourceTree = "<group>"; };
+		A0A1000034000000000000005 /* Message.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Message.swift; sourceTree = "<group>"; };
+		A0A1000034000000000000007 /* User.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = User.swift; sourceTree = "<group>"; };
+		A0A1000034000000000000009 /* APIService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIService.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -56,7 +68,12 @@
 				A1000022000000000000001 /* Views */,
 				A1000023000000000000001 /* Utils */,
 				A1000006000000000000001 /* Assets.xcassets */,
-			);
+			
+				A1000050000000000000001 /* Theme */,
+				A1000051000000000000001 /* Models */,
+				A1000052000000000000001 /* Services */,
+				A1000053000000000000001 /* Config */,
+);
 			path = DogHealthApp;
 			sourceTree = "<group>";
 		};
@@ -79,14 +96,41 @@
 			path = Views;
 			sourceTree = "<group>";
 		};
-		A1000023000000000000001 /* Utils */ = {
-			isa = PBXGroup;
-			children = (
-				A1000016000000000000001 /* APIConfig.swift */,
-			);
-			path = Utils;
-			sourceTree = "<group>";
-		};
+	
+	A1000050000000000000001 /* Theme */ = {
+		isa = PBXGroup;
+		children = (
+			A0A1000034000000000000001 /* PetlyColors.swift */,
+		);
+		path = Theme;
+		sourceTree = "<group>";
+	};
+	A1000051000000000000001 /* Models */ = {
+		isa = PBXGroup;
+		children = (
+			A0A1000034000000000000003 /* Dog.swift */,
+			A0A1000034000000000000005 /* Message.swift */,
+			A0A1000034000000000000007 /* User.swift */,
+		);
+		path = Models;
+		sourceTree = "<group>";
+	};
+	A1000052000000000000001 /* Services */ = {
+		isa = PBXGroup;
+		children = (
+			A0A1000034000000000000009 /* APIService.swift */,
+		);
+		path = Services;
+		sourceTree = "<group>";
+	};
+	A1000053000000000000001 /* Config */ = {
+		isa = PBXGroup;
+		children = (
+			A1000016000000000000001 /* APIConfig.swift */,
+		);
+		path = Config;
+		sourceTree = "<group>";
+	};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -163,7 +207,13 @@
 				A1000011000000000000001 /* PaywallView.swift in Sources */,
 				A1000013000000000000001 /* ChatView.swift in Sources */,
 				A1000015000000000000001 /* APIConfig.swift in Sources */,
-			);
+			
+				A0A1000034000000000000002 /* PetlyColors.swift in Sources */,
+				A0A1000034000000000000004 /* Dog.swift in Sources */,
+				A0A1000034000000000000006 /* Message.swift in Sources */,
+				A0A1000034000000000000008 /* User.swift in Sources */,
+				A0A100003400000000000000A /* APIService.swift in Sources */,
+);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
