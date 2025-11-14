@@ -21,6 +21,10 @@
 		A0A1000034000000000000006 /* Message.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0A1000034000000000000005 /* Message.swift */; };
 		A0A1000034000000000000008 /* User.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0A1000034000000000000007 /* User.swift */; };
 		A0A100003400000000000000A /* APIService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0A1000034000000000000009 /* APIService.swift */; };
+
+		A0A1000060000000000000002 /* MainTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0A1000060000000000000001 /* MainTabView.swift */; };
+		A0A1000060000000000000004 /* PetProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0A1000060000000000000003 /* PetProfileView.swift */; };
+		A0A1000060000000000000006 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0A1000060000000000000005 /* SettingsView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -39,6 +43,10 @@
 		A0A1000034000000000000005 /* Message.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Message.swift; sourceTree = "<group>"; };
 		A0A1000034000000000000007 /* User.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = User.swift; sourceTree = "<group>"; };
 		A0A1000034000000000000009 /* APIService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIService.swift; sourceTree = "<group>"; };
+
+		A0A1000060000000000000001 /* MainTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainTabView.swift; sourceTree = "<group>"; };
+		A0A1000060000000000000003 /* PetProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PetProfileView.swift; sourceTree = "<group>"; };
+		A0A1000060000000000000005 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -92,7 +100,11 @@
 				A1000010000000000000001 /* SignInView.swift */,
 				A1000012000000000000001 /* PaywallView.swift */,
 				A1000014000000000000001 /* ChatView.swift */,
-			);
+			
+				A0A1000060000000000000001 /* MainTabView.swift */,
+				A0A1000060000000000000003 /* PetProfileView.swift */,
+				A0A1000060000000000000005 /* SettingsView.swift */,
+);
 			path = Views;
 			sourceTree = "<group>";
 		};
@@ -213,6 +225,10 @@
 				A0A1000034000000000000006 /* Message.swift in Sources */,
 				A0A1000034000000000000008 /* User.swift in Sources */,
 				A0A100003400000000000000A /* APIService.swift in Sources */,
+
+				A0A1000060000000000000002 /* MainTabView.swift in Sources */,
+				A0A1000060000000000000004 /* PetProfileView.swift in Sources */,
+				A0A1000060000000000000006 /* SettingsView.swift in Sources */,
 );
 			runOnlyForDeploymentPostprocessing = 0;
 		};
