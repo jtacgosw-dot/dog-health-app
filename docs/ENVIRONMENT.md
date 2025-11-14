@@ -25,8 +25,12 @@ The backend requires the following environment variables to be set in a `.env` f
 - `PORT` - Port for the Express server (default: 3000)
 - `NODE_ENV` - Environment (development, production)
 
-### API Keys (Future)
-- `OPENAI_API_KEY` - OpenAI API key for AI chat functionality (to be added later)
+### OpenAI Configuration
+- `OPENAI_API_KEY` - OpenAI API key for AI chat functionality
+- `OPENAI_MODEL` - OpenAI model to use (default: gpt-4o-mini)
+
+### JWT Configuration
+- `JWT_SECRET` - Secret key for signing JWT tokens (generate a secure random string)
 
 ## iOS App Configuration
 
