@@ -2,7 +2,8 @@ import SwiftUI
 
 struct PaywallView: View {
     @EnvironmentObject var appState: AppState
-    @State private var selectedPlan: SubscriptionPlan = .monthly
+    @State private var selectedPlan: SubscriptionPlan = .annual
+    @State private var isLoading = false
     
     enum SubscriptionPlan {
         case monthly
@@ -38,76 +39,103 @@ struct PaywallView: View {
     }
     
     var body: some View {
-        VStack(spacing: 20) {
-            Spacer()
+        ZStack {
+            Color.petlyCream
+                .ignoresSafeArea()
             
-            Image(systemName: "star.fill")
-                .font(.system(size: 60))
-                .foregroundColor(.yellow)
-            
-            Text("Unlock Full Access")
-                .font(.largeTitle)
-                .fontWeight(.bold)
-            
-            Text("Get unlimited AI-powered guidance for your dog's health")
-                .font(.body)
-                .foregroundColor(.secondary)
-                .multilineTextAlignment(.center)
+            VStack(spacing: 25) {
+                Spacer()
+                
+                Image(systemName: "pawprint.circle.fill")
+                    .font(.system(size: 70))
+                    .foregroundColor(.petlyDarkGreen)
+                
+                Text("Petly")
+                    .font(.system(size: 42, weight: .bold, design: .serif))
+                    .foregroundColor(.petlyDarkGreen)
+                
+                Text("Premium")
+                    .font(.title3)
+                    .fontWeight(.semibold)
+                    .foregroundColor(.petlySageGreen)
+                
+                Text("Get personalized AI-powered care for your pet")
+                    .font(.body)
+                    .foregroundColor(.secondary)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, 30)
+                
+                VStack(spacing: 15) {
+                    FeatureRow(icon: "message.fill", text: "Unlimited AI chat with Petly")
+                    FeatureRow(icon: "fork.knife", text: "Custom nutrition plans")
+                    FeatureRow(icon: "heart.text.square", text: "Personalized care plans")
+                    FeatureRow(icon: "chart.line.uptrend.xyaxis", text: "Health & wellness tracking")
+                }
                 .padding(.horizontal)
-            
-            VStack(spacing: 15) {
-                FeatureRow(icon: "message.fill", text: "Unlimited chat with AI")
-                FeatureRow(icon: "book.fill", text: "Access to health library")
-                FeatureRow(icon: "bell.fill", text: "Personalized reminders")
-                FeatureRow(icon: "heart.fill", text: "Track your dog's health")
+                .padding(.vertical, 10)
+                
+                Spacer()
+                
+                VStack(spacing: 12) {
+                    SubscriptionPlanButton(
+                        plan: .annual,
+                        isSelected: selectedPlan == .annual,
+                        action: { selectedPlan = .annual }
+                    )
+                    
+                    SubscriptionPlanButton(
+                        plan: .monthly,
+                        isSelected: selectedPlan == .monthly,
+                        action: { selectedPlan = .monthly }
+                    )
+                }
+                .padding(.horizontal)
+                
+                Button(action: subscribe) {
+                    Text("Start Free Trial")
+                        .font(.headline)
+                        .foregroundColor(.white)
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(Color.petlyDarkGreen)
+                        .cornerRadius(PetlyTheme.buttonCornerRadius)
+                }
+                .disabled(isLoading)
+                .padding(.horizontal)
+                
+                Button(action: {
+                    appState.hasActiveSubscription = true
+                }) {
+                    Text("Continue as Guest")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                }
+                .padding(.top, 5)
+                
+                Text("7-day free trial • Cancel anytime")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                    .padding(.bottom)
             }
             .padding()
             
-            Spacer()
-            
-            VStack(spacing: 12) {
-                SubscriptionPlanButton(
-                    plan: .annual,
-                    isSelected: selectedPlan == .annual,
-                    action: { selectedPlan = .annual }
-                )
-                
-                SubscriptionPlanButton(
-                    plan: .monthly,
-                    isSelected: selectedPlan == .monthly,
-                    action: { selectedPlan = .monthly }
-                )
+            if isLoading {
+                Color.black.opacity(0.3)
+                    .ignoresSafeArea()
+                ProgressView()
+                    .scaleEffect(1.5)
+                    .tint(.white)
             }
-            .padding(.horizontal)
-            
-            Button(action: {
-                appState.hasActiveSubscription = true
-            }) {
-                Text("Subscribe Now")
-                    .font(.headline)
-                    .foregroundColor(.white)
-                    .frame(maxWidth: .infinity)
-                    .padding()
-                    .background(Color.blue)
-                    .cornerRadius(12)
-            }
-            .padding(.horizontal)
-            
-            Button(action: {
-                appState.hasActiveSubscription = true
-            }) {
-                Text("Continue Without Subscription (Demo)")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-            }
-            .padding(.top, 5)
-            
-            Text("Cancel anytime. Terms apply.")
-                .font(.caption)
-                .foregroundColor(.secondary)
-                .padding(.bottom)
         }
-        .padding()
+    }
+    
+    private func subscribe() {
+        isLoading = true
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+            appState.hasActiveSubscription = true
+            isLoading = false
+        }
     }
 }
 
@@ -118,13 +146,18 @@ struct FeatureRow: View {
     var body: some View {
         HStack(spacing: 15) {
             Image(systemName: icon)
-                .foregroundColor(.blue)
+                .foregroundColor(.petlyDarkGreen)
                 .frame(width: 30)
             
             Text(text)
                 .font(.body)
+                .foregroundColor(.black)
             
             Spacer()
+            
+            Image(systemName: "checkmark")
+                .foregroundColor(.petlySageGreen)
+                .fontWeight(.semibold)
         }
     }
 }
@@ -140,7 +173,7 @@ struct SubscriptionPlanButton: View {
                 VStack(alignment: .leading, spacing: 5) {
                     Text(plan.title)
                         .font(.headline)
-                        .foregroundColor(isSelected ? .white : .primary)
+                        .foregroundColor(isSelected ? .white : .petlyDarkGreen)
                     
                     Text(plan.price)
                         .font(.subheadline)
@@ -153,10 +186,10 @@ struct SubscriptionPlanButton: View {
                     Text(savings)
                         .font(.caption)
                         .fontWeight(.semibold)
-                        .foregroundColor(isSelected ? .white : .green)
+                        .foregroundColor(isSelected ? .white : .petlyDarkGreen)
                         .padding(.horizontal, 10)
                         .padding(.vertical, 5)
-                        .background(isSelected ? Color.white.opacity(0.2) : Color.green.opacity(0.2))
+                        .background(isSelected ? Color.white.opacity(0.2) : Color.petlySageGreen.opacity(0.3))
                         .cornerRadius(8)
                 }
                 
@@ -164,8 +197,12 @@ struct SubscriptionPlanButton: View {
                     .foregroundColor(isSelected ? .white : .gray)
             }
             .padding()
-            .background(isSelected ? Color.blue : Color(.systemGray6))
+            .background(isSelected ? Color.petlySageGreen : Color.white)
             .cornerRadius(12)
+            .overlay(
+                RoundedRectangle(cornerRadius: 12)
+                    .stroke(isSelected ? Color.clear : Color.petlySageGreen.opacity(0.3), lineWidth: 1)
+            )
         }
     }
 }

@@ -1,158 +1,274 @@
 import SwiftUI
 
 struct ChatView: View {
+    @EnvironmentObject var appState: AppState
     @State private var messageText = ""
-    @State private var messages: [ChatMessage] = []
+    @State private var messages: [Message] = []
     @State private var isLoading = false
+    @State private var conversationId: String?
+    @State private var errorMessage: String?
     
     var body: some View {
         NavigationView {
-            VStack(spacing: 0) {
-                if messages.isEmpty {
-                    EmptyStateView()
-                } else {
-                    ScrollView {
-                        LazyVStack(spacing: 15) {
-                            ForEach(messages) { message in
-                                MessageBubble(message: message)
+            ZStack {
+                Color.petlyCream
+                    .ignoresSafeArea()
+                
+                VStack(spacing: 0) {
+                    if messages.isEmpty {
+                        EmptyStateView(onQuickAction: handleQuickAction)
+                    } else {
+                        ScrollViewReader { proxy in
+                            ScrollView {
+                                LazyVStack(spacing: 15) {
+                                    ForEach(messages) { message in
+                                        MessageBubble(message: message)
+                                            .id(message.id)
+                                    }
+                                    
+                                    if isLoading {
+                                        HStack {
+                                            ProgressView()
+                                                .tint(.petlyDarkGreen)
+                                            Text("Petly is thinking...")
+                                                .font(.caption)
+                                                .foregroundColor(.secondary)
+                                        }
+                                        .padding()
+                                    }
+                                }
+                                .padding()
+                            }
+                            .onChange(of: messages.count) { _ in
+                                if let lastMessage = messages.last {
+                                    withAnimation {
+                                        proxy.scrollTo(lastMessage.id, anchor: .bottom)
+                                    }
+                                }
                             }
                         }
-                        .padding()
                     }
-                }
-                
-                Divider()
-                
-                HStack(spacing: 12) {
-                    TextField("Ask about your dog...", text: $messageText, axis: .vertical)
-                        .textFieldStyle(.plain)
-                        .padding(10)
-                        .background(Color(.systemGray6))
-                        .cornerRadius(20)
-                        .lineLimit(1...5)
                     
-                    Button(action: sendMessage) {
-                        Image(systemName: "arrow.up.circle.fill")
-                            .font(.system(size: 32))
-                            .foregroundColor(messageText.isEmpty ? .gray : .blue)
+                    if let errorMessage = errorMessage {
+                        Text(errorMessage)
+                            .font(.caption)
+                            .foregroundColor(.red)
+                            .padding(.horizontal)
+                            .padding(.vertical, 8)
+                            .background(Color.red.opacity(0.1))
                     }
-                    .disabled(messageText.isEmpty || isLoading)
+                    
+                    Divider()
+                    
+                    HStack(spacing: 12) {
+                        TextField("Ask Petly anything...", text: $messageText, axis: .vertical)
+                            .textFieldStyle(.plain)
+                            .padding(12)
+                            .background(Color.white)
+                            .cornerRadius(20)
+                            .lineLimit(1...5)
+                        
+                        Button(action: sendMessage) {
+                            Image(systemName: "arrow.up.circle.fill")
+                                .font(.system(size: 36))
+                                .foregroundColor(messageText.isEmpty ? .gray : .petlyDarkGreen)
+                        }
+                        .disabled(messageText.isEmpty || isLoading)
+                    }
+                    .padding()
+                    .background(Color.petlyCream)
                 }
-                .padding()
             }
-            .navigationTitle("Dog Health Chat")
+            .navigationTitle("Petly AI")
             .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .principal) {
+                    HStack(spacing: 8) {
+                        Image(systemName: "pawprint.fill")
+                            .foregroundColor(.petlyDarkGreen)
+                        Text("Petly AI")
+                            .font(.headline)
+                            .foregroundColor(.petlyDarkGreen)
+                    }
+                }
+            }
         }
+    }
+    
+    private func handleQuickAction(_ action: String) {
+        messageText = action
+        sendMessage()
     }
     
     private func sendMessage() {
         guard !messageText.isEmpty else { return }
         
-        let userMessage = ChatMessage(
-            id: UUID(),
-            text: messageText,
-            isFromUser: true,
-            timestamp: Date()
+        let userMessage = Message(
+            id: UUID().uuidString,
+            conversationId: conversationId ?? "",
+            role: .user,
+            content: messageText,
+            timestamp: Date(),
+            feedback: nil
         )
         
         messages.append(userMessage)
+        let currentMessage = messageText
         messageText = ""
         isLoading = true
+        errorMessage = nil
         
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
-            let botMessage = ChatMessage(
-                id: UUID(),
-                text: "This is a placeholder response. AI chat functionality will be implemented in a future update.",
-                isFromUser: false,
-                timestamp: Date()
-            )
-            messages.append(botMessage)
-            isLoading = false
+        Task {
+            do {
+                let response = try await APIService.shared.sendChatMessage(
+                    message: currentMessage,
+                    conversationId: conversationId,
+                    dogId: appState.currentDog?.id
+                )
+                
+                await MainActor.run {
+                    conversationId = response.conversationId
+                    
+                    let assistantMessage = Message(
+                        id: response.message.id,
+                        conversationId: response.conversationId,
+                        role: .assistant,
+                        content: response.message.content,
+                        timestamp: Date(),
+                        feedback: nil
+                    )
+                    messages.append(assistantMessage)
+                    isLoading = false
+                }
+            } catch {
+                await MainActor.run {
+                    errorMessage = "Failed to send message: \(error.localizedDescription)"
+                    isLoading = false
+                }
+            }
         }
     }
 }
 
 struct EmptyStateView: View {
+    let onQuickAction: (String) -> Void
+    
+    let quickActions = [
+        ("fork.knife", "Food Suggestions", "What food do you recommend for my dog?"),
+        ("heart.text.square", "Create a Care Plan", "Help me create a care plan for my dog"),
+        ("cross.case", "Wellness Tips", "What are some wellness tips for my dog?"),
+        ("figure.walk", "Enrichment Ideas", "Give me enrichment ideas for my dog")
+    ]
+    
     var body: some View {
-        VStack(spacing: 20) {
+        VStack(spacing: 25) {
             Spacer()
             
-            Image(systemName: "message.fill")
-                .font(.system(size: 60))
-                .foregroundColor(.blue)
+            Image(systemName: "pawprint.circle.fill")
+                .font(.system(size: 80))
+                .foregroundColor(.petlyDarkGreen)
             
-            Text("Ask About Your Dog")
+            Text("Chat with Petly AI")
                 .font(.title2)
-                .fontWeight(.semibold)
+                .fontWeight(.bold)
+                .foregroundColor(.petlyDarkGreen)
             
-            Text("Get AI-powered guidance and information about your dog's health and wellbeing")
+            Text("Get personalized guidance for your pet's health, nutrition, and wellbeing")
                 .font(.body)
                 .foregroundColor(.secondary)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 40)
             
-            VStack(alignment: .leading, spacing: 10) {
-                SuggestionRow(text: "What should I feed my puppy?")
-                SuggestionRow(text: "How much exercise does my dog need?")
-                SuggestionRow(text: "What are signs of a healthy dog?")
+            VStack(spacing: 12) {
+                ForEach(quickActions, id: \.1) { icon, title, prompt in
+                    QuickActionButton(icon: icon, title: title) {
+                        onQuickAction(prompt)
+                    }
+                }
             }
-            .padding()
+            .padding(.horizontal)
+            .padding(.top, 10)
             
             Spacer()
         }
     }
 }
 
-struct SuggestionRow: View {
-    let text: String
+struct QuickActionButton: View {
+    let icon: String
+    let title: String
+    let action: () -> Void
     
     var body: some View {
-        HStack {
-            Image(systemName: "lightbulb.fill")
-                .foregroundColor(.yellow)
-            Text(text)
-                .font(.subheadline)
-                .foregroundColor(.secondary)
+        Button(action: action) {
+            HStack {
+                Image(systemName: icon)
+                    .font(.system(size: 18))
+                    .foregroundColor(.petlyDarkGreen)
+                    .frame(width: 24)
+                
+                Text(title)
+                    .font(.subheadline)
+                    .foregroundColor(.petlyDarkGreen)
+                
+                Spacer()
+                
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 12))
+                    .foregroundColor(.petlySageGreen)
+            }
+            .padding()
+            .background(Color.white)
+            .cornerRadius(12)
+            .overlay(
+                RoundedRectangle(cornerRadius: 12)
+                    .stroke(Color.petlySageGreen.opacity(0.3), lineWidth: 1)
+            )
         }
     }
 }
 
 struct MessageBubble: View {
-    let message: ChatMessage
+    let message: Message
     
     var body: some View {
-        HStack {
-            if message.isFromUser {
+        HStack(alignment: .top, spacing: 10) {
+            if message.role == .user {
                 Spacer()
+            } else {
+                Image(systemName: "pawprint.fill")
+                    .font(.system(size: 16))
+                    .foregroundColor(.petlyDarkGreen)
+                    .padding(8)
+                    .background(Color.petlySageGreen.opacity(0.2))
+                    .clipShape(Circle())
             }
             
-            VStack(alignment: message.isFromUser ? .trailing : .leading, spacing: 5) {
-                Text(message.text)
-                    .padding(12)
-                    .background(message.isFromUser ? Color.blue : Color(.systemGray5))
-                    .foregroundColor(message.isFromUser ? .white : .primary)
-                    .cornerRadius(16)
+            VStack(alignment: message.role == .user ? .trailing : .leading, spacing: 5) {
+                Text(message.content)
+                    .padding(14)
+                    .background(message.role == .user ? Color.petlyDarkGreen : Color.white)
+                    .foregroundColor(message.role == .user ? .white : .black)
+                    .cornerRadius(18)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 18)
+                            .stroke(message.role == .user ? Color.clear : Color.petlySageGreen.opacity(0.3), lineWidth: 1)
+                    )
                 
                 Text(message.timestamp, style: .time)
                     .font(.caption2)
                     .foregroundColor(.secondary)
             }
-            .frame(maxWidth: 280, alignment: message.isFromUser ? .trailing : .leading)
+            .frame(maxWidth: 280, alignment: message.role == .user ? .trailing : .leading)
             
-            if !message.isFromUser {
+            if message.role == .assistant {
                 Spacer()
             }
         }
     }
 }
 
-struct ChatMessage: Identifiable {
-    let id: UUID
-    let text: String
-    let isFromUser: Bool
-    let timestamp: Date
-}
-
 #Preview {
     ChatView()
+        .environmentObject(AppState())
 }
