@@ -161,9 +161,20 @@ struct InterestButton: View {
     let title: String
     let isSelected: Bool
     let action: () -> Void
+    @State private var isPressed = false
     
     var body: some View {
-        Button(action: action) {
+        Button(action: {
+            withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) {
+                isPressed = true
+            }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) {
+                    isPressed = false
+                }
+                action()
+            }
+        }) {
             Text(title)
                 .font(.subheadline)
                 .foregroundColor(isSelected ? .white : .petlyDarkGreen)
@@ -176,6 +187,8 @@ struct InterestButton: View {
                         .stroke(Color.petlySageGreen, lineWidth: 1)
                 )
         }
+        .scaleEffect(isPressed ? 0.95 : 1.0)
+        .animation(.spring(response: 0.3, dampingFraction: 0.6), value: isPressed)
     }
 }
 

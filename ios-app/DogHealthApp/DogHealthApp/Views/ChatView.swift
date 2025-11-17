@@ -7,6 +7,7 @@ struct ChatView: View {
     @State private var isLoading = false
     @State private var conversationId: String?
     @State private var errorMessage: String?
+    @State private var showClearAlert = false
     
     var body: some View {
         NavigationView {
@@ -91,6 +92,27 @@ struct ChatView: View {
                             .foregroundColor(.petlyDarkGreen)
                     }
                 }
+                
+                if !messages.isEmpty {
+                    ToolbarItem(placement: .navigationBarTrailing) {
+                        Button(action: { showClearAlert = true }) {
+                            Image(systemName: "arrow.counterclockwise")
+                                .foregroundColor(.petlyDarkGreen)
+                        }
+                    }
+                }
+            }
+            .alert("Start New Conversation", isPresented: $showClearAlert) {
+                Button("Cancel", role: .cancel) { }
+                Button("Clear", role: .destructive) {
+                    withAnimation {
+                        messages = []
+                        conversationId = nil
+                        errorMessage = nil
+                    }
+                }
+            } message: {
+                Text("This will clear your current conversation and start fresh.")
             }
         }
     }
@@ -198,9 +220,20 @@ struct QuickActionButton: View {
     let icon: String
     let title: String
     let action: () -> Void
+    @State private var isPressed = false
     
     var body: some View {
-        Button(action: action) {
+        Button(action: {
+            withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) {
+                isPressed = true
+            }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) {
+                    isPressed = false
+                }
+                action()
+            }
+        }) {
             HStack {
                 Image(systemName: icon)
                     .font(.system(size: 18))
@@ -225,11 +258,14 @@ struct QuickActionButton: View {
                     .stroke(Color.petlySageGreen.opacity(0.3), lineWidth: 1)
             )
         }
+        .scaleEffect(isPressed ? 0.95 : 1.0)
+        .animation(.spring(response: 0.3, dampingFraction: 0.6), value: isPressed)
     }
 }
 
 struct MessageBubble: View {
     let message: Message
+    @State private var appeared = false
     
     var body: some View {
         HStack(alignment: .top, spacing: 10) {
@@ -263,6 +299,13 @@ struct MessageBubble: View {
             
             if message.role == .assistant {
                 Spacer()
+            }
+        }
+        .opacity(appeared ? 1 : 0)
+        .offset(y: appeared ? 0 : 20)
+        .onAppear {
+            withAnimation(.easeOut(duration: 0.3)) {
+                appeared = true
             }
         }
     }
