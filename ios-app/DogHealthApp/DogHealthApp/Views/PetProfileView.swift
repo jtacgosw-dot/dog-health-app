@@ -177,17 +177,21 @@ struct PetProfileView: View {
                 
                 let dog: Dog
                 if let existingDog = appState.currentDog {
-                    dog = try await APIService.shared.updateDog(
-                        dogId: existingDog.id,
+                    let updatedDog = Dog(
+                        id: existingDog.id,
                         name: name,
                         breed: breed,
                         age: ageInt,
                         weight: weightDouble,
+                        imageUrl: existingDog.imageUrl,
                         healthConcerns: healthConcernsArray,
-                        allergies: allergiesArray
+                        allergies: allergiesArray,
+                        createdAt: existingDog.createdAt,
+                        updatedAt: Date()
                     )
+                    dog = try await APIService.shared.updateDog(dog: updatedDog)
                 } else {
-                    dog = try await APIService.shared.createDog(
+                    let newDog = Dog(
                         name: name,
                         breed: breed,
                         age: ageInt,
@@ -195,6 +199,7 @@ struct PetProfileView: View {
                         healthConcerns: healthConcernsArray,
                         allergies: allergiesArray
                     )
+                    dog = try await APIService.shared.createDog(dog: newDog)
                 }
                 
                 await MainActor.run {
