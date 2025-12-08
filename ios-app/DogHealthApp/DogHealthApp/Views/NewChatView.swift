@@ -41,8 +41,9 @@ struct NewChatView: View {
                             .fill(Color.petlyLightGreen)
                             .frame(width: 50, height: 50)
                             .overlay(
-                                Text("🐕")
+                                Image(systemName: "dog.fill")
                                     .font(.system(size: 25))
+                                    .foregroundColor(.petlyDarkGreen)
                             )
                     }
                 }
@@ -180,10 +181,10 @@ struct EmptyStateChatView: View {
     let onQuickAction: (String) -> Void
     
     let quickActions = [
-        ("⚡", "Energy level today?", "What's my dog's energy level today?"),
-        ("🎓", "Training needs?", "What training does my dog need?"),
-        ("🍖", "Preferred food type?", "What food type is best for my dog?"),
-        ("📋", "Any recent vet notes?", "Do you have any recent vet notes?")
+        ("bolt.fill", "Energy level today?", "What's my dog's energy level today?"),
+        ("figure.run", "Training needs?", "What training does my dog need?"),
+        ("fork.knife", "Preferred food type?", "What food type is best for my dog?"),
+        ("doc.text", "Any recent vet notes?", "Do you have any recent vet notes?")
     ]
     
     var body: some View {
@@ -251,8 +252,9 @@ struct ChatQuickActionChip: View {
             }
         }) {
             HStack(spacing: 6) {
-                Text(emoji)
-                    .font(.system(size: 16))
+                Image(systemName: emoji)
+                    .font(.system(size: 14))
+                    .foregroundColor(.petlyDarkGreen)
                 Text(title)
                     .font(.petlyBody(13))
                     .foregroundColor(.petlyDarkGreen)
