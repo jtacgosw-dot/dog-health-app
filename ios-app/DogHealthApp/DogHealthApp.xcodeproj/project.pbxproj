@@ -270,10 +270,10 @@
 				B51D2AE5EB48440CB2CF6B79 /* NewPaywallView.swift in Sources */,
 				0437D52CB6B545449A102486 /* NewChatView.swift in Sources */,
 				BA245AD6B5B94807B145A150 /* DailyLogEntryView.swift in Sources */,
-				E5E3D3C1D9F34F3F9B6A0C8E /* HomeDashboardView.swift in Sources */,
-				F2A4B5D6E8C74A2D8F9E1B3C /* NewPetProfileView.swift in Sources */,
-				A3B5C7D9E1F84B5A9D2E4F6A /* NewPetAccountView.swift in Sources */,
-				D4C6E8F0A2B94C7E8A3F5D7B /* SignUpView.swift in Sources */,
+				2789FA520A6842ECA2DA30AB /* HomeDashboardView.swift in Sources */,
+				5F17587F06D24AB9AE7AE78D /* NewPetProfileView.swift in Sources */,
+				210226CBED1D4D819D693D46 /* NewPetAccountView.swift in Sources */,
+				C986E7777905418090EC1B8A /* SignUpView.swift in Sources */,
 );
 			runOnlyForDeploymentPostprocessing = 0;
 		};
