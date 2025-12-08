@@ -265,6 +265,15 @@
 				A0A1000060000000000000002 /* MainTabView.swift in Sources */,
 				A0A1000060000000000000004 /* PetProfileView.swift in Sources */,
 				A0A1000060000000000000006 /* SettingsView.swift in Sources */,
+				B00C686DB8E14827ADB78F3F /* NewMainTabView.swift in Sources */,
+				8934856F7603453EAA304EB1 /* NewOnboardingView.swift in Sources */,
+				B51D2AE5EB48440CB2CF6B79 /* NewPaywallView.swift in Sources */,
+				0437D52CB6B545449A102486 /* NewChatView.swift in Sources */,
+				BA245AD6B5B94807B145A150 /* DailyLogEntryView.swift in Sources */,
+				E5E3D3C1D9F34F3F9B6A0C8E /* HomeDashboardView.swift in Sources */,
+				F2A4B5D6E8C74A2D8F9E1B3C /* NewPetProfileView.swift in Sources */,
+				A3B5C7D9E1F84B5A9D2E4F6A /* NewPetAccountView.swift in Sources */,
+				D4C6E8F0A2B94C7E8A3F5D7B /* SignUpView.swift in Sources */,
 );
 			runOnlyForDeploymentPostprocessing = 0;
 		};
