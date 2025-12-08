@@ -156,8 +156,9 @@ struct SignUpView: View {
                         )
                         
                         await MainActor.run {
-                            appState.user = response.user
-                            appState.isAuthenticated = true
+                            appState.currentUser = response.user
+                            appState.isSignedIn = true
+                            APIService.shared.setAuthToken(response.token)
                         }
                     } catch {
                         await MainActor.run {
