@@ -6,7 +6,7 @@ struct ContentView: View {
     var body: some View {
         Group {
             if !appState.hasCompletedOnboarding {
-                OnboardingView()
+                NewOnboardingView()
                     .transition(.asymmetric(
                         insertion: .move(edge: .trailing).combined(with: .opacity),
                         removal: .move(edge: .leading).combined(with: .opacity)
@@ -18,22 +18,22 @@ struct ContentView: View {
                         removal: .move(edge: .leading).combined(with: .opacity)
                     ))
             } else if !appState.hasActiveSubscription {
-                PaywallView()
+                NewPaywallView()
                     .transition(.asymmetric(
                         insertion: .move(edge: .trailing).combined(with: .opacity),
                         removal: .move(edge: .leading).combined(with: .opacity)
                     ))
             } else {
-                MainTabView()
+                NewMainTabView()
                     .transition(.asymmetric(
                         insertion: .move(edge: .trailing).combined(with: .opacity),
                         removal: .move(edge: .leading).combined(with: .opacity)
                     ))
             }
         }
-        .animation(.easeInOut(duration: 0.3), value: appState.hasCompletedOnboarding)
-        .animation(.easeInOut(duration: 0.3), value: appState.isSignedIn)
-        .animation(.easeInOut(duration: 0.3), value: appState.hasActiveSubscription)
+        .animation(.spring(response: 0.5, dampingFraction: 0.7), value: appState.hasCompletedOnboarding)
+        .animation(.spring(response: 0.5, dampingFraction: 0.7), value: appState.isSignedIn)
+        .animation(.spring(response: 0.5, dampingFraction: 0.7), value: appState.hasActiveSubscription)
     }
 }
 
