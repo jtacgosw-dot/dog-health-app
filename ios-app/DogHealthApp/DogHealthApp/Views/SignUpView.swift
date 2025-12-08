@@ -152,7 +152,6 @@ struct SignUpView: View {
                         let response = try await APIService.shared.signInWithApple(
                             identityToken: String(data: appleIDCredential.identityToken ?? Data(), encoding: .utf8) ?? "",
                             authorizationCode: String(data: appleIDCredential.authorizationCode ?? Data(), encoding: .utf8) ?? "",
-                            email: email,
                             fullName: fullName?.givenName
                         )
                         
