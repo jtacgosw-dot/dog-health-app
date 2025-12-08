@@ -209,18 +209,18 @@ struct EmptyStateChatView: View {
             
             VStack(spacing: 12) {
                 HStack(spacing: 12) {
-                    QuickActionChip(emoji: quickActions[0].0, title: quickActions[0].1) {
+                    ChatQuickActionChip(emoji: quickActions[0].0, title: quickActions[0].1) {
                         onQuickAction(quickActions[0].2)
                     }
-                    QuickActionChip(emoji: quickActions[1].0, title: quickActions[1].1) {
+                    ChatQuickActionChip(emoji: quickActions[1].0, title: quickActions[1].1) {
                         onQuickAction(quickActions[1].2)
                     }
                 }
                 HStack(spacing: 12) {
-                    QuickActionChip(emoji: quickActions[2].0, title: quickActions[2].1) {
+                    ChatQuickActionChip(emoji: quickActions[2].0, title: quickActions[2].1) {
                         onQuickAction(quickActions[2].2)
                     }
-                    QuickActionChip(emoji: quickActions[3].0, title: quickActions[3].1) {
+                    ChatQuickActionChip(emoji: quickActions[3].0, title: quickActions[3].1) {
                         onQuickAction(quickActions[3].2)
                     }
                 }
@@ -232,7 +232,7 @@ struct EmptyStateChatView: View {
     }
 }
 
-struct QuickActionChip: View {
+struct ChatQuickActionChip: View {
     let emoji: String
     let title: String
     let action: () -> Void
