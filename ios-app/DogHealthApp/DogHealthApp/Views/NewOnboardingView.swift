@@ -49,8 +49,9 @@ struct NewOnboardingView: View {
                 .font(.petlyTitle(48))
                 .foregroundColor(.petlyDarkGreen)
             
-            Text("🐾")
+            Image(systemName: "pawprint.fill")
                 .font(.system(size: 80))
+                .foregroundColor(.petlyDarkGreen)
                 .padding(.vertical, 20)
             
             Text("Smart care tailored with love")
@@ -146,9 +147,17 @@ struct NewOnboardingView: View {
             .padding(.horizontal)
             
             VStack(spacing: 16) {
-                Image(systemName: "dog.fill")
-                    .font(.system(size: 60))
-                    .foregroundColor(.petlyDarkGreen.opacity(0.2))
+                ZStack {
+                    Image(systemName: "dog")
+                        .font(.system(size: 60, weight: .light))
+                        .foregroundColor(.petlyDarkGreen.opacity(0.15))
+                        .offset(x: -15, y: 0)
+                    
+                    Image(systemName: "cat")
+                        .font(.system(size: 50, weight: .light))
+                        .foregroundColor(.petlyDarkGreen.opacity(0.15))
+                        .offset(x: 15, y: 5)
+                }
                 
                 Button(action: {
                     withAnimation(.spring(response: 0.5, dampingFraction: 0.7)) {
