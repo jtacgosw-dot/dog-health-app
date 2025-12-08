@@ -6,14 +6,18 @@ struct NewOnboardingView: View {
     @State private var currentPage = 0
     
     let interests = [
-        ("🍖", "Nutrition"),
-        ("🐕", "Behavior"),
-        ("💚", "Wellness"),
-        ("🎾", "Training"),
-        ("🏃", "Activity"),
-        ("🧠", "Mental Health"),
-        ("🦷", "Dental Care"),
-        ("👴", "Senior Care")
+        ("carrot", "Nutrition"),
+        ("pawprint", "Behavior"),
+        ("heart", "Wellness"),
+        ("figure.walk", "Recipes"),
+        ("shower", "Grooming"),
+        ("figure.run", "Training"),
+        ("chart.bar", "Tracking"),
+        ("tooth", "Dental"),
+        ("pills", "Supplements"),
+        ("dumbbell", "Fitness"),
+        ("leaf", "Longevity"),
+        ("cross.case", "Vet-Care")
     ]
     
     var body: some View {
@@ -86,16 +90,39 @@ struct NewOnboardingView: View {
     
     var interestsPage: some View {
         VStack(spacing: 20) {
-            Text("What areas are you most")
-                .font(.petlyTitle(24))
+            HStack {
+                Button(action: {
+                    withAnimation(.spring(response: 0.5, dampingFraction: 0.7)) {
+                        currentPage = 0
+                    }
+                }) {
+                    Circle()
+                        .fill(Color.petlyLightGreen)
+                        .frame(width: 40, height: 40)
+                        .overlay(
+                            Image(systemName: "chevron.left")
+                                .font(.system(size: 16, weight: .medium))
+                                .foregroundColor(.petlyDarkGreen)
+                        )
+                }
+                Spacer()
+            }
+            .padding(.horizontal)
+            
+            Text("Now, let's pick")
+                .font(.petlyTitle(28))
                 .foregroundColor(.petlyDarkGreen)
             
-            Text("excited to use?")
-                .font(.petlyTitle(24))
+            Text("your interests.")
+                .font(.petlyTitle(28))
                 .foregroundColor(.petlyDarkGreen)
             
-            Text("Select all that apply")
-                .font(.petlyBody(14))
+            Text("Personalize your experience to make sure")
+                .font(.petlyBody(13))
+                .foregroundColor(.petlyFormIcon)
+            
+            Text("the needs of your furry-friend are met!")
+                .font(.petlyBody(13))
                 .foregroundColor(.petlyFormIcon)
                 .padding(.bottom, 10)
             
@@ -118,20 +145,26 @@ struct NewOnboardingView: View {
             }
             .padding(.horizontal)
             
-            Button(action: {
-                withAnimation(.spring(response: 0.5, dampingFraction: 0.7)) {
-                    appState.hasCompletedOnboarding = true
+            VStack(spacing: 16) {
+                Image(systemName: "dog.fill")
+                    .font(.system(size: 60))
+                    .foregroundColor(.petlyDarkGreen.opacity(0.2))
+                
+                Button(action: {
+                    withAnimation(.spring(response: 0.5, dampingFraction: 0.7)) {
+                        appState.hasCompletedOnboarding = true
+                    }
+                }) {
+                    Text("NEXT STEP")
+                        .font(.petlyBodyMedium(14))
+                        .foregroundColor(.white)
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(selectedInterests.isEmpty ? Color.petlyFormIcon : Color.petlyDarkGreen)
+                        .cornerRadius(8)
                 }
-            }) {
-                Text("Continue")
-                    .font(.petlyBodyMedium(16))
-                    .foregroundColor(.white)
-                    .frame(maxWidth: .infinity)
-                    .padding()
-                    .background(selectedInterests.isEmpty ? Color.petlyFormIcon : Color.petlyDarkGreen)
-                    .cornerRadius(25)
+                .disabled(selectedInterests.isEmpty)
             }
-            .disabled(selectedInterests.isEmpty)
             .padding(.horizontal)
             .padding(.top, 10)
         }
@@ -168,23 +201,31 @@ struct InterestChip: View {
                 action()
             }
         }) {
-            VStack(spacing: 8) {
-                Text(emoji)
-                    .font(.system(size: 32))
+            HStack(spacing: 8) {
+                Image(systemName: emoji)
+                    .font(.system(size: 18))
+                    .foregroundColor(isSelected ? .white : .petlyDarkGreen)
                 Text(title)
                     .font(.petlyBodyMedium(14))
-                    .foregroundColor(.petlyDarkGreen)
+                    .foregroundColor(isSelected ? .white : .petlyDarkGreen)
+                Spacer()
+                if isSelected {
+                    Text("x")
+                        .font(.petlyBodyMedium(14))
+                        .foregroundColor(.white)
+                } else {
+                    Text("+")
+                        .font(.petlyBodyMedium(14))
+                        .foregroundColor(.petlyDarkGreen)
+                }
             }
             .frame(maxWidth: .infinity)
-            .padding(.vertical, 20)
-            .background(isSelected ? Color.petlyLightGreen : Color.white)
-            .cornerRadius(16)
-            .overlay(
-                RoundedRectangle(cornerRadius: 16)
-                    .stroke(isSelected ? Color.petlyDarkGreen : Color.petlyLightGreen, lineWidth: isSelected ? 2 : 1)
-            )
+            .padding(.horizontal, 16)
+            .padding(.vertical, 14)
+            .background(isSelected ? Color.petlyDarkGreen : Color.petlyLightGreen)
+            .cornerRadius(8)
         }
-        .scaleEffect(isPressed ? 0.95 : 1.0)
+        .scaleEffect(isPressed ? 0.98 : 1.0)
         .animation(.spring(response: 0.3, dampingFraction: 0.6), value: isPressed)
     }
 }
