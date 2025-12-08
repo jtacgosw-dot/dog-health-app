@@ -232,7 +232,7 @@ struct EmptyStateChatView: View {
     }
 }
 
-struct QuickActionChip: View {
+struct ChatQuickActionChip: View {
     let emoji: String
     let title: String
     let action: () -> Void
