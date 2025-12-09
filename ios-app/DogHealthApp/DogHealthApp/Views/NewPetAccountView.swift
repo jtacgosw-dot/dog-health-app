@@ -5,14 +5,14 @@ struct NewPetAccountView: View {
     @Environment(\.dismiss) var dismiss
     
     let menuItems = [
-        MenuItem(icon: "👥", title: "Invite Friends"),
-        MenuItem(icon: "🎧", title: "Customer Support"),
-        MenuItem(icon: "🍖", title: "Nutrition"),
-        MenuItem(icon: "🐾", title: "Personality"),
-        MenuItem(icon: "💚", title: "Health Concerns"),
-        MenuItem(icon: "⚖️", title: "Weight"),
-        MenuItem(icon: "⚙️", title: "General"),
-        MenuItem(icon: "💎", title: "Membership")
+        MenuItem(icon: "person.2.fill", title: "Invite Friends"),
+        MenuItem(icon: "headphones", title: "Customer Support"),
+        MenuItem(icon: "fork.knife", title: "Nutrition"),
+        MenuItem(icon: "pawprint.fill", title: "Personality"),
+        MenuItem(icon: "heart.fill", title: "Health Concerns"),
+        MenuItem(icon: "scalemass", title: "Weight"),
+        MenuItem(icon: "gearshape.fill", title: "General"),
+        MenuItem(icon: "sparkles", title: "Membership")
     ]
     
     var body: some View {
@@ -44,8 +44,9 @@ struct NewPetAccountView: View {
                     .fill(Color.petlyLightGreen)
                     .frame(width: 120, height: 120)
                     .overlay(
-                        Text("🐕")
+                        Image(systemName: "dog.fill")
                             .font(.system(size: 60))
+                            .foregroundColor(.petlyDarkGreen)
                     )
                     .overlay(
                         Circle()
@@ -107,8 +108,10 @@ struct MenuItemRow: View {
             }
         }) {
             HStack(spacing: 16) {
-                Text(item.icon)
-                    .font(.system(size: 24))
+                Image(systemName: item.icon)
+                    .font(.system(size: 20))
+                    .foregroundColor(.petlyDarkGreen)
+                    .frame(width: 24)
                 
                 Text(item.title)
                     .font(.petlyBody(16))

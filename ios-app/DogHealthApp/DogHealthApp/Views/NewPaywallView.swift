@@ -10,10 +10,10 @@ struct NewPaywallView: View {
     }
     
     let features = [
-        ("🐾", "Personalized Wellness"),
-        ("🩺", "Vet-Backed Insights"),
-        ("🍖", "Smart Care Tracking"),
-        ("👑", "Exclusive Member Perks")
+        ("heart.fill", "Personalized Wellness"),
+        ("stethoscope", "Vet-Backed Insights"),
+        ("chart.bar.fill", "Smart Care Tracking"),
+        ("crown.fill", "Exclusive Member Perks")
     ]
     
     var body: some View {
@@ -65,8 +65,9 @@ struct NewPaywallView: View {
                                         .fill(Color.petlyDarkGreen)
                                         .frame(width: 40, height: 40)
                                         .overlay(
-                                            Text(emoji)
-                                                .font(.system(size: 20))
+                                            Image(systemName: emoji)
+                                                .font(.system(size: 18))
+                                                .foregroundColor(.white)
                                         )
                                     
                                     Text(title)
