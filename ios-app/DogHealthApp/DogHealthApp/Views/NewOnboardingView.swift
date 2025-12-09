@@ -149,15 +149,16 @@ struct NewOnboardingView: View {
             VStack(spacing: 16) {
                 ZStack {
                     Image(systemName: "dog")
-                        .font(.system(size: 60, weight: .light))
-                        .foregroundColor(.petlyDarkGreen.opacity(0.15))
-                        .offset(x: -15, y: 0)
+                        .font(.system(size: 70, weight: .ultraLight))
+                        .foregroundColor(.petlyDarkGreen.opacity(0.12))
+                        .offset(x: -20, y: -5)
                     
                     Image(systemName: "cat")
-                        .font(.system(size: 50, weight: .light))
-                        .foregroundColor(.petlyDarkGreen.opacity(0.15))
-                        .offset(x: 15, y: 5)
+                        .font(.system(size: 55, weight: .ultraLight))
+                        .foregroundColor(.petlyDarkGreen.opacity(0.12))
+                        .offset(x: 20, y: 0)
                 }
+                .frame(height: 80)
                 
                 Button(action: {
                     withAnimation(.spring(response: 0.5, dampingFraction: 0.7)) {
