@@ -68,9 +68,9 @@
 		A0A1000060000000000000001 /* MainTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainTabView.swift; sourceTree = "<group>"; };
 		A0A1000060000000000000003 /* PetProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PetProfileView.swift; sourceTree = "<group>"; };
 		A0A1000060000000000000005 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
-		7ADBB396E3104B03AE31F1E7 /* Poppins-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Poppins-Regular.ttf; sourceTree = "<group>"; };
-		7780EAE97E794411A98F2973 /* Poppins-Medium.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Poppins-Medium.ttf; sourceTree = "<group>"; };
-		1E7E305694624563A1C34020 /* Stylish-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Stylish-Regular.ttf; sourceTree = "<group>"; };
+		7ADBB396E3104B03AE31F1E7 /* Poppins-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = ios-app/DogHealthApp/DogHealthApp/Fonts/Poppins-Regular.ttf; sourceTree = SOURCE_ROOT; };
+		7780EAE97E794411A98F2973 /* Poppins-Medium.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = ios-app/DogHealthApp/DogHealthApp/Fonts/Poppins-Medium.ttf; sourceTree = SOURCE_ROOT; };
+		1E7E305694624563A1C34020 /* Stylish-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = ios-app/DogHealthApp/DogHealthApp/Fonts/Stylish-Regular.ttf; sourceTree = SOURCE_ROOT; };
 		23D6C727BE054D189567FE9F /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -418,7 +418,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = "";
 				ENABLE_PREVIEWS = YES;
-				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = DogHealthApp/Info.plist;
 				INFOPLIST_KEY_CFBundleIconName = AppIcon;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
