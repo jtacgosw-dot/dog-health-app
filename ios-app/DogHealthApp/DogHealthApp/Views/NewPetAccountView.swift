@@ -3,17 +3,32 @@ import SwiftUI
 struct NewPetAccountView: View {
     @EnvironmentObject var appState: AppState
     @Environment(\.dismiss) var dismiss
+    @State private var scrollOffset: CGFloat = 0
     
     let menuItems = [
-        MenuItem(icon: "👥", title: "Invite Friends"),
-        MenuItem(icon: "🎧", title: "Customer Support"),
-        MenuItem(icon: "🍖", title: "Nutrition"),
-        MenuItem(icon: "🐾", title: "Personality"),
-        MenuItem(icon: "💚", title: "Health Concerns"),
-        MenuItem(icon: "⚖️", title: "Weight"),
-        MenuItem(icon: "⚙️", title: "General"),
-        MenuItem(icon: "💎", title: "Membership")
+        MenuItem(icon: "person.2.fill", title: "Invite Friends"),
+        MenuItem(icon: "headphones", title: "Customer Support"),
+        MenuItem(icon: "fork.knife", title: "Nutrition"),
+        MenuItem(icon: "pawprint.fill", title: "Personality"),
+        MenuItem(icon: "heart.fill", title: "Health Concerns"),
+        MenuItem(icon: "scalemass", title: "Weight"),
+        MenuItem(icon: "gearshape.fill", title: "General"),
+        MenuItem(icon: "sparkles", title: "Membership")
     ]
+    
+    var headerScale: CGFloat {
+        let minScale: CGFloat = 0.6
+        let maxScale: CGFloat = 1.0
+        let scale = max(minScale, maxScale - (scrollOffset / 300))
+        return scale
+    }
+    
+    var headerOpacity: Double {
+        let minOpacity: Double = 0.3
+        let maxOpacity: Double = 1.0
+        let opacity = max(minOpacity, maxOpacity - Double(scrollOffset / 200))
+        return opacity
+    }
     
     var body: some View {
         ZStack {
@@ -35,41 +50,53 @@ struct NewPetAccountView: View {
                 }
                 .padding()
                 
-                Text("Pet Account")
-                    .font(.petlyTitle(28))
-                    .foregroundColor(.petlyDarkGreen)
-                    .padding(.bottom, 20)
-                
-                Circle()
-                    .fill(Color.petlyLightGreen)
-                    .frame(width: 120, height: 120)
-                    .overlay(
-                        Text("🐕")
-                            .font(.system(size: 60))
-                    )
-                    .overlay(
-                        Circle()
-                            .fill(Color.petlyDarkGreen)
-                            .frame(width: 36, height: 36)
-                            .overlay(
-                                Image(systemName: "pencil")
-                                    .font(.system(size: 14))
-                                    .foregroundColor(.white)
-                            )
-                            .offset(x: 40, y: 40)
-                    )
-                    .padding(.bottom, 16)
-                
-                Text("\(appState.currentDog?.name ?? "Arlo"), \(appState.currentDog?.age ?? 1) Year")
-                    .font(.petlyTitle(24))
-                    .foregroundColor(.petlyDarkGreen)
-                
-                Text("Breed: \(appState.currentDog?.breed ?? "Mini Poodle")")
-                    .font(.petlyBody(14))
-                    .foregroundColor(.petlyFormIcon)
-                    .padding(.bottom, 30)
+                VStack(spacing: 12) {
+                    Text("Pet Account")
+                        .font(.petlyTitle(28))
+                        .foregroundColor(.petlyDarkGreen)
+                    
+                    Circle()
+                        .fill(Color.petlyLightGreen)
+                        .frame(width: 120 * headerScale, height: 120 * headerScale)
+                        .overlay(
+                            Image(systemName: "dog.fill")
+                                .font(.system(size: 60 * headerScale))
+                                .foregroundColor(.petlyDarkGreen)
+                        )
+                        .overlay(
+                            Circle()
+                                .fill(Color.petlyDarkGreen)
+                                .frame(width: 36 * headerScale, height: 36 * headerScale)
+                                .overlay(
+                                    Image(systemName: "pencil")
+                                        .font(.system(size: 14 * headerScale))
+                                        .foregroundColor(.white)
+                                )
+                                .offset(x: 40 * headerScale, y: 40 * headerScale)
+                        )
+                    
+                    Text("\(appState.currentDog?.name ?? "Arlo"), \(appState.currentDog?.age ?? 1) Year")
+                        .font(.petlyTitle(24 * headerScale))
+                        .foregroundColor(.petlyDarkGreen)
+                        .opacity(headerOpacity)
+                    
+                    Text("Breed: \(appState.currentDog?.breed ?? "Mini Poodle")")
+                        .font(.petlyBody(14))
+                        .foregroundColor(.petlyFormIcon)
+                        .opacity(headerOpacity)
+                }
+                .padding(.bottom, 20)
+                .animation(.spring(response: 0.3, dampingFraction: 0.8), value: scrollOffset)
                 
                 ScrollView {
+                    GeometryReader { geometry in
+                        Color.clear.preference(
+                            key: ScrollOffsetPreferenceKey.self,
+                            value: geometry.frame(in: .named("scroll")).minY
+                        )
+                    }
+                    .frame(height: 0)
+                    
                     VStack(spacing: 0) {
                         ForEach(menuItems) { item in
                             MenuItemRow(item: item)
@@ -80,8 +107,19 @@ struct NewPetAccountView: View {
                     .padding(.horizontal)
                     .padding(.bottom, 100)
                 }
+                .coordinateSpace(name: "scroll")
+                .onPreferenceChange(ScrollOffsetPreferenceKey.self) { value in
+                    scrollOffset = max(0, -value)
+                }
             }
         }
+    }
+}
+
+struct ScrollOffsetPreferenceKey: PreferenceKey {
+    static var defaultValue: CGFloat = 0
+    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
+        value = nextValue()
     }
 }
 
@@ -107,8 +145,10 @@ struct MenuItemRow: View {
             }
         }) {
             HStack(spacing: 16) {
-                Text(item.icon)
-                    .font(.system(size: 24))
+                Image(systemName: item.icon)
+                    .font(.system(size: 20))
+                    .foregroundColor(.petlyDarkGreen)
+                    .frame(width: 24)
                 
                 Text(item.title)
                     .font(.petlyBody(16))
