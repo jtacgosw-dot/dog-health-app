@@ -34,6 +34,9 @@
 		A0A1000060000000000000002 /* MainTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0A1000060000000000000001 /* MainTabView.swift */; };
 		A0A1000060000000000000004 /* PetProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0A1000060000000000000003 /* PetProfileView.swift */; };
 		A0A1000060000000000000006 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0A1000060000000000000005 /* SettingsView.swift */; };
+		E1638163DC7D4DABBF89F109 /* Poppins-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 7ADBB396E3104B03AE31F1E7 /* Poppins-Regular.ttf */; };
+		14792D4B354E43C695787430 /* Poppins-Medium.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 7780EAE97E794411A98F2973 /* Poppins-Medium.ttf */; };
+		68677091D040466DA01058FC /* Stylish-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 1E7E305694624563A1C34020 /* Stylish-Regular.ttf */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -65,6 +68,10 @@
 		A0A1000060000000000000001 /* MainTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainTabView.swift; sourceTree = "<group>"; };
 		A0A1000060000000000000003 /* PetProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PetProfileView.swift; sourceTree = "<group>"; };
 		A0A1000060000000000000005 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		7ADBB396E3104B03AE31F1E7 /* Poppins-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Poppins-Regular.ttf"; sourceTree = "<group>"; };
+		7780EAE97E794411A98F2973 /* Poppins-Medium.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Poppins-Medium.ttf"; sourceTree = "<group>"; };
+		1E7E305694624563A1C34020 /* Stylish-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Stylish-Regular.ttf"; sourceTree = "<group>"; };
+		23D6C727BE054D189567FE9F /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -238,7 +245,10 @@
 				210226CBED1D4D819D693D46 /* NewPetAccountView.swift in Sources */,
 				5F17587F06D24AB9AE7AE78D /* NewPetProfileView.swift in Sources */,
 				C986E7777905418090EC1B8A /* SignUpView.swift in Sources */,
-);
+
+				E1638163DC7D4DABBF89F109 /* Poppins-Regular.ttf in Resources */,
+				14792D4B354E43C695787430 /* Poppins-Medium.ttf in Resources */,
+				68677091D040466DA01058FC /* Stylish-Regular.ttf in Resources */,);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */

@@ -147,17 +147,12 @@ struct NewOnboardingView: View {
             .padding(.horizontal)
             
             VStack(spacing: 16) {
-                ZStack {
-                    Image(systemName: "dog")
-                        .font(.system(size: 60, weight: .light))
-                        .foregroundColor(.petlyDarkGreen.opacity(0.15))
-                        .offset(x: -15, y: 0)
-                    
-                    Image(systemName: "cat")
-                        .font(.system(size: 50, weight: .light))
-                        .foregroundColor(.petlyDarkGreen.opacity(0.15))
-                        .offset(x: 15, y: 5)
-                }
+                Image("dogCatOutline")
+                    .resizable()
+                    .renderingMode(.original)
+                    .scaledToFit()
+                    .frame(height: 90)
+                    .opacity(0.15)
                 
                 Button(action: {
                     withAnimation(.spring(response: 0.5, dampingFraction: 0.7)) {
