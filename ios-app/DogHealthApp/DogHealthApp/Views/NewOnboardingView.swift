@@ -213,6 +213,8 @@ struct InterestChip: View {
                 Text(title)
                     .font(.petlyBodyMedium(14))
                     .foregroundColor(isSelected ? .white : .petlyDarkGreen)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.8)
                 Spacer()
                 if isSelected {
                     Text("x")

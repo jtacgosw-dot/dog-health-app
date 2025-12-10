@@ -1,8 +1,20 @@
 import SwiftUI
+import UIKit
 
 @main
 struct DogHealthAppApp: App {
     @StateObject private var appState = AppState()
+    
+    init() {
+        print("=== AVAILABLE FONTS ===")
+        for family in UIFont.familyNames.sorted() {
+            print("Family: \(family)")
+            for name in UIFont.fontNames(forFamilyName: family) {
+                print("  - \(name)")
+            }
+        }
+        print("======================")
+    }
     
     var body: some Scene {
         WindowGroup {
