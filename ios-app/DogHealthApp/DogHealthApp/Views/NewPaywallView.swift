@@ -10,10 +10,10 @@ struct NewPaywallView: View {
     }
     
     let features = [
-        ("🐾", "Personalized Wellness"),
-        ("🩺", "Vet-Backed Insights"),
-        ("🍖", "Smart Care Tracking"),
-        ("👑", "Exclusive Member Perks")
+        ("heart.fill", "Personalized Wellness"),
+        ("stethoscope", "Vet-Backed Insights"),
+        ("chart.line.uptrend.xyaxis", "Smart Care Tracking"),
+        ("crown.fill", "Exclusive Member Perks")
     ]
     
     var body: some View {
@@ -59,14 +59,15 @@ struct NewPaywallView: View {
                         .padding(.horizontal)
                         
                         VStack(spacing: 12) {
-                            ForEach(features, id: \.1) { emoji, title in
+                            ForEach(features, id: \.1) { icon, title in
                                 HStack(spacing: 12) {
                                     Circle()
                                         .fill(Color.petlyDarkGreen)
                                         .frame(width: 40, height: 40)
                                         .overlay(
-                                            Text(emoji)
-                                                .font(.system(size: 20))
+                                            Image(systemName: icon)
+                                                .font(.system(size: 18))
+                                                .foregroundColor(.white)
                                         )
                                     
                                     Text(title)

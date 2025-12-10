@@ -149,10 +149,11 @@ struct NewOnboardingView: View {
             VStack(spacing: 16) {
                 Image("dogCatOutline")
                     .resizable()
-                    .renderingMode(.original)
+                    .renderingMode(.template)
                     .scaledToFit()
                     .frame(height: 90)
-                    .opacity(0.15)
+                    .foregroundColor(.petlyDarkGreen)
+                    .opacity(0.4)
                 
                 Button(action: {
                     withAnimation(.spring(response: 0.5, dampingFraction: 0.7)) {
