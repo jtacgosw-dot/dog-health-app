@@ -127,7 +127,7 @@ struct NewOnboardingView: View {
                 .foregroundColor(.petlyFormIcon)
                 .padding(.bottom, 10)
             
-            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
+            LazyVGrid(columns: [GridItem(.flexible(minimum: 150)), GridItem(.flexible(minimum: 150))], spacing: 12) {
                 ForEach(interests, id: \.1) { emoji, title in
                     InterestChip(
                         emoji: emoji,
@@ -214,16 +214,20 @@ struct InterestChip: View {
                     .font(.petlyBodyMedium(14))
                     .foregroundColor(isSelected ? .white : .petlyDarkGreen)
                     .lineLimit(1)
-                    .minimumScaleFactor(0.8)
-                Spacer()
+                    .layoutPriority(1)
+                Spacer(minLength: 4)
+            }
+            .overlay(alignment: .trailing) {
                 if isSelected {
                     Text("x")
                         .font(.petlyBodyMedium(14))
                         .foregroundColor(.white)
+                        .padding(.trailing, 16)
                 } else {
                     Text("+")
                         .font(.petlyBodyMedium(14))
                         .foregroundColor(.petlyDarkGreen)
+                        .padding(.trailing, 16)
                 }
             }
             .frame(maxWidth: .infinity)
