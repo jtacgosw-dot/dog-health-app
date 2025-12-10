@@ -30,5 +30,7 @@
 		<string>Poppins-Medium.ttf</string>
 		<string>Stylish-Regular.ttf</string>
 	</array>
+	<key>UILaunchStoryboardName</key>
+	<string>LaunchScreen</string>
 </dict>
 </plist>
