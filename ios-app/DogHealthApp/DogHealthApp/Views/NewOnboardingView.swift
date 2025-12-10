@@ -6,18 +6,18 @@ struct NewOnboardingView: View {
     @State private var currentPage = 0
     
     let interests = [
-        ("carrot", "Nutrition"),
-        ("pawprint", "Behavior"),
-        ("heart", "Wellness"),
-        ("figure.walk", "Recipes"),
-        ("shower", "Grooming"),
-        ("figure.run", "Training"),
-        ("chart.bar", "Tracking"),
-        ("tooth", "Dental"),
-        ("pills", "Supplements"),
-        ("dumbbell", "Fitness"),
-        ("leaf", "Longevity"),
-        ("cross.case", "Vet-Care")
+        ("🥕", "Nutrition"),
+        ("🐾", "Behavior"),
+        ("❤️", "Wellness"),
+        ("🍖", "Recipes"),
+        ("🧼", "Grooming"),
+        ("⚽️", "Training"),
+        ("📊", "Tracking"),
+        ("🦷", "Dental"),
+        ("💊", "Supplements"),
+        ("🏋️", "Fitness"),
+        ("🌿", "Longevity"),
+        ("🩺", "Vet-Care")
     ]
     
     var body: some View {
@@ -146,14 +146,16 @@ struct NewOnboardingView: View {
             }
             .padding(.horizontal)
             
-            VStack(spacing: 16) {
+            Spacer()
+            
+            VStack(spacing: 20) {
                 Image("dogCatOutline")
                     .resizable()
                     .renderingMode(.template)
                     .scaledToFit()
-                    .frame(height: 90)
+                    .frame(height: 160)
                     .foregroundColor(.petlyDarkGreen)
-                    .opacity(0.4)
+                    .opacity(0.5)
                 
                 Button(action: {
                     withAnimation(.spring(response: 0.5, dampingFraction: 0.7)) {
@@ -171,7 +173,7 @@ struct NewOnboardingView: View {
                 .disabled(selectedInterests.isEmpty)
             }
             .padding(.horizontal)
-            .padding(.top, 10)
+            .padding(.bottom, 20)
         }
     }
     
@@ -207,9 +209,8 @@ struct InterestChip: View {
             }
         }) {
             HStack(spacing: 8) {
-                Image(systemName: emoji)
+                Text(emoji)
                     .font(.system(size: 18))
-                    .foregroundColor(isSelected ? .white : .petlyDarkGreen)
                 Text(title)
                     .font(.petlyBodyMedium(14))
                     .foregroundColor(isSelected ? .white : .petlyDarkGreen)
