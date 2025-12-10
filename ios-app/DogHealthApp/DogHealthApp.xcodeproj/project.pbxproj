@@ -19,6 +19,9 @@
 		A1000001000000000000001 /* DogHealthAppApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000002000000000000001 /* DogHealthAppApp.swift */; };
 		A1000003000000000000001 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000004000000000000001 /* ContentView.swift */; };
 		A1000005000000000000001 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A1000006000000000000001 /* Assets.xcassets */; };
+		625AA4EFFCD84AF08CBFA15E /* Poppins-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 7ADBB396E3104B03AE31F1E7 /* Poppins-Regular.ttf */; };
+		20F91AFFDE384C0C9AAADEC9 /* Poppins-Medium.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 7780EAE97E794411A98F2973 /* Poppins-Medium.ttf */; };
+		B91D276A3DB64339AECD783D /* Stylish-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 1E7E305694624563A1C34020 /* Stylish-Regular.ttf */; };
 		A1000007000000000000001 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000008000000000000001 /* OnboardingView.swift */; };
 		A1000009000000000000001 /* SignInView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000010000000000000001 /* SignInView.swift */; };
 		A1000011000000000000001 /* PaywallView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000012000000000000001 /* PaywallView.swift */; };
@@ -236,6 +239,9 @@
 			buildActionMask = 2147483647;
 			files = (
 				A1000005000000000000001 /* Assets.xcassets in Resources */,
+				625AA4EFFCD84AF08CBFA15E /* Poppins-Regular.ttf in Resources */,
+				20F91AFFDE384C0C9AAADEC9 /* Poppins-Medium.ttf in Resources */,
+				B91D276A3DB64339AECD783D /* Stylish-Regular.ttf in Resources */,
 							2789FA520A6842ECA2DA30AB /* HomeDashboardView.swift in Sources */,
 				BA245AD6B5B94807B145A150 /* DailyLogEntryView.swift in Sources */,
 				0437D52CB6B545449A102486 /* NewChatView.swift in Sources */,
