@@ -90,7 +90,7 @@ struct NewOnboardingView: View {
     }
     
     var interestsPage: some View {
-        VStack(spacing: 20) {
+        VStack(spacing: 0) {
             HStack {
                 Button(action: {
                     withAnimation(.spring(response: 0.5, dampingFraction: 0.7)) {
@@ -109,6 +109,8 @@ struct NewOnboardingView: View {
                 Spacer()
             }
             .padding(.horizontal)
+            .padding(.top, 10)
+            .padding(.bottom, 20)
             
             Text("Now, let's pick")
                 .font(.petlyTitle(28))
@@ -117,6 +119,7 @@ struct NewOnboardingView: View {
             Text("your interests.")
                 .font(.petlyTitle(28))
                 .foregroundColor(.petlyDarkGreen)
+                .padding(.bottom, 10)
             
             Text("Personalize your experience to make sure")
                 .font(.petlyBody(13))
@@ -125,7 +128,7 @@ struct NewOnboardingView: View {
             Text("the needs of your furry-friend are met!")
                 .font(.petlyBody(13))
                 .foregroundColor(.petlyFormIcon)
-                .padding(.bottom, 10)
+                .padding(.bottom, 20)
             
             LazyVGrid(columns: [GridItem(.flexible(minimum: 150)), GridItem(.flexible(minimum: 150))], spacing: 12) {
                 ForEach(interests, id: \.1) { emoji, title in
@@ -148,15 +151,7 @@ struct NewOnboardingView: View {
             
             Spacer()
             
-            VStack(spacing: 20) {
-                Image("dogCatOutline")
-                    .resizable()
-                    .renderingMode(.template)
-                    .scaledToFit()
-                    .frame(height: 160)
-                    .foregroundColor(.petlyDarkGreen)
-                    .opacity(0.5)
-                
+            ZStack(alignment: .bottomLeading) {
                 Button(action: {
                     withAnimation(.spring(response: 0.5, dampingFraction: 0.7)) {
                         appState.hasCompletedOnboarding = true
@@ -171,6 +166,15 @@ struct NewOnboardingView: View {
                         .cornerRadius(8)
                 }
                 .disabled(selectedInterests.isEmpty)
+                
+                Image("dogCatOutline")
+                    .resizable()
+                    .renderingMode(.template)
+                    .scaledToFit()
+                    .frame(height: 140)
+                    .foregroundColor(.petlyDarkGreen)
+                    .opacity(0.5)
+                    .offset(x: -10, y: -20)
             }
             .padding(.horizontal)
             .padding(.bottom, 20)
