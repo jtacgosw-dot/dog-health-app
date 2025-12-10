@@ -171,10 +171,10 @@ struct NewOnboardingView: View {
                     .resizable()
                     .renderingMode(.template)
                     .scaledToFit()
-                    .frame(height: 140)
+                    .frame(height: 200)
                     .foregroundColor(.petlyDarkGreen)
                     .opacity(0.5)
-                    .offset(x: -10, y: -20)
+                    .offset(x: -10, y: -30)
             }
             .padding(.horizontal)
             .padding(.bottom, 20)
