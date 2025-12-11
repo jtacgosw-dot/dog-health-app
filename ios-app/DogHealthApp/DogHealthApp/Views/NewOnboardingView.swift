@@ -151,30 +151,34 @@ struct NewOnboardingView: View {
             
             Spacer()
             
-            Button(action: {
-                withAnimation(.spring(response: 0.5, dampingFraction: 0.7)) {
-                    appState.hasCompletedOnboarding = true
+            VStack(spacing: 0) {
+                HStack(alignment: .bottom) {
+                    Image("dogCatOutline")
+                        .resizable()
+                        .renderingMode(.template)
+                        .scaledToFit()
+                        .frame(height: 200)
+                        .foregroundColor(.petlyDarkGreen)
+                        .opacity(0.5)
+                        .padding(.leading, 14)
+                        .padding(.bottom, -6)
+                    Spacer()
                 }
-            }) {
-                Text("NEXT STEP")
-                    .font(.petlyBodyMedium(14))
-                    .foregroundColor(.white)
-                    .frame(maxWidth: .infinity)
-                    .padding()
-                    .background(selectedInterests.isEmpty ? Color.petlyFormIcon : Color.petlyDarkGreen)
-                    .cornerRadius(8)
-            }
-            .disabled(selectedInterests.isEmpty)
-            .overlay(alignment: .topLeading) {
-                Image("dogCatOutline")
-                    .resizable()
-                    .renderingMode(.template)
-                    .scaledToFit()
-                    .frame(height: 200)
-                    .foregroundColor(.petlyDarkGreen)
-                    .opacity(0.5)
-                    .offset(x: 14, y: -88)
-                    .allowsHitTesting(false)
+                
+                Button(action: {
+                    withAnimation(.spring(response: 0.5, dampingFraction: 0.7)) {
+                        appState.hasCompletedOnboarding = true
+                    }
+                }) {
+                    Text("NEXT STEP")
+                        .font(.petlyBodyMedium(14))
+                        .foregroundColor(.white)
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(selectedInterests.isEmpty ? Color.petlyFormIcon : Color.petlyDarkGreen)
+                        .cornerRadius(8)
+                }
+                .disabled(selectedInterests.isEmpty)
             }
             .padding(.horizontal)
             .padding(.bottom, 20)
