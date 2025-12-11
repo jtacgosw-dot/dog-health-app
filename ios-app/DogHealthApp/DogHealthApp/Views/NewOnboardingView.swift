@@ -151,7 +151,16 @@ struct NewOnboardingView: View {
             
             Spacer()
             
-            ZStack(alignment: .bottomLeading) {
+            VStack(spacing: 0) {
+                Image("dogCatOutline")
+                    .resizable()
+                    .renderingMode(.template)
+                    .scaledToFit()
+                    .frame(height: 200)
+                    .foregroundColor(.petlyDarkGreen)
+                    .opacity(0.5)
+                    .padding(.bottom, -20)
+                
                 Button(action: {
                     withAnimation(.spring(response: 0.5, dampingFraction: 0.7)) {
                         appState.hasCompletedOnboarding = true
@@ -166,15 +175,6 @@ struct NewOnboardingView: View {
                         .cornerRadius(8)
                 }
                 .disabled(selectedInterests.isEmpty)
-                
-                Image("dogCatOutline")
-                    .resizable()
-                    .renderingMode(.template)
-                    .scaledToFit()
-                    .frame(height: 200)
-                    .foregroundColor(.petlyDarkGreen)
-                    .opacity(0.5)
-                    .offset(x: -10, y: -30)
             }
             .padding(.horizontal)
             .padding(.bottom, 20)
