@@ -151,7 +151,21 @@ struct NewOnboardingView: View {
             
             Spacer()
             
-            VStack(spacing: 0) {
+            Button(action: {
+                withAnimation(.spring(response: 0.5, dampingFraction: 0.7)) {
+                    appState.hasCompletedOnboarding = true
+                }
+            }) {
+                Text("NEXT STEP")
+                    .font(.petlyBodyMedium(14))
+                    .foregroundColor(.white)
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .background(selectedInterests.isEmpty ? Color.petlyFormIcon : Color.petlyDarkGreen)
+                    .cornerRadius(8)
+            }
+            .disabled(selectedInterests.isEmpty)
+            .overlay(alignment: .topLeading) {
                 Image("dogCatOutline")
                     .resizable()
                     .renderingMode(.template)
@@ -159,22 +173,8 @@ struct NewOnboardingView: View {
                     .frame(height: 200)
                     .foregroundColor(.petlyDarkGreen)
                     .opacity(0.5)
-                    .padding(.bottom, -20)
-                
-                Button(action: {
-                    withAnimation(.spring(response: 0.5, dampingFraction: 0.7)) {
-                        appState.hasCompletedOnboarding = true
-                    }
-                }) {
-                    Text("NEXT STEP")
-                        .font(.petlyBodyMedium(14))
-                        .foregroundColor(.white)
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(selectedInterests.isEmpty ? Color.petlyFormIcon : Color.petlyDarkGreen)
-                        .cornerRadius(8)
-                }
-                .disabled(selectedInterests.isEmpty)
+                    .offset(x: 14, y: -88)
+                    .allowsHitTesting(false)
             }
             .padding(.horizontal)
             .padding(.bottom, 20)
