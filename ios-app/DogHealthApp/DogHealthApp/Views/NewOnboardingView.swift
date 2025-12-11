@@ -161,7 +161,7 @@ struct NewOnboardingView: View {
                         .foregroundColor(.petlyDarkGreen)
                         .opacity(0.5)
                         .padding(.leading, 14)
-                        .padding(.bottom, -6)
+                        .padding(.bottom, -46)
                     Spacer()
                 }
                 
