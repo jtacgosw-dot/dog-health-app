@@ -160,8 +160,8 @@ struct NewOnboardingView: View {
                         .frame(height: 200)
                         .foregroundColor(.petlyDarkGreen)
                         .opacity(0.7)
-                        .padding(.leading, 14)
-                        .padding(.bottom, -46)
+                        .padding(.leading, 0)
+                        .padding(.bottom, -70)
                     Spacer()
                 }
                 
