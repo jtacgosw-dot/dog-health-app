@@ -2,13 +2,34 @@ import SwiftUI
 
 struct HomeDashboardView: View {
     @EnvironmentObject var appState: AppState
-    @State private var userName = "Kate"
     @State private var mealsLogged = 2
     @State private var mealsTotal = 2
     @State private var activityMinutes = 45
     @State private var activityGoal = 60
     @State private var waterOnTrack = true
     @State private var hasSymptoms = false
+    @State private var showDailyLog = false
+    
+    private var userName: String {
+        if let fullName = appState.currentUser?.fullName, !fullName.isEmpty {
+            return fullName.components(separatedBy: " ").first ?? fullName
+        }
+        return "there"
+    }
+    
+    private var greeting: String {
+        let hour = Calendar.current.component(.hour, from: Date())
+        switch hour {
+        case 5..<12: return "Good morning"
+        case 12..<17: return "Good afternoon"
+        case 17..<21: return "Good evening"
+        default: return "Good night"
+        }
+    }
+    
+    private var dogName: String {
+        appState.currentDog?.name ?? "your pet"
+    }
     
     var body: some View {
         NavigationView {
@@ -20,12 +41,12 @@ struct HomeDashboardView: View {
                     VStack(alignment: .leading, spacing: 20) {
                         HStack {
                             VStack(alignment: .leading, spacing: 4) {
-                                Text("Good afternoon, \(userName).")
+                                Text("\(greeting), \(userName).")
                                     .font(.petlyTitle(28))
                                     .foregroundColor(.petlyDarkGreen)
                                 
                                 HStack(spacing: 4) {
-                                    Text("Here's how \(appState.currentDog?.name ?? "Arlo")'s doing today")
+                                    Text("Here's how \(dogName)'s doing today")
                                         .font(.petlyBody(16))
                                         .foregroundColor(.petlyDarkGreen)
                                     Text("🐾")
@@ -34,7 +55,7 @@ struct HomeDashboardView: View {
                             
                             Spacer()
                             
-                            if let dog = appState.currentDog {
+                            if appState.currentDog != nil {
                                 Circle()
                                     .fill(Color.petlyLightGreen)
                                     .frame(width: 60, height: 60)
@@ -52,7 +73,8 @@ struct HomeDashboardView: View {
                             mealsTotal: mealsTotal,
                             activityMinutes: activityMinutes,
                             activityGoal: activityGoal,
-                            waterOnTrack: waterOnTrack
+                            waterOnTrack: waterOnTrack,
+                            onLogMore: { showDailyLog = true }
                         )
                         .padding(.horizontal)
                         
@@ -62,20 +84,32 @@ struct HomeDashboardView: View {
                                 activityGoal: activityGoal
                             )
                             
-                            WellnessTrackerCard(hasSymptoms: hasSymptoms)
+                            WellnessTrackerCard(
+                                hasSymptoms: hasSymptoms,
+                                onLogSymptom: { showDailyLog = true },
+                                onAddNote: { showDailyLog = true }
+                            )
                         }
                         .padding(.horizontal)
                         
-                        UpcomingCareCard()
-                            .padding(.horizontal)
+                        UpcomingCareCard(
+                            onUpdateInfo: { showDailyLog = true },
+                            onAddNote: { showDailyLog = true }
+                        )
+                        .padding(.horizontal)
                         
-                        MealsAndTreatsCard()
-                            .padding(.horizontal)
-                            .padding(.bottom, 100)
+                        MealsAndTreatsCard(
+                            onLogDinner: { showDailyLog = true }
+                        )
+                        .padding(.horizontal)
+                        .padding(.bottom, 100)
                     }
                 }
             }
             .navigationBarHidden(true)
+            .sheet(isPresented: $showDailyLog) {
+                DailyLogEntryView()
+            }
         }
     }
 }
@@ -86,6 +120,7 @@ struct TodaysOverviewCard: View {
     let activityMinutes: Int
     let activityGoal: Int
     let waterOnTrack: Bool
+    var onLogMore: () -> Void = {}
     
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -100,7 +135,7 @@ struct TodaysOverviewCard: View {
                 
                 Spacer()
                 
-                Button(action: {}) {
+                Button(action: onLogMore) {
                     Text("+ Log More")
                         .font(.petlyBodyMedium(14))
                         .foregroundColor(.white)
@@ -214,6 +249,13 @@ struct DailyActivityRingCard: View {
 
 struct WellnessTrackerCard: View {
     let hasSymptoms: Bool
+    var onLogSymptom: () -> Void = {}
+    var onAddNote: () -> Void = {}
+    
+    private let weekData: [(day: String, height: CGFloat)] = [
+        ("S", 25), ("M", 35), ("T", 28), ("W", 40),
+        ("T", 32), ("F", 22), ("S", 38), ("S", 30)
+    ]
     
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -229,7 +271,7 @@ struct WellnessTrackerCard: View {
                 .font(.petlyBodyMedium(14))
                 .foregroundColor(.petlyDarkGreen)
             
-            Button(action: {}) {
+            Button(action: onLogSymptom) {
                 Text("+ Log Symptom")
                     .font(.petlyBodyMedium(12))
                     .foregroundColor(.white)
@@ -239,7 +281,7 @@ struct WellnessTrackerCard: View {
                     .cornerRadius(16)
             }
             
-            Button(action: {}) {
+            Button(action: onAddNote) {
                 Text("+ Add Note")
                     .font(.petlyBodyMedium(12))
                     .foregroundColor(.white)
@@ -250,12 +292,12 @@ struct WellnessTrackerCard: View {
             }
             
             HStack(spacing: 4) {
-                ForEach(["S", "M", "T", "W", "T", "F", "S", "S"], id: \.self) { day in
+                ForEach(Array(weekData.enumerated()), id: \.offset) { _, data in
                     VStack(spacing: 2) {
                         Rectangle()
                             .fill(Color.petlyDarkGreen)
-                            .frame(width: 8, height: CGFloat.random(in: 20...40))
-                        Text(day)
+                            .frame(width: 8, height: data.height)
+                        Text(data.day)
                             .font(.petlyBody(10))
                             .foregroundColor(.petlyFormIcon)
                     }
@@ -271,6 +313,9 @@ struct WellnessTrackerCard: View {
 }
 
 struct UpcomingCareCard: View {
+    var onUpdateInfo: () -> Void = {}
+    var onAddNote: () -> Void = {}
+    
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
@@ -280,7 +325,7 @@ struct UpcomingCareCard: View {
                 
                 Spacer()
                 
-                Button(action: {}) {
+                Button(action: onUpdateInfo) {
                     Text("Update Info ›")
                         .font(.petlyBodyMedium(12))
                         .foregroundColor(.white)
@@ -303,7 +348,7 @@ struct UpcomingCareCard: View {
                     .foregroundColor(.petlyFormIcon)
             }
             
-            Button(action: {}) {
+            Button(action: onAddNote) {
                 Text("Add Note ›")
                     .font(.petlyBodyMedium(12))
                     .foregroundColor(.petlyDarkGreen)
@@ -316,6 +361,8 @@ struct UpcomingCareCard: View {
 }
 
 struct MealsAndTreatsCard: View {
+    var onLogDinner: () -> Void = {}
+    
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
@@ -325,7 +372,7 @@ struct MealsAndTreatsCard: View {
                 
                 Spacer()
                 
-                Button(action: {}) {
+                Button(action: onLogDinner) {
                     Text("Log Dinner ›")
                         .font(.petlyBodyMedium(12))
                         .foregroundColor(.white)

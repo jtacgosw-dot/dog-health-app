@@ -4,6 +4,7 @@ struct NewMainTabView: View {
     @EnvironmentObject var appState: AppState
     @State private var selectedTab = 0
     @State private var showDailyLog = false
+    @State private var chatPrompt: String = ""
     
     var body: some View {
         ZStack(alignment: .bottom) {
@@ -12,11 +13,16 @@ struct NewMainTabView: View {
                 case 0:
                     HomeDashboardView()
                 case 1:
-                    NewChatView()
+                    NewChatView(initialPrompt: $chatPrompt)
                 case 2:
                     HomeDashboardView()
                 case 3:
-                    ExploreView()
+                    ExploreView(onQuickAction: { prompt in
+                        chatPrompt = prompt
+                        withAnimation {
+                            selectedTab = 1
+                        }
+                    })
                 case 4:
                     NewPetAccountView()
                 default:
@@ -132,7 +138,13 @@ struct TabBarButton: View {
 }
 
 struct ExploreView: View {
+    @EnvironmentObject var appState: AppState
     @State private var selectedQuickAction: String?
+    var onQuickAction: ((String) -> Void)?
+    
+    private var dogName: String {
+        appState.currentDog?.name ?? "your pet"
+    }
     
     let quickActions = [
         ("stethoscope", "Check symptoms for my dog"),
@@ -182,7 +194,9 @@ struct ExploreView: View {
                     ScrollView(.horizontal, showsIndicators: false) {
                         HStack(spacing: 12) {
                             ForEach(quickActions, id: \.1) { icon, title in
-                                QuickActionChip(icon: icon, title: title)
+                                QuickActionChip(icon: icon, title: title) {
+                                    onQuickAction?(title)
+                                }
                             }
                         }
                     }
@@ -217,8 +231,8 @@ struct ExploreView: View {
                     
                     InsightCard(
                         icon: "pills",
-                        title: "Give Arlo Daily Multivitamins",
-                        description: "Arlo would benefit from daily Multivitamins—perfect for joints, coat, and immunity."
+                        title: "Give \(dogName) Daily Multivitamins",
+                        description: "\(dogName) would benefit from daily Multivitamins—perfect for joints, coat, and immunity."
                     )
                     .padding(.horizontal)
                     
@@ -238,6 +252,7 @@ struct ExploreView: View {
 struct QuickActionChip: View {
     let icon: String
     let title: String
+    var action: () -> Void = {}
     @State private var isPressed = false
     
     var body: some View {
@@ -249,6 +264,7 @@ struct QuickActionChip: View {
                 withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) {
                     isPressed = false
                 }
+                action()
             }
         }) {
             HStack(spacing: 8) {
