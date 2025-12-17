@@ -151,19 +151,14 @@ struct NewOnboardingView: View {
             
             Spacer()
             
-            VStack(spacing: 0) {
-                HStack(alignment: .bottom) {
-                    Image("dogCatOutline")
-                        .resizable()
-                        .renderingMode(.template)
-                        .scaledToFit()
-                        .frame(height: 200)
-                        .foregroundColor(.petlyDarkGreen)
-                        .opacity(0.7)
-                        .padding(.leading, 14)
-                        .padding(.bottom, -46)
-                    Spacer()
-                }
+            VStack(alignment: .leading, spacing: 0) {
+                Image("dogCatOutline")
+                    .resizable()
+                    .renderingMode(.template)
+                    .scaledToFit()
+                    .frame(height: 200)
+                    .foregroundColor(.petlyDarkGreen)
+                    .opacity(0.7)
                 
                 Button(action: {
                     withAnimation(.spring(response: 0.5, dampingFraction: 0.7)) {
