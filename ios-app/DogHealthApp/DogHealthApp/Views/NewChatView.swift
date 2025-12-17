@@ -2,12 +2,17 @@ import SwiftUI
 
 struct NewChatView: View {
     @EnvironmentObject var appState: AppState
+    @Binding var initialPrompt: String
     @State private var messageText = ""
     @State private var messages: [Message] = []
     @State private var isLoading = false
     @State private var conversationId: String?
     @State private var errorMessage: String?
     @State private var showCloseButton = false
+    
+    init(initialPrompt: Binding<String> = .constant("")) {
+        self._initialPrompt = initialPrompt
+    }
     
     var body: some View {
         ZStack {
@@ -119,6 +124,13 @@ struct NewChatView: View {
                 .padding(.bottom, 80)
             }
         }
+        .onChange(of: initialPrompt) { newValue in
+            if !newValue.isEmpty {
+                messageText = newValue
+                initialPrompt = ""
+                sendMessage()
+            }
+        }
     }
     
     private func handleQuickAction(_ action: String) {
@@ -178,7 +190,15 @@ struct NewChatView: View {
 }
 
 struct EmptyStateChatView: View {
+    @EnvironmentObject var appState: AppState
     let onQuickAction: (String) -> Void
+    
+    private var userName: String {
+        if let fullName = appState.currentUser?.fullName, !fullName.isEmpty {
+            return fullName.components(separatedBy: " ").first ?? fullName
+        }
+        return "there"
+    }
     
     let quickActions = [
         ("bolt.fill", "Energy level today?", "What's my dog's energy level today?"),
@@ -192,7 +212,7 @@ struct EmptyStateChatView: View {
             Spacer()
             
             VStack(spacing: 12) {
-                Text("Hello Kate")
+                Text("Hello \(userName)")
                     .font(.petlyTitle(36))
                     .foregroundColor(.petlyDarkGreen)
                 
