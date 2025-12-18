@@ -143,21 +143,21 @@ struct HealthTimelineView: View {
     
     private var statsCards: some View {
         HStack(spacing: 12) {
-            StatCard(
+            TimelineStatCard(
                 title: "Total Logs",
                 value: "\(stats.total)",
                 icon: "list.bullet.clipboard",
                 color: .petlyDarkGreen
             )
             
-            StatCard(
+            TimelineStatCard(
                 title: "This Week",
                 value: "\(stats.thisWeek)",
                 icon: "calendar",
                 color: .blue
             )
             
-            StatCard(
+            TimelineStatCard(
                 title: "Day Streak",
                 value: "\(stats.streak)",
                 icon: "flame.fill",
@@ -303,7 +303,7 @@ struct HealthTimelineView: View {
     }
 }
 
-struct StatCard: View {
+struct TimelineStatCard: View {
     let title: String
     let value: String
     let icon: String
