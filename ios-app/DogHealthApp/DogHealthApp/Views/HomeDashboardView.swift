@@ -49,7 +49,9 @@ struct HomeDashboardView: View {
                                     Text("Here's how \(dogName)'s doing today")
                                         .font(.petlyBody(16))
                                         .foregroundColor(.petlyDarkGreen)
-                                    Text("🐾")
+                                    Image(systemName: "pawprint.fill")
+                                        .font(.system(size: 14))
+                                        .foregroundColor(.petlyDarkGreen)
                                 }
                             }
                             

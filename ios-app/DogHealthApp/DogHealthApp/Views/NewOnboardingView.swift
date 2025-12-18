@@ -6,18 +6,18 @@ struct NewOnboardingView: View {
     @State private var currentPage = 0
     
     let interests = [
-        ("🥕", "Nutrition"),
-        ("🐾", "Behavior"),
-        ("❤️", "Wellness"),
-        ("🍖", "Recipes"),
-        ("🧼", "Grooming"),
-        ("⚽️", "Training"),
-        ("📊", "Tracking"),
-        ("🦷", "Dental"),
-        ("💊", "Supplements"),
-        ("🏋️", "Fitness"),
-        ("🌿", "Longevity"),
-        ("🩺", "Vet-Care")
+        ("leaf.fill", "Nutrition"),
+        ("pawprint.fill", "Behavior"),
+        ("heart.fill", "Wellness"),
+        ("fork.knife", "Recipes"),
+        ("scissors", "Grooming"),
+        ("figure.run", "Training"),
+        ("chart.bar.fill", "Tracking"),
+        ("mouth.fill", "Dental"),
+        ("pills.fill", "Supplements"),
+        ("dumbbell.fill", "Fitness"),
+        ("leaf.circle.fill", "Longevity"),
+        ("stethoscope", "Vet-Care")
     ]
     
     var body: some View {
@@ -131,9 +131,9 @@ struct NewOnboardingView: View {
                 .padding(.bottom, 20)
             
             LazyVGrid(columns: [GridItem(.flexible(minimum: 150)), GridItem(.flexible(minimum: 150))], spacing: 12) {
-                ForEach(interests, id: \.1) { emoji, title in
+                ForEach(interests, id: \.1) { icon, title in
                     InterestChip(
-                        emoji: emoji,
+                        icon: icon,
                         title: title,
                         isSelected: selectedInterests.contains(title)
                     ) {
@@ -194,7 +194,7 @@ struct NewOnboardingView: View {
 }
 
 struct InterestChip: View {
-    let emoji: String
+    let icon: String
     let title: String
     let isSelected: Bool
     let action: () -> Void
@@ -213,8 +213,9 @@ struct InterestChip: View {
             }
         }) {
             HStack(spacing: 8) {
-                Text(emoji)
-                    .font(.system(size: 18))
+                Image(systemName: icon)
+                    .font(.system(size: 16))
+                    .foregroundColor(isSelected ? .white : .petlyDarkGreen)
                 Text(title)
                     .font(.petlyBodyMedium(14))
                     .foregroundColor(isSelected ? .white : .petlyDarkGreen)

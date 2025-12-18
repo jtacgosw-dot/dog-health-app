@@ -25,23 +25,23 @@ struct NewPaywallView: View {
                 HStack {
                     Button(action: { dismiss() }) {
                         Image(systemName: "chevron.left")
-                            .font(.system(size: 20))
+                            .font(.system(size: 16, weight: .medium))
                             .foregroundColor(.petlyDarkGreen)
-                            .padding()
+                            .padding(12)
                             .background(Color.petlyLightGreen)
                             .clipShape(Circle())
                     }
                     
                     Spacer()
                 }
-                .padding()
+                .padding(.horizontal)
+                .padding(.top, 10)
                 
                 ScrollView {
                     VStack(spacing: 24) {
                         Text("PETLY PREMIUM")
                             .font(.petlyTitle(28))
                             .foregroundColor(.petlyDarkGreen)
-                            .padding(.top, 20)
                         
                         HStack(spacing: 4) {
                             Text("Try us")
