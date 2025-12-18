@@ -5,18 +5,18 @@ struct DailyLogEntryView: View {
     @EnvironmentObject var appState: AppState
     
     let logItems = [
-        LogItem(icon: "🍖", title: "Meals"),
-        LogItem(icon: "🚶", title: "Walk"),
-        LogItem(icon: "🦴", title: "Treat"),
-        LogItem(icon: "🩺", title: "Symptom"),
-        LogItem(icon: "💧", title: "Water"),
-        LogItem(icon: "🎾", title: "Playtime"),
-        LogItem(icon: "💩", title: "Digestion"),
-        LogItem(icon: "✂️", title: "Grooming"),
-        LogItem(icon: "😊", title: "Mood"),
-        LogItem(icon: "💊", title: "Supplements"),
-        LogItem(icon: "📅", title: "Upcoming Appointments"),
-        LogItem(icon: "📝", title: "Notes")
+        LogItem(icon: "fork.knife", title: "Meals"),
+        LogItem(icon: "figure.walk", title: "Walk"),
+        LogItem(icon: "gift.fill", title: "Treat"),
+        LogItem(icon: "stethoscope", title: "Symptom"),
+        LogItem(icon: "drop.fill", title: "Water"),
+        LogItem(icon: "sportscourt.fill", title: "Playtime"),
+        LogItem(icon: "leaf.arrow.triangle.circlepath", title: "Digestion"),
+        LogItem(icon: "scissors", title: "Grooming"),
+        LogItem(icon: "face.smiling.fill", title: "Mood"),
+        LogItem(icon: "pills.fill", title: "Supplements"),
+        LogItem(icon: "calendar", title: "Upcoming Appointments"),
+        LogItem(icon: "note.text", title: "Notes")
     ]
     
     var body: some View {
@@ -37,8 +37,9 @@ struct DailyLogEntryView: View {
                             .fill(Color.petlyLightGreen)
                             .frame(width: 50, height: 50)
                             .overlay(
-                                Text("🐕")
+                                Image(systemName: "dog.fill")
                                     .font(.system(size: 25))
+                                    .foregroundColor(.petlyDarkGreen)
                             )
                     }
                 }
@@ -82,8 +83,10 @@ struct LogItemRow: View {
             }
         }) {
             HStack(spacing: 16) {
-                Text(item.icon)
-                    .font(.system(size: 24))
+                Image(systemName: item.icon)
+                    .font(.system(size: 20))
+                    .foregroundColor(.petlyDarkGreen)
+                    .frame(width: 24)
                 
                 Text(item.title)
                     .font(.petlyBody(16))
