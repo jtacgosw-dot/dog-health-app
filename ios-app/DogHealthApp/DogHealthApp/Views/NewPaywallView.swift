@@ -3,27 +3,33 @@ import SwiftUI
 struct ArcText: View {
     let text: String
     let radius: CGFloat
-    let totalDegrees: CGFloat
+    let arcAngle: CGFloat
     let font: Font
     let color: Color
     
     var body: some View {
-        let chars = Array(text)
-        let count = max(chars.count, 1)
-        let start = -totalDegrees / 2
-        let step = totalDegrees / CGFloat(max(count - 1, 1))
+        let characters = Array(text)
+        let charCount = characters.count
+        let anglePerChar = arcAngle / CGFloat(max(charCount - 1, 1))
+        let startAngle = -arcAngle / 2
         
-        ZStack {
-            ForEach(chars.indices, id: \.self) { i in
-                let angle = start + step * CGFloat(i)
-                Text(String(chars[i]))
-                    .font(font)
-                    .foregroundColor(color)
-                    .rotationEffect(.degrees(angle))
-                    .offset(y: -radius)
+        GeometryReader { geometry in
+            ZStack {
+                ForEach(0..<charCount, id: \.self) { index in
+                    let angle = startAngle + anglePerChar * CGFloat(index)
+                    let radians = angle * .pi / 180
+                    let x = sin(radians) * radius
+                    let y = -cos(radians) * radius + radius
+                    
+                    Text(String(characters[index]))
+                        .font(font)
+                        .foregroundColor(color)
+                        .position(x: geometry.size.width / 2 + x, y: y + 30)
+                        .rotationEffect(.degrees(angle))
+                }
             }
         }
-        .frame(height: radius * 0.3)
+        .frame(height: 60)
         .accessibilityLabel(text)
     }
 }
@@ -69,12 +75,11 @@ struct NewPaywallView: View {
                     VStack(spacing: 24) {
                         ArcText(
                             text: "PETLY PREMIUM",
-                            radius: 120,
-                            totalDegrees: 40,
+                            radius: 200,
+                            arcAngle: 30,
                             font: .petlyTitle(24),
                             color: .petlyDarkGreen
                         )
-                        .padding(.top, 10)
                         
                         HStack(spacing: 4) {
                             Text("Try us")
