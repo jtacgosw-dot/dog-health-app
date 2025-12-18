@@ -1,39 +1,5 @@
 import SwiftUI
 
-struct ArcText: View {
-    let text: String
-    let radius: CGFloat
-    let arcAngle: CGFloat
-    let font: Font
-    let color: Color
-    
-    var body: some View {
-        let characters = Array(text)
-        let charCount = characters.count
-        let anglePerChar = arcAngle / CGFloat(max(charCount - 1, 1))
-        let startAngle = -arcAngle / 2
-        
-        GeometryReader { geometry in
-            ZStack {
-                ForEach(0..<charCount, id: \.self) { index in
-                    let angle = startAngle + anglePerChar * CGFloat(index)
-                    let radians = angle * .pi / 180
-                    let x = sin(radians) * radius
-                    let y = -cos(radians) * radius + radius
-                    
-                    Text(String(characters[index]))
-                        .font(font)
-                        .foregroundColor(color)
-                        .rotationEffect(.degrees(angle), anchor: .bottom)
-                        .position(x: geometry.size.width / 2 + x, y: y + 25)
-                }
-            }
-        }
-        .frame(height: 55)
-        .accessibilityLabel(text)
-    }
-}
-
 struct NewPaywallView: View {
     @EnvironmentObject var appState: AppState
     @State private var selectedPlan: PlanType = .annual
@@ -73,13 +39,9 @@ struct NewPaywallView: View {
                 
                 ScrollView {
                     VStack(spacing: 24) {
-                        ArcText(
-                            text: "PETLY PREMIUM",
-                            radius: 400,
-                            arcAngle: 35,
-                            font: .petlyTitle(20),
-                            color: .petlyDarkGreen
-                        )
+                        Text("PETLY PREMIUM")
+                            .font(.petlyTitle(28))
+                            .foregroundColor(.petlyDarkGreen)
                         
                         HStack(spacing: 4) {
                             Text("Try us")

@@ -3,20 +3,21 @@ import SwiftUI
 struct DailyLogEntryView: View {
     @Environment(\.dismiss) var dismiss
     @EnvironmentObject var appState: AppState
+    @State private var selectedLogType: LogType?
     
-    let logItems = [
-        LogItem(icon: "fork.knife", title: "Meals"),
-        LogItem(icon: "figure.walk", title: "Walk"),
-        LogItem(icon: "gift.fill", title: "Treat"),
-        LogItem(icon: "stethoscope", title: "Symptom"),
-        LogItem(icon: "drop.fill", title: "Water"),
-        LogItem(icon: "sportscourt.fill", title: "Playtime"),
-        LogItem(icon: "leaf.arrow.triangle.circlepath", title: "Digestion"),
-        LogItem(icon: "scissors", title: "Grooming"),
-        LogItem(icon: "face.smiling.fill", title: "Mood"),
-        LogItem(icon: "pills.fill", title: "Supplements"),
-        LogItem(icon: "calendar", title: "Upcoming Appointments"),
-        LogItem(icon: "note.text", title: "Notes")
+    let logItems: [(LogType, String, String)] = [
+        (.meals, "fork.knife", "Meals"),
+        (.walk, "figure.walk", "Walk"),
+        (.treat, "gift.fill", "Treat"),
+        (.symptom, "stethoscope", "Symptom"),
+        (.water, "drop.fill", "Water"),
+        (.playtime, "sportscourt.fill", "Playtime"),
+        (.digestion, "leaf.arrow.triangle.circlepath", "Digestion"),
+        (.grooming, "scissors", "Grooming"),
+        (.mood, "face.smiling.fill", "Mood"),
+        (.supplements, "pills.fill", "Supplements"),
+        (.appointments, "calendar", "Upcoming Appointments"),
+        (.notes, "note.text", "Notes")
     ]
     
     var body: some View {
@@ -47,8 +48,10 @@ struct DailyLogEntryView: View {
                 
                 ScrollView {
                     VStack(spacing: 0) {
-                        ForEach(logItems) { item in
-                            LogItemRow(item: item)
+                        ForEach(logItems, id: \.0) { logType, icon, title in
+                            LogItemRow(icon: icon, title: title) {
+                                selectedLogType = logType
+                            }
                         }
                     }
                     .background(Color.petlyLightGreen)
@@ -58,17 +61,17 @@ struct DailyLogEntryView: View {
                 }
             }
         }
+        .fullScreenCover(item: $selectedLogType) { logType in
+            LogDetailView(logType: logType)
+                .environmentObject(appState)
+        }
     }
 }
 
-struct LogItem: Identifiable {
-    let id = UUID()
+struct LogItemRow: View {
     let icon: String
     let title: String
-}
-
-struct LogItemRow: View {
-    let item: LogItem
+    let action: () -> Void
     @State private var isPressed = false
     
     var body: some View {
@@ -80,15 +83,16 @@ struct LogItemRow: View {
                 withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) {
                     isPressed = false
                 }
+                action()
             }
         }) {
             HStack(spacing: 16) {
-                Image(systemName: item.icon)
+                Image(systemName: icon)
                     .font(.system(size: 20))
                     .foregroundColor(.petlyDarkGreen)
                     .frame(width: 24)
                 
-                Text(item.title)
+                Text(title)
                     .font(.petlyBody(16))
                     .foregroundColor(.petlyDarkGreen)
                 
