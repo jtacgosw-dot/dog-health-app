@@ -24,12 +24,12 @@ struct ArcText: View {
                     Text(String(characters[index]))
                         .font(font)
                         .foregroundColor(color)
-                        .frame(width: 20, height: 30, alignment: .bottom)
-                        .position(x: geometry.size.width / 2 + x, y: y + 20)
+                        .rotationEffect(.degrees(angle), anchor: .bottom)
+                        .position(x: geometry.size.width / 2 + x, y: y + 25)
                 }
             }
         }
-        .frame(height: 50)
+        .frame(height: 55)
         .accessibilityLabel(text)
     }
 }
@@ -75,9 +75,9 @@ struct NewPaywallView: View {
                     VStack(spacing: 24) {
                         ArcText(
                             text: "PETLY PREMIUM",
-                            radius: 300,
-                            arcAngle: 45,
-                            font: .petlyTitle(24),
+                            radius: 400,
+                            arcAngle: 35,
+                            font: .petlyTitle(20),
                             color: .petlyDarkGreen
                         )
                         
