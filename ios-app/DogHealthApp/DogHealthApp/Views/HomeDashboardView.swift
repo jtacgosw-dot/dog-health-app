@@ -62,8 +62,9 @@ struct HomeDashboardView: View {
                                     .fill(Color.petlyLightGreen)
                                     .frame(width: 60, height: 60)
                                     .overlay(
-                                        Text("🐕")
-                                            .font(.system(size: 30))
+                                        Image(systemName: "dog.fill")
+                                            .font(.system(size: 28))
+                                            .foregroundColor(.petlyDarkGreen)
                                     )
                             }
                         }
@@ -111,8 +112,19 @@ struct HomeDashboardView: View {
             .navigationBarHidden(true)
             .sheet(isPresented: $showDailyLog) {
                 DailyLogEntryView()
+                    .presentationDetents([.medium, .large])
+                    .presentationDragIndicator(.visible)
             }
         }
+    }
+}
+
+struct PetlyButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .scaleEffect(configuration.isPressed ? 0.97 : 1.0)
+            .animation(.easeOut(duration: 0.15), value: configuration.isPressed)
+            .sensoryFeedback(.selection, trigger: configuration.isPressed)
     }
 }
 
@@ -146,6 +158,7 @@ struct TodaysOverviewCard: View {
                         .background(Color.petlyDarkGreen)
                         .cornerRadius(20)
                 }
+                .buttonStyle(PetlyButtonStyle())
             }
             
             HStack(spacing: 0) {
@@ -156,6 +169,7 @@ struct TodaysOverviewCard: View {
                     Text("\(mealsLogged) / \(mealsTotal) Logged")
                         .font(.petlyBody(12))
                         .foregroundColor(.petlyFormIcon)
+                        .contentTransition(.numericText())
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
                 
@@ -170,6 +184,7 @@ struct TodaysOverviewCard: View {
                     Text("\(activityMinutes) Min / \(activityGoal) Min Goal")
                         .font(.petlyBody(12))
                         .foregroundColor(.petlyFormIcon)
+                        .contentTransition(.numericText())
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.leading, 12)
@@ -185,6 +200,7 @@ struct TodaysOverviewCard: View {
                     Text(waterOnTrack ? "On Track" : "Behind")
                         .font(.petlyBody(12))
                         .foregroundColor(.petlyFormIcon)
+                        .contentTransition(.opacity)
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.leading, 12)
@@ -199,6 +215,7 @@ struct TodaysOverviewCard: View {
 struct DailyActivityRingCard: View {
     let activityMinutes: Int
     let activityGoal: Int
+    @State private var animatedProgress: Double = 0
     
     var progress: Double {
         Double(activityMinutes) / Double(activityGoal)
@@ -216,10 +233,11 @@ struct DailyActivityRingCard: View {
                     .frame(width: 100, height: 100)
                 
                 Circle()
-                    .trim(from: 0, to: progress)
+                    .trim(from: 0, to: animatedProgress)
                     .stroke(Color.petlyDarkGreen, style: StrokeStyle(lineWidth: 12, lineCap: .round))
                     .frame(width: 100, height: 100)
                     .rotationEffect(.degrees(-90))
+                    .animation(.easeOut(duration: 0.8), value: animatedProgress)
                 
                 VStack(spacing: 2) {
                     Text("Activity")
@@ -228,9 +246,15 @@ struct DailyActivityRingCard: View {
                     Text("\(activityMinutes) / \(activityGoal) min")
                         .font(.petlyBodyMedium(14))
                         .foregroundColor(.petlyDarkGreen)
+                        .contentTransition(.numericText())
                 }
             }
             .padding(.vertical, 8)
+            .onAppear {
+                withAnimation(.easeOut(duration: 0.8).delay(0.2)) {
+                    animatedProgress = progress
+                }
+            }
             
             Text("Close activity ring 4 days in a row to earn a badge!")
                 .font(.petlyBody(11))
@@ -282,6 +306,7 @@ struct WellnessTrackerCard: View {
                     .background(Color.petlyDarkGreen)
                     .cornerRadius(16)
             }
+            .buttonStyle(PetlyButtonStyle())
             
             Button(action: onAddNote) {
                 Text("+ Add Note")
@@ -292,6 +317,7 @@ struct WellnessTrackerCard: View {
                     .background(Color.petlyDarkGreen)
                     .cornerRadius(16)
             }
+            .buttonStyle(PetlyButtonStyle())
             
             HStack(spacing: 4) {
                 ForEach(Array(weekData.enumerated()), id: \.offset) { _, data in
@@ -336,6 +362,7 @@ struct UpcomingCareCard: View {
                         .background(Color.petlyDarkGreen)
                         .cornerRadius(16)
                 }
+                .buttonStyle(PetlyButtonStyle())
             }
             
             Text("Vet Appointment: in 12 days")
@@ -383,6 +410,7 @@ struct MealsAndTreatsCard: View {
                         .background(Color.petlyDarkGreen)
                         .cornerRadius(16)
                 }
+                .buttonStyle(PetlyButtonStyle())
             }
             
             HStack {
