@@ -11,6 +11,7 @@ struct HomeDashboardView: View {
     @State private var showDailyLog = false
     @State private var selectedLogType: LogType?
     @State private var initialMealType: Int?
+    @State private var showHealthTimeline = false
     
     private var userName: String {
         if let fullName = appState.currentUser?.fullName, !fullName.isEmpty {
@@ -83,6 +84,11 @@ struct HomeDashboardView: View {
                         )
                         .padding(.horizontal)
                         
+                        HealthTimelineCard(
+                            onViewTimeline: { showHealthTimeline = true }
+                        )
+                        .padding(.horizontal)
+                        
                         HStack(spacing: 12) {
                             DailyActivityRingCard(
                                 activityMinutes: activityMinutes,
@@ -128,6 +134,10 @@ struct HomeDashboardView: View {
                     .onDisappear {
                         initialMealType = nil
                     }
+            }
+            .fullScreenCover(isPresented: $showHealthTimeline) {
+                HealthTimelineView()
+                    .environmentObject(appState)
             }
         }
     }
@@ -458,6 +468,107 @@ struct MealsAndTreatsCard: View {
         .padding()
         .background(Color.petlyLightGreen)
         .cornerRadius(16)
+    }
+}
+
+struct HealthTimelineCard: View {
+    var onViewTimeline: () -> Void = {}
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Health Timeline")
+                        .font(.petlyBodyMedium(18))
+                        .foregroundColor(.petlyDarkGreen)
+                    
+                    Text("Track your pet's health journey")
+                        .font(.petlyBody(14))
+                        .foregroundColor(.petlyFormIcon)
+                }
+                
+                Spacer()
+                
+                Button(action: onViewTimeline) {
+                    HStack(spacing: 6) {
+                        Image(systemName: "chart.line.uptrend.xyaxis")
+                            .font(.system(size: 14))
+                        Text("View All")
+                            .font(.petlyBodyMedium(12))
+                    }
+                    .foregroundColor(.white)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 8)
+                    .background(Color.petlyDarkGreen)
+                    .cornerRadius(16)
+                }
+                .buttonStyle(PetlyButtonStyle())
+            }
+            
+            HStack(spacing: 16) {
+                HStack(spacing: 8) {
+                    Image(systemName: "heart.text.square")
+                        .font(.system(size: 20))
+                        .foregroundColor(.petlyDarkGreen)
+                    
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("All Logs")
+                            .font(.petlyBody(12))
+                            .foregroundColor(.petlyFormIcon)
+                        Text("Persisted")
+                            .font(.petlyBodyMedium(14))
+                            .foregroundColor(.petlyDarkGreen)
+                    }
+                }
+                
+                Spacer()
+                
+                HStack(spacing: 8) {
+                    Image(systemName: "clock.arrow.circlepath")
+                        .font(.system(size: 20))
+                        .foregroundColor(.petlyDarkGreen)
+                    
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("History")
+                            .font(.petlyBody(12))
+                            .foregroundColor(.petlyFormIcon)
+                        Text("Available")
+                            .font(.petlyBodyMedium(14))
+                            .foregroundColor(.petlyDarkGreen)
+                    }
+                }
+                
+                Spacer()
+                
+                HStack(spacing: 8) {
+                    Image(systemName: "sparkles")
+                        .font(.system(size: 20))
+                        .foregroundColor(.petlyDarkGreen)
+                    
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Insights")
+                            .font(.petlyBody(12))
+                            .foregroundColor(.petlyFormIcon)
+                        Text("Ready")
+                            .font(.petlyBodyMedium(14))
+                            .foregroundColor(.petlyDarkGreen)
+                    }
+                }
+            }
+        }
+        .padding()
+        .background(
+            LinearGradient(
+                gradient: Gradient(colors: [Color.petlyLightGreen, Color.petlyLightGreen.opacity(0.7)]),
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+        )
+        .cornerRadius(16)
+        .overlay(
+            RoundedRectangle(cornerRadius: 16)
+                .stroke(Color.petlyDarkGreen.opacity(0.2), lineWidth: 1)
+        )
     }
 }
 

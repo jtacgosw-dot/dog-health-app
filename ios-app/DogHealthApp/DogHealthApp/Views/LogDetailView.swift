@@ -1,4 +1,5 @@
 import SwiftUI
+import SwiftData
 
 enum LogType: String, CaseIterable, Identifiable {
     var id: String { rawValue }
@@ -37,6 +38,7 @@ struct LogDetailView: View {
     let logType: LogType
     var initialMealType: Int?
     @Environment(\.dismiss) var dismiss
+    @Environment(\.modelContext) private var modelContext
     @EnvironmentObject var appState: AppState
     
     @State private var selectedDate = Date()
@@ -413,6 +415,56 @@ struct LogDetailView: View {
     }
     
     private func saveEntry() {
+        let dogId = appState.currentDog?.id ?? "default"
+        
+        let entry = HealthLogEntry(
+            dogId: dogId,
+            logType: logType.rawValue,
+            timestamp: selectedDate,
+            notes: notes
+        )
+        
+        switch logType {
+        case .meals:
+            entry.mealType = mealTypes[selectedMealType]
+            entry.amount = amount
+        case .walk:
+            entry.duration = duration
+            entry.amount = amount
+        case .treat:
+            entry.treatName = amount
+        case .symptom:
+            entry.symptomType = symptoms[selectedSymptom]
+            entry.severityLevel = selectedMood
+        case .water:
+            entry.waterAmount = amount
+        case .playtime:
+            entry.duration = duration
+            entry.activityType = amount
+        case .digestion:
+            entry.digestionQuality = digestionOptions[selectedDigestion]
+        case .grooming:
+            entry.groomingType = amount
+        case .mood:
+            entry.moodLevel = selectedMood
+        case .supplements:
+            entry.supplementName = amount
+            entry.dosage = duration
+        case .appointments:
+            entry.appointmentType = amount
+            entry.location = duration
+        case .notes:
+            break
+        }
+        
+        modelContext.insert(entry)
+        
+        do {
+            try modelContext.save()
+        } catch {
+            print("Failed to save entry: \(error)")
+        }
+        
         isSaved = true
     }
 }
