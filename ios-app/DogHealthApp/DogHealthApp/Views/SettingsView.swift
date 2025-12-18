@@ -3,6 +3,8 @@ import SwiftUI
 struct SettingsView: View {
     @EnvironmentObject var appState: AppState
     @State private var showSignOutAlert = false
+    @State private var showNotificationSettings = false
+    @State private var showWeightTracking = false
     
     var body: some View {
         NavigationView {
@@ -15,7 +17,15 @@ struct SettingsView: View {
                         VStack(spacing: 20) {
                             SettingsSection(title: "Account") {
                                 SettingsRow(icon: "person.fill", title: "Profile", subtitle: "Manage your account")
-                                SettingsRow(icon: "bell.fill", title: "Notifications", subtitle: "Manage notifications")
+                                Button(action: { showNotificationSettings = true }) {
+                                    SettingsRow(icon: "bell.fill", title: "Notifications", subtitle: "Manage reminders", showChevron: true)
+                                }
+                            }
+                            
+                            SettingsSection(title: "Pet Health") {
+                                Button(action: { showWeightTracking = true }) {
+                                    SettingsRow(icon: "scalemass.fill", title: "Weight Tracking", subtitle: "Track your pet's weight", showChevron: true)
+                                }
                             }
                             
                             SettingsSection(title: "Subscription") {
@@ -89,6 +99,17 @@ struct SettingsView: View {
                 }
             } message: {
                 Text("Are you sure you want to sign out?")
+            }
+            .sheet(isPresented: $showNotificationSettings) {
+                NavigationView {
+                    NotificationSettingsView()
+                }
+            }
+            .sheet(isPresented: $showWeightTracking) {
+                NavigationView {
+                    WeightTrackingView()
+                        .environmentObject(appState)
+                }
             }
         }
     }
