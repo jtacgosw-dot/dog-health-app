@@ -35,6 +35,7 @@ enum LogType: String, CaseIterable, Identifiable {
 
 struct LogDetailView: View {
     let logType: LogType
+    var initialMealType: Int?
     @Environment(\.dismiss) var dismiss
     @EnvironmentObject var appState: AppState
     
@@ -43,12 +44,18 @@ struct LogDetailView: View {
     @State private var amount = ""
     @State private var duration = ""
     @State private var selectedMood = 2
-    @State private var selectedMealType = 0
+    @State private var selectedMealType: Int
     @State private var selectedSymptom = 0
     @State private var selectedDigestion = 0
     @State private var isSaved = false
     
     let mealTypes = ["Breakfast", "Lunch", "Dinner", "Snack"]
+    
+    init(logType: LogType, initialMealType: Int? = nil) {
+        self.logType = logType
+        self.initialMealType = initialMealType
+        _selectedMealType = State(initialValue: initialMealType ?? 0)
+    }
     let symptoms = ["Vomiting", "Diarrhea", "Lethargy", "Loss of Appetite", "Coughing", "Sneezing", "Limping", "Scratching", "Other"]
     let digestionOptions = ["Normal", "Soft", "Hard", "Diarrhea", "Constipated"]
     let moodEmojis = ["😢", "😕", "😐", "🙂", "😄"]

@@ -9,6 +9,8 @@ struct HomeDashboardView: View {
     @State private var waterOnTrack = true
     @State private var hasSymptoms = false
     @State private var showDailyLog = false
+    @State private var selectedLogType: LogType?
+    @State private var initialMealType: Int?
     
     private var userName: String {
         if let fullName = appState.currentUser?.fullName, !fullName.isEmpty {
@@ -89,20 +91,23 @@ struct HomeDashboardView: View {
                             
                             WellnessTrackerCard(
                                 hasSymptoms: hasSymptoms,
-                                onLogSymptom: { showDailyLog = true },
-                                onAddNote: { showDailyLog = true }
+                                onLogSymptom: { selectedLogType = .symptom },
+                                onAddNote: { selectedLogType = .notes }
                             )
                         }
                         .padding(.horizontal)
                         
                         UpcomingCareCard(
-                            onUpdateInfo: { showDailyLog = true },
-                            onAddNote: { showDailyLog = true }
+                            onUpdateInfo: { selectedLogType = .appointments },
+                            onAddNote: { selectedLogType = .notes }
                         )
                         .padding(.horizontal)
                         
                         MealsAndTreatsCard(
-                            onLogDinner: { showDailyLog = true }
+                            onLogDinner: {
+                                initialMealType = 2
+                                selectedLogType = .meals
+                            }
                         )
                         .padding(.horizontal)
                         .padding(.bottom, 100)
@@ -114,6 +119,15 @@ struct HomeDashboardView: View {
                 DailyLogEntryView()
                     .presentationDetents([.medium, .large])
                     .presentationDragIndicator(.visible)
+            }
+            .sheet(item: $selectedLogType) { logType in
+                LogDetailView(logType: logType, initialMealType: initialMealType)
+                    .environmentObject(appState)
+                    .presentationDetents([.large])
+                    .presentationDragIndicator(.visible)
+                    .onDisappear {
+                        initialMealType = nil
+                    }
             }
         }
     }
