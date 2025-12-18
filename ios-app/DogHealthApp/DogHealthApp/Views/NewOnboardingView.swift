@@ -159,7 +159,7 @@ struct NewOnboardingView: View {
                     .frame(height: 200)
                     .foregroundColor(.petlyDarkGreen)
                     .opacity(0.7)
-                    .padding(.bottom, -70)
+                    .padding(.bottom, -72)
                 
                 Button(action: {
                     withAnimation(.spring(response: 0.5, dampingFraction: 0.7)) {
