@@ -102,6 +102,7 @@ struct LogItemRow: View {
             .background(Color.petlyLightGreen)
         }
         .scaleEffect(isPressed ? 0.98 : 1.0)
+        .sensoryFeedback(.selection, trigger: isPressed)
         .overlay(
             Rectangle()
                 .fill(Color.petlyDarkGreen.opacity(0.1))
