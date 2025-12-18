@@ -20,6 +20,8 @@
 		NOTIFSETTINGS001000000001 /* NotificationSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = NOTIFSETTINGS002000000001 /* NotificationSettingsView.swift */; };
 		WEIGHTTRACK0001000000001 /* WeightTrackingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = WEIGHTTRACK0002000000001 /* WeightTrackingView.swift */; };
 		2789FA520A6842ECA2DA30AB /* HomeDashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E846120EE184CE98CF7FC84 /* HomeDashboardView.swift */; };
+		HEALTHLOG0001000000000001 /* HealthLogEntry.swift in Sources */ = {isa = PBXBuildFile; fileRef = HEALTHLOG0002000000000001 /* HealthLogEntry.swift */; };
+		HEALTHTIMELINE0001000001 /* HealthTimelineView.swift in Sources */ = {isa = PBXBuildFile; fileRef = HEALTHTIMELINE0002000001 /* HealthTimelineView.swift */; };
 		A1000001000000000000001 /* DogHealthAppApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000002000000000000001 /* DogHealthAppApp.swift */; };
 		A1000003000000000000001 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000004000000000000001 /* ContentView.swift */; };
 		A1000005000000000000001 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A1000006000000000000001 /* Assets.xcassets */; };
@@ -62,6 +64,8 @@
 		NOTIFSETTINGS002000000001 /* NotificationSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationSettingsView.swift; sourceTree = "<group>"; };
 		WEIGHTTRACK0002000000001 /* WeightTrackingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeightTrackingView.swift; sourceTree = "<group>"; };
 		0E846120EE184CE98CF7FC84 /* HomeDashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeDashboardView.swift; sourceTree = "<group>"; };
+		HEALTHLOG0002000000000001 /* HealthLogEntry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthLogEntry.swift; sourceTree = "<group>"; };
+		HEALTHTIMELINE0002000001 /* HealthTimelineView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthTimelineView.swift; sourceTree = "<group>"; };
 		A1000017000000000000001 /* DogHealthApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DogHealthApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A1000002000000000000001 /* DogHealthAppApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DogHealthAppApp.swift; sourceTree = "<group>"; };
 		A1000004000000000000001 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -148,6 +152,7 @@
 				LOGDETAIL0002000000000001 /* LogDetailView.swift */,
 				NOTIFSETTINGS002000000001 /* NotificationSettingsView.swift */,
 				WEIGHTTRACK0002000000001 /* WeightTrackingView.swift */,
+				HEALTHTIMELINE0002000001 /* HealthTimelineView.swift */,
 				15AAB71C3ADA405BB6E9D340 /* NewChatView.swift */,
 				D3B9BB6CDD8E400F94D253E4 /* NewMainTabView.swift */,
 				C5BF8E53A25440CD853EC25D /* NewOnboardingView.swift */,
@@ -174,6 +179,7 @@
 			A0A1000034000000000000003 /* Dog.swift */,
 			A0A1000034000000000000005 /* Message.swift */,
 			A0A1000034000000000000007 /* User.swift */,
+			HEALTHLOG0002000000000001 /* HealthLogEntry.swift */,
 		);
 		path = Models;
 		sourceTree = "<group>";
@@ -307,6 +313,8 @@
 				NOTIFSETTINGS001000000001 /* NotificationSettingsView.swift in Sources */,
 				WEIGHTTRACK0001000000001 /* WeightTrackingView.swift in Sources */,
 				2789FA520A6842ECA2DA30AB /* HomeDashboardView.swift in Sources */,
+				HEALTHLOG0001000000000001 /* HealthLogEntry.swift in Sources */,
+				HEALTHTIMELINE0001000001 /* HealthTimelineView.swift in Sources */,
 				5F17587F06D24AB9AE7AE78D /* NewPetProfileView.swift in Sources */,
 				210226CBED1D4D819D693D46 /* NewPetAccountView.swift in Sources */,
 				C986E7777905418090EC1B8A /* SignUpView.swift in Sources */,

@@ -1,9 +1,23 @@
 import SwiftUI
+import SwiftData
 import UIKit
 
 @main
 struct DogHealthAppApp: App {
     @StateObject private var appState = AppState()
+    
+    var sharedModelContainer: ModelContainer = {
+        let schema = Schema([
+            HealthLogEntry.self,
+        ])
+        let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
+        
+        do {
+            return try ModelContainer(for: schema, configurations: [modelConfiguration])
+        } catch {
+            fatalError("Could not create ModelContainer: \(error)")
+        }
+    }()
     
     init() {
         print("=== AVAILABLE FONTS ===")
@@ -20,6 +34,7 @@ struct DogHealthAppApp: App {
         WindowGroup {
             ContentView()
                 .environmentObject(appState)
+                .modelContainer(sharedModelContainer)
         }
     }
 }
