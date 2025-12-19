@@ -6,6 +6,7 @@ struct SignUpView: View {
     @State private var email = ""
     @State private var ownerName = ""
     @State private var password = ""
+    @State private var confirmPassword = ""
     @State private var showPassword = false
     @State private var errorMessage: String?
     
@@ -14,117 +15,184 @@ struct SignUpView: View {
             Color.petlyBackground
                 .ignoresSafeArea()
             
-            ScrollView {
-                VStack(spacing: 24) {
+            VStack(spacing: 0) {
+                HStack {
+                    Button(action: {}) {
+                        Image(systemName: "chevron.left")
+                            .font(.system(size: 16, weight: .medium))
+                            .foregroundColor(.petlyDarkGreen)
+                            .padding(12)
+                            .background(Color.petlyLightGreen)
+                            .clipShape(Circle())
+                    }
                     Spacer()
-                        .frame(height: 40)
-                    
-                    Text("Create Account")
-                        .font(.petlyTitle(32))
-                        .foregroundColor(.petlyDarkGreen)
-                    
-                    Text("Join Petly today")
-                        .font(.petlyBody(14))
-                        .foregroundColor(.petlyFormIcon)
-                    
-                    VStack(spacing: 16) {
-                        HStack(spacing: 12) {
-                            Image(systemName: "envelope")
-                                .foregroundColor(.petlyFormIcon)
-                                .frame(width: 20)
-                            
-                            TextField("Email", text: $email)
-                                .font(.petlyBody(14))
-                                .keyboardType(.emailAddress)
-                                .autocapitalization(.none)
-                        }
-                        .padding()
-                        .background(Color.petlyLightGreen)
-                        .cornerRadius(16)
-                        
-                        HStack(spacing: 12) {
-                            Image(systemName: "person")
-                                .foregroundColor(.petlyFormIcon)
-                                .frame(width: 20)
-                            
-                            TextField("Owner's Name", text: $ownerName)
-                                .font(.petlyBody(14))
-                        }
-                        .padding()
-                        .background(Color.petlyLightGreen)
-                        .cornerRadius(16)
-                        
-                        HStack(spacing: 12) {
-                            Image(systemName: "lock")
-                                .foregroundColor(.petlyFormIcon)
-                                .frame(width: 20)
-                            
-                            if showPassword {
-                                TextField("Password", text: $password)
-                                    .font(.petlyBody(14))
-                            } else {
-                                SecureField("Password", text: $password)
-                                    .font(.petlyBody(14))
-                            }
-                            
-                            Button(action: { showPassword.toggle() }) {
-                                Image(systemName: showPassword ? "eye.slash" : "eye")
-                                    .foregroundColor(.petlyFormIcon)
+                }
+                .padding(.horizontal)
+                .padding(.top, 10)
+                
+                ScrollView {
+                    VStack(spacing: 20) {
+                        VStack(spacing: 0) {
+                            HStack(alignment: .top, spacing: -20) {
+                                SpeechBubble(text: "WOOF!", isLeft: true)
+                                SpeechBubble(text: "MEOW!", isLeft: false)
+                                    .offset(y: 20)
                             }
                         }
-                        .padding()
-                        .background(Color.petlyLightGreen)
-                        .cornerRadius(16)
-                    }
-                    .padding(.horizontal)
-                    .padding(.top, 20)
-                    
-                    if let errorMessage = errorMessage {
-                        Text(errorMessage)
-                            .font(.petlyBody(12))
-                            .foregroundColor(.red)
-                            .padding()
-                            .background(Color.red.opacity(0.1))
-                            .cornerRadius(8)
-                            .padding(.horizontal)
-                    }
-                    
-                    Button(action: signUp) {
-                        Text("Sign Up")
-                            .font(.petlyBodyMedium(16))
-                            .foregroundColor(.white)
-                            .frame(maxWidth: .infinity)
-                            .padding()
-                            .background(Color.petlyDarkGreen)
-                            .cornerRadius(25)
-                    }
-                    .padding(.horizontal)
-                    .padding(.top, 10)
-                    
-                    Text("or continue with")
-                        .font(.petlyBody(12))
-                        .foregroundColor(.petlyFormIcon)
                         .padding(.top, 20)
-                    
-                    HStack(spacing: 16) {
-                        SocialLoginButton(icon: "facebook", color: Color(hex: "1877F2")) {
+                        
+                        VStack(spacing: 4) {
+                            Text("Your pet's journey")
+                                .font(.petlyTitle(28))
+                                .foregroundColor(.petlyDarkGreen)
+                            Text("starts here...")
+                                .font(.petlyTitle(28))
+                                .foregroundColor(.petlyDarkGreen)
+                        }
+                        .padding(.top, 10)
+                        
+                        VStack(spacing: 12) {
+                            HStack(spacing: 12) {
+                                Image(systemName: "envelope")
+                                    .foregroundColor(.petlyFormIcon)
+                                    .frame(width: 24)
+                                
+                                TextField("E-Mail", text: $email)
+                                    .font(.petlyBody(14))
+                                    .keyboardType(.emailAddress)
+                                    .autocapitalization(.none)
+                            }
+                            .padding()
+                            .background(Color.petlyLightGreen)
+                            .cornerRadius(12)
+                            
+                            HStack(spacing: 12) {
+                                Image(systemName: "pawprint.fill")
+                                    .foregroundColor(.petlyFormIcon)
+                                    .frame(width: 24)
+                                
+                                TextField("Owner's Name", text: $ownerName)
+                                    .font(.petlyBody(14))
+                            }
+                            .padding()
+                            .background(Color.petlyLightGreen)
+                            .cornerRadius(12)
+                            
+                            HStack(spacing: 12) {
+                                Image(systemName: "lock.fill")
+                                    .foregroundColor(.petlyFormIcon)
+                                    .frame(width: 24)
+                                
+                                if showPassword {
+                                    TextField("Password", text: $password)
+                                        .font(.petlyBody(14))
+                                } else {
+                                    SecureField("Password", text: $password)
+                                        .font(.petlyBody(14))
+                                }
+                            }
+                            .padding()
+                            .background(Color.petlyLightGreen)
+                            .cornerRadius(12)
+                            
+                            HStack(spacing: 12) {
+                                Image(systemName: "lock.fill")
+                                    .foregroundColor(.petlyFormIcon)
+                                    .frame(width: 24)
+                                
+                                if showPassword {
+                                    TextField("Confirm Password", text: $confirmPassword)
+                                        .font(.petlyBody(14))
+                                } else {
+                                    SecureField("Confirm Password", text: $confirmPassword)
+                                        .font(.petlyBody(14))
+                                }
+                            }
+                            .padding()
+                            .background(Color.petlyLightGreen)
+                            .cornerRadius(12)
+                        }
+                        .padding(.horizontal)
+                        
+                        if let errorMessage = errorMessage {
+                            Text(errorMessage)
+                                .font(.petlyBody(12))
+                                .foregroundColor(.red)
+                                .padding()
+                                .background(Color.red.opacity(0.1))
+                                .cornerRadius(8)
+                                .padding(.horizontal)
                         }
                         
-                        SignInWithAppleButton(.signIn) { request in
-                            request.requestedScopes = [.email, .fullName]
-                        } onCompletion: { result in
-                            handleAppleSignIn(result)
+                        Button(action: signUp) {
+                            Text("SIGN UP")
+                                .font(.petlyBodyMedium(16))
+                                .foregroundColor(.white)
+                                .frame(maxWidth: .infinity)
+                                .padding()
+                                .background(Color.petlyDarkGreen)
+                                .cornerRadius(12)
                         }
-                        .signInWithAppleButtonStyle(.black)
-                        .frame(height: 50)
-                        .cornerRadius(25)
+                        .padding(.horizontal)
                         
-                        SocialLoginButton(icon: "google", color: Color(hex: "DB4437")) {
+                        HStack {
+                            Rectangle()
+                                .fill(Color.petlyFormIcon.opacity(0.3))
+                                .frame(height: 1)
+                            Text("Or")
+                                .font(.petlyBody(14))
+                                .foregroundColor(.petlyFormIcon)
+                                .padding(.horizontal, 16)
+                            Rectangle()
+                                .fill(Color.petlyFormIcon.opacity(0.3))
+                                .frame(height: 1)
                         }
+                        .padding(.horizontal, 40)
+                        .padding(.vertical, 10)
+                        
+                        HStack(spacing: 24) {
+                            Button(action: {}) {
+                                Image(systemName: "f.circle.fill")
+                                    .font(.system(size: 32))
+                                    .foregroundColor(.petlyDarkGreen)
+                            }
+                            
+                            Button(action: {}) {
+                                Image(systemName: "apple.logo")
+                                    .font(.system(size: 32))
+                                    .foregroundColor(.black)
+                            }
+                            
+                            Button(action: {}) {
+                                Text("G")
+                                    .font(.system(size: 28, weight: .medium))
+                                    .foregroundColor(.petlyDarkGreen)
+                            }
+                        }
+                        
+                        HStack(spacing: 4) {
+                            Text("Already have an account?")
+                                .font(.petlyBody(14))
+                                .foregroundColor(.petlyFormIcon)
+                            Button(action: {}) {
+                                Text("Sign In")
+                                    .font(.petlyBodyMedium(14))
+                                    .foregroundColor(.petlyDarkGreen)
+                                    .underline()
+                            }
+                        }
+                        .padding(.top, 10)
+                        
+                        HStack(spacing: 8) {
+                            ForEach(0..<4) { index in
+                                Circle()
+                                    .fill(index == 0 ? Color.petlyDarkGreen : Color.petlyFormIcon.opacity(0.3))
+                                    .frame(width: 8, height: 8)
+                            }
+                        }
+                        .padding(.top, 20)
+                        .padding(.bottom, 40)
                     }
-                    .padding(.horizontal)
-                    
-                    Spacer()
                 }
             }
         }
@@ -173,33 +241,39 @@ struct SignUpView: View {
     }
 }
 
-struct SocialLoginButton: View {
-    let icon: String
-    let color: Color
-    let action: () -> Void
-    @State private var isPressed = false
+struct SpeechBubble: View {
+    let text: String
+    let isLeft: Bool
     
     var body: some View {
-        Button(action: {
-            withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) {
-                isPressed = true
-            }
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) {
-                    isPressed = false
+        VStack(spacing: 0) {
+            Text(text)
+                .font(.petlyBodyMedium(16))
+                .foregroundColor(.petlyDarkGreen)
+                .padding(.horizontal, 16)
+                .padding(.vertical, 10)
+                .background(
+                    RoundedRectangle(cornerRadius: 16)
+                        .stroke(Color.petlyDarkGreen, lineWidth: 1.5)
+                        .background(Color.petlyBackground)
+                )
+                .clipShape(RoundedRectangle(cornerRadius: 16))
+            
+            Path { path in
+                if isLeft {
+                    path.move(to: CGPoint(x: 30, y: 0))
+                    path.addLine(to: CGPoint(x: 40, y: 15))
+                    path.addLine(to: CGPoint(x: 50, y: 0))
+                } else {
+                    path.move(to: CGPoint(x: 20, y: 0))
+                    path.addLine(to: CGPoint(x: 30, y: 15))
+                    path.addLine(to: CGPoint(x: 40, y: 0))
                 }
-                action()
             }
-        }) {
-            Image(systemName: icon == "facebook" ? "f.circle.fill" : "g.circle.fill")
-                .font(.system(size: 24))
-                .foregroundColor(color)
-                .frame(width: 50, height: 50)
-                .background(Color.petlyLightGreen)
-                .cornerRadius(25)
+            .stroke(Color.petlyDarkGreen, lineWidth: 1.5)
+            .frame(width: 60, height: 15)
+            .offset(x: isLeft ? -20 : 20)
         }
-        .scaleEffect(isPressed ? 0.9 : 1.0)
-        .animation(.spring(response: 0.3, dampingFraction: 0.6), value: isPressed)
     }
 }
 

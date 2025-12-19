@@ -5,9 +5,12 @@ struct NewPetAccountView: View {
     @Environment(\.dismiss) var dismiss
     @State private var scrollOffset: CGFloat = 0
     
-    let menuItems = [
+    let topMenuItems = [
         MenuItem(icon: "person.2.fill", title: "Invite Friends"),
-        MenuItem(icon: "headphones", title: "Customer Support"),
+        MenuItem(icon: "headphones", title: "Customer Support")
+    ]
+    
+    let mainMenuItems = [
         MenuItem(icon: "fork.knife", title: "Nutrition"),
         MenuItem(icon: "pawprint.fill", title: "Personality"),
         MenuItem(icon: "heart.fill", title: "Health Concerns"),
@@ -97,13 +100,37 @@ struct NewPetAccountView: View {
                     }
                     .frame(height: 0)
                     
-                    VStack(spacing: 0) {
-                        ForEach(menuItems) { item in
-                            MenuItemRow(item: item)
+                    VStack(spacing: 12) {
+                        ForEach(topMenuItems) { item in
+                            HStack(spacing: 16) {
+                                Image(systemName: item.icon)
+                                    .font(.system(size: 20))
+                                    .foregroundColor(.petlyDarkGreen)
+                                    .frame(width: 24)
+                                
+                                Text(item.title)
+                                    .font(.petlyBody(16))
+                                    .foregroundColor(.petlyDarkGreen)
+                                
+                                Spacer()
+                                
+                                Image(systemName: "chevron.right")
+                                    .foregroundColor(.petlyFormIcon)
+                                    .font(.system(size: 14))
+                            }
+                            .padding()
+                            .background(Color.petlyLightGreen)
+                            .cornerRadius(12)
                         }
+                        
+                        VStack(spacing: 0) {
+                            ForEach(mainMenuItems) { item in
+                                MenuItemRow(item: item)
+                            }
+                        }
+                        .background(Color.petlyLightGreen)
+                        .cornerRadius(12)
                     }
-                    .background(Color.petlyLightGreen)
-                    .cornerRadius(16)
                     .padding(.horizontal)
                     .padding(.bottom, 100)
                 }

@@ -23,74 +23,96 @@ struct NewPetProfileView: View {
             Color.petlyBackground
                 .ignoresSafeArea()
             
-            ScrollView {
-                VStack(spacing: 20) {
-                    Text("Tell us about your pet")
-                        .font(.petlyTitle(28))
-                        .foregroundColor(.petlyDarkGreen)
-                        .padding(.top)
-                    
-                    PhotosPicker(selection: $selectedPhoto, matching: .images) {
+            VStack(spacing: 0) {
+                HStack {
+                    Button(action: {}) {
+                        Image(systemName: "chevron.left")
+                            .font(.system(size: 16, weight: .medium))
+                            .foregroundColor(.petlyDarkGreen)
+                            .padding(12)
+                            .background(Color.petlyLightGreen)
+                            .clipShape(Circle())
+                    }
+                    Spacer()
+                }
+                .padding(.horizontal)
+                .padding(.top, 10)
+                
+                ScrollView {
+                    VStack(spacing: 16) {
                         ZStack {
                             Circle()
-                                .fill(Color.petlyLightGreen)
-                                .frame(width: 120, height: 120)
+                                .fill(Color.petlyDarkGreen)
+                                .frame(width: 100, height: 100)
                             
                             if let profileImage = profileImage {
                                 profileImage
                                     .resizable()
                                     .scaledToFill()
-                                    .frame(width: 120, height: 120)
+                                    .frame(width: 100, height: 100)
                                     .clipShape(Circle())
                             } else {
-                                VStack(spacing: 8) {
-                                    Image(systemName: "camera.fill")
-                                        .font(.system(size: 30))
-                                        .foregroundColor(.petlyDarkGreen)
-                                    Text("Add Photo")
-                                        .font(.petlyBody(12))
-                                        .foregroundColor(.petlyDarkGreen)
-                                }
+                                Image(systemName: "pawprint.fill")
+                                    .font(.system(size: 40))
+                                    .foregroundColor(.white)
                             }
-                        }
-                    }
-                    .onChange(of: selectedPhoto) { newValue in
-                        Task {
-                            if let data = try? await newValue?.loadTransferable(type: Data.self),
-                               let uiImage = UIImage(data: data) {
-                                profileImage = Image(uiImage: uiImage)
-                            }
-                        }
-                    }
-                    
-                    VStack(spacing: 16) {
-                        FormField(icon: "🐕", placeholder: "Name", text: $name)
-                        FormField(icon: "🎂", placeholder: "Age", text: $age, keyboardType: .numberPad)
-                        FormField(icon: "🦴", placeholder: "Breed", text: $breed)
-                        FormField(icon: "⚖️", placeholder: "Weight (lbs)", text: $weight, keyboardType: .decimalPad)
-                        FormField(icon: "😊", placeholder: "Personality", text: $personality)
-                        
-                        HStack(spacing: 12) {
-                            Text("⚧️")
-                                .font(.system(size: 20))
                             
-                            Picker("Gender", selection: $gender) {
-                                ForEach(genders, id: \.self) { gender in
-                                    Text(gender)
-                                        .font(.petlyBody())
-                                        .tag(gender)
+                            PhotosPicker(selection: $selectedPhoto, matching: .images) {
+                                Circle()
+                                    .fill(Color.petlyLightGreen)
+                                    .frame(width: 28, height: 28)
+                                    .overlay(
+                                        Image(systemName: "plus")
+                                            .font(.system(size: 14, weight: .medium))
+                                            .foregroundColor(.petlyDarkGreen)
+                                    )
+                            }
+                            .offset(x: 35, y: 35)
+                        }
+                        .onChange(of: selectedPhoto) { newValue in
+                            Task {
+                                if let data = try? await newValue?.loadTransferable(type: Data.self),
+                                   let uiImage = UIImage(data: data) {
+                                    profileImage = Image(uiImage: uiImage)
                                 }
                             }
-                            .pickerStyle(.segmented)
                         }
-                        .padding()
-                        .background(Color.petlyLightGreen)
-                        .cornerRadius(16)
+                        .padding(.top, 20)
                         
-                        FormField(icon: "🚫", placeholder: "Allergies (comma separated)", text: $allergies)
-                        FormField(icon: "🏥", placeholder: "Health Conditions (comma separated)", text: $healthConditions)
-                    }
-                    .padding(.horizontal)
+                        Text("Tell us about your pet!")
+                            .font(.petlyTitle(28))
+                            .foregroundColor(.petlyDarkGreen)
+                            .padding(.top, 10)
+                        
+                        VStack(spacing: 12) {
+                            PetFormField(icon: "pawprint.fill", placeholder: "Your Pet's Name", text: $name)
+                            PetFormField(icon: "clock", placeholder: "Your Pet's Age", text: $age, keyboardType: .numberPad)
+                            PetFormField(icon: "hare", placeholder: "Breed", text: $breed)
+                            PetFormField(icon: "scalemass", placeholder: "Weight", text: $weight, keyboardType: .decimalPad)
+                            PetFormField(icon: "face.smiling", placeholder: "Personality", text: $personality)
+                            
+                            HStack(spacing: 12) {
+                                Image(systemName: "figure.stand.line.dotted.figure.stand")
+                                    .foregroundColor(.petlyFormIcon)
+                                    .frame(width: 24)
+                                
+                                Text("Gender")
+                                    .font(.petlyBody(14))
+                                    .foregroundColor(.petlyFormIcon)
+                                
+                                Spacer()
+                                
+                                Image(systemName: "chevron.down")
+                                    .foregroundColor(.petlyFormIcon)
+                            }
+                            .padding()
+                            .background(Color.petlyLightGreen)
+                            .cornerRadius(12)
+                            
+                            PetFormField(icon: "allergens", placeholder: "Allergies", text: $allergies)
+                            PetFormField(icon: "cross.case", placeholder: "Health Conditions", text: $healthConditions)
+                        }
+                        .padding(.horizontal)
                     
                     if let errorMessage = errorMessage {
                         Text(errorMessage)
@@ -113,17 +135,27 @@ struct NewPetProfileView: View {
                             .transition(.scale.combined(with: .opacity))
                     }
                     
-                    Button(action: saveProfile) {
-                        Text("Save Profile")
-                            .font(.petlyBodyMedium(16))
-                            .foregroundColor(.white)
-                            .frame(maxWidth: .infinity)
-                            .padding()
-                            .background(Color.petlyDarkGreen)
-                            .cornerRadius(25)
+                        Button(action: saveProfile) {
+                            Text("COMPLETE")
+                                .font(.petlyBodyMedium(16))
+                                .foregroundColor(.white)
+                                .frame(maxWidth: .infinity)
+                                .padding()
+                                .background(Color.petlyDarkGreen)
+                                .cornerRadius(12)
+                        }
+                        .padding(.horizontal)
+                        
+                        HStack(spacing: 8) {
+                            ForEach(0..<4) { index in
+                                Circle()
+                                    .fill(index == 3 ? Color.petlyDarkGreen : Color.petlyFormIcon.opacity(0.3))
+                                    .frame(width: 8, height: 8)
+                            }
+                        }
+                        .padding(.top, 20)
+                        .padding(.bottom, 40)
                     }
-                    .padding(.horizontal)
-                    .padding(.bottom, 100)
                 }
             }
         }
@@ -189,7 +221,7 @@ struct NewPetProfileView: View {
     }
 }
 
-struct FormField: View {
+struct PetFormField: View {
     let icon: String
     let placeholder: String
     @Binding var text: String
@@ -197,8 +229,9 @@ struct FormField: View {
     
     var body: some View {
         HStack(spacing: 12) {
-            Text(icon)
-                .font(.system(size: 20))
+            Image(systemName: icon)
+                .foregroundColor(.petlyFormIcon)
+                .frame(width: 24)
             
             TextField(placeholder, text: $text)
                 .font(.petlyBody(14))
@@ -206,7 +239,7 @@ struct FormField: View {
         }
         .padding()
         .background(Color.petlyLightGreen)
-        .cornerRadius(16)
+        .cornerRadius(12)
     }
 }
 

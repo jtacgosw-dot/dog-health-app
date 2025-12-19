@@ -211,15 +211,19 @@ struct EmptyStateChatView: View {
         VStack(spacing: 30) {
             Spacer()
             
-            VStack(spacing: 12) {
+            VStack(spacing: 8) {
                 Text("Hello \(userName)")
                     .font(.petlyTitle(36))
                     .foregroundColor(.petlyDarkGreen)
+                    .underline()
                 
-                Text("How can we help you today?")
+                Text("How can we help")
                     .font(.petlyTitle(32))
                     .foregroundColor(.petlyDarkGreen)
-                    .multilineTextAlignment(.center)
+                
+                Text("you today?")
+                    .font(.petlyTitle(32))
+                    .foregroundColor(.petlyDarkGreen)
             }
             
             Text("PETLY AI is here to make your pet's wellness an easy experience. From nutrition, to training - ask anything.")

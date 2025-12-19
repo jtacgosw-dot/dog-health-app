@@ -152,6 +152,25 @@ struct PetlyButtonStyle: ButtonStyle {
     }
 }
 
+struct WavyLine: Shape {
+    func path(in rect: CGRect) -> Path {
+        var path = Path()
+        let amplitude: CGFloat = 3
+        let wavelength: CGFloat = 8
+        
+        path.move(to: CGPoint(x: rect.midX, y: rect.maxY))
+        
+        var y = rect.maxY
+        while y > rect.minY {
+            let x = rect.midX + amplitude * sin((rect.maxY - y) / wavelength * .pi * 2)
+            path.addLine(to: CGPoint(x: x, y: y))
+            y -= 1
+        }
+        
+        return path
+    }
+}
+
 struct TodaysOverviewCard: View {
     let mealsLogged: Int
     let mealsTotal: Int
@@ -343,12 +362,18 @@ struct WellnessTrackerCard: View {
             }
             .buttonStyle(PetlyButtonStyle())
             
-            HStack(spacing: 4) {
-                ForEach(Array(weekData.enumerated()), id: \.offset) { _, data in
+            HStack(alignment: .bottom, spacing: 4) {
+                ForEach(Array(weekData.enumerated()), id: \.offset) { index, data in
                     VStack(spacing: 2) {
-                        Rectangle()
-                            .fill(Color.petlyDarkGreen)
-                            .frame(width: 8, height: data.height)
+                        if index >= 5 {
+                            WavyLine()
+                                .stroke(Color.petlyDarkGreen, lineWidth: 2)
+                                .frame(width: 16, height: data.height)
+                        } else {
+                            Rectangle()
+                                .fill(Color.petlyDarkGreen)
+                                .frame(width: 8, height: data.height)
+                        }
                         Text(data.day)
                             .font(.petlyBody(10))
                             .foregroundColor(.petlyFormIcon)
