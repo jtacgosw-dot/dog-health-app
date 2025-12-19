@@ -302,8 +302,9 @@ struct DailyActivityRingCard: View {
             Text("Close activity ring 4 days in a row to earn a badge!")
                 .font(.petlyBody(11))
                 .foregroundColor(.petlyFormIcon)
+                .fixedSize(horizontal: false, vertical: true)
             
-            Button(action: {}) {
+            Button(action: {}){
                 Text("View Schedule ›")
                     .font(.petlyBodyMedium(12))
                     .foregroundColor(.petlyDarkGreen)
