@@ -531,7 +531,7 @@ struct HealthTimelineCard: View {
                 .buttonStyle(PetlyButtonStyle())
             }
             
-            HStack(spacing: 16) {
+            HStack(spacing: 12) {
                 HStack(spacing: 8) {
                     Image(systemName: "heart.text.square")
                         .font(.system(size: 20))
@@ -544,10 +544,11 @@ struct HealthTimelineCard: View {
                         Text("Persisted")
                             .font(.petlyBodyMedium(14))
                             .foregroundColor(.petlyDarkGreen)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.85)
                     }
                 }
-                
-                Spacer()
+                .frame(maxWidth: .infinity, alignment: .leading)
                 
                 HStack(spacing: 8) {
                     Image(systemName: "clock.arrow.circlepath")
@@ -561,10 +562,11 @@ struct HealthTimelineCard: View {
                         Text("Available")
                             .font(.petlyBodyMedium(14))
                             .foregroundColor(.petlyDarkGreen)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.85)
                     }
                 }
-                
-                Spacer()
+                .frame(maxWidth: .infinity, alignment: .leading)
                 
                 HStack(spacing: 8) {
                     Image(systemName: "sparkles")
@@ -578,8 +580,11 @@ struct HealthTimelineCard: View {
                         Text("Ready")
                             .font(.petlyBodyMedium(14))
                             .foregroundColor(.petlyDarkGreen)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.85)
                     }
                 }
+                .frame(maxWidth: .infinity, alignment: .leading)
             }
         }
         .padding()
