@@ -12,6 +12,7 @@ struct HomeDashboardView: View {
     @State private var selectedLogType: LogType?
     @State private var initialMealType: Int?
     @State private var showHealthTimeline = false
+    @State private var showHealthScore = false
     
     private var userName: String {
         if let fullName = appState.currentUser?.fullName, !fullName.isEmpty {
@@ -84,6 +85,11 @@ struct HomeDashboardView: View {
                         )
                         .padding(.horizontal)
                         
+                        PetHealthScoreCard(
+                            onViewDetails: { showHealthScore = true }
+                        )
+                        .padding(.horizontal)
+                        
                         HealthTimelineCard(
                             onViewTimeline: { showHealthTimeline = true }
                         )
@@ -137,6 +143,10 @@ struct HomeDashboardView: View {
             }
             .fullScreenCover(isPresented: $showHealthTimeline) {
                 HealthTimelineView()
+                    .environmentObject(appState)
+            }
+            .sheet(isPresented: $showHealthScore) {
+                PetHealthScoreView()
                     .environmentObject(appState)
             }
         }
