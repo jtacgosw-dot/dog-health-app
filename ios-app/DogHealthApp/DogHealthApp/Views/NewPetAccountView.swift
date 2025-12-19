@@ -4,7 +4,6 @@ struct NewPetAccountView: View {
     @EnvironmentObject var appState: AppState
     @Environment(\.dismiss) var dismiss
     @State private var scrollOffset: CGFloat = 0
-    @State private var initialMinY: CGFloat? = nil
     @State private var showingNutrition = false
     @State private var showingPersonality = false
     @State private var showingHealthConcerns = false
@@ -14,26 +13,8 @@ struct NewPetAccountView: View {
     @State private var showingInviteFriends = false
     @State private var showingCustomerSupport = false
     
-    private let expandedAvatarSize: CGFloat = 120
-    private let collapsedAvatarSize: CGFloat = 40
-    private let collapseThreshold: CGFloat = 120
-    
-    var collapseProgress: CGFloat {
-        min(max(scrollOffset / collapseThreshold, 0), 1)
-    }
-    
-    var avatarSize: CGFloat {
-        expandedAvatarSize - (collapseProgress * (expandedAvatarSize - collapsedAvatarSize))
-    }
-    
-    var titleOpacity: Double {
-        max(0, 1 - Double(collapseProgress * 1.5))
-    }
-    
-    var headerHeight: CGFloat {
-        let expanded: CGFloat = 260
-        let collapsed: CGFloat = 60
-        return expanded - (collapseProgress * (expanded - collapsed))
+    private var showMiniHeader: Bool {
+        scrollOffset > 180
     }
     
     var body: some View {
@@ -43,16 +24,49 @@ struct NewPetAccountView: View {
             
             ScrollView {
                 VStack(spacing: 12) {
-                    Color.clear
-                        .frame(height: 1)
-                        .background(
-                            GeometryReader { geometry in
-                                Color.clear.preference(
-                                    key: ScrollOffsetPreferenceKey.self,
-                                    value: geometry.frame(in: .named("scroll")).minY
-                                )
-                            }
+                    GeometryReader { geometry in
+                        Color.clear.preference(
+                            key: ScrollOffsetPreferenceKey.self,
+                            value: -geometry.frame(in: .named("scroll")).minY
                         )
+                    }
+                    .frame(height: 0)
+                    
+                    VStack(spacing: 8) {
+                        Text("Pet Account")
+                            .font(.petlyTitle(28))
+                            .foregroundColor(.petlyDarkGreen)
+                        
+                        Circle()
+                            .fill(Color.petlyLightGreen)
+                            .frame(width: 120, height: 120)
+                            .overlay(
+                                Image(systemName: "dog.fill")
+                                    .font(.system(size: 60))
+                                    .foregroundColor(.petlyDarkGreen)
+                            )
+                            .overlay(
+                                Circle()
+                                    .fill(Color.petlyDarkGreen)
+                                    .frame(width: 36, height: 36)
+                                    .overlay(
+                                        Image(systemName: "pencil")
+                                            .font(.system(size: 14))
+                                            .foregroundColor(.white)
+                                    )
+                                    .offset(x: 40, y: 40)
+                            )
+                        
+                        Text("\(appState.currentDog?.name ?? "Arlo"), \(appState.currentDog?.age ?? 1) Year")
+                            .font(.petlyTitle(24))
+                            .foregroundColor(.petlyDarkGreen)
+                        
+                        Text("Breed: \(appState.currentDog?.breed ?? "Mini Poodle")")
+                            .font(.petlyBody(14))
+                            .foregroundColor(.petlyFormIcon)
+                    }
+                    .padding(.top, 60)
+                    .padding(.bottom, 20)
                     
                     Button(action: { showingInviteFriends = true }) {
                         HStack(spacing: 16) {
@@ -124,15 +138,11 @@ struct NewPetAccountView: View {
                     .cornerRadius(12)
                 }
                 .padding(.horizontal)
-                .padding(.top, headerHeight + 20)
                 .padding(.bottom, 100)
             }
             .coordinateSpace(name: "scroll")
             .onPreferenceChange(ScrollOffsetPreferenceKey.self) { value in
-                if initialMinY == nil {
-                    initialMinY = value
-                }
-                scrollOffset = max(0, (initialMinY ?? value) - value)
+                scrollOffset = value
             }
             .sheet(isPresented: $showingNutrition) {
                 AccountDetailView(title: "Nutrition", icon: "fork.knife", description: "Manage your pet's dietary preferences and meal plans.")
@@ -159,87 +169,47 @@ struct NewPetAccountView: View {
                 AccountDetailView(title: "Customer Support", icon: "headphones", description: "Need help? Our support team is here for you 24/7.")
             }
             
-            VStack(spacing: 0) {
-                HStack {
-                    Button(action: { dismiss() }) {
-                        Image(systemName: "chevron.left")
-                            .font(.system(size: 20))
-                            .foregroundColor(.petlyDarkGreen)
-                            .padding()
-                            .background(Color.petlyLightGreen)
-                            .clipShape(Circle())
-                    }
-                    
-                    Spacer()
-                    
-                    if collapseProgress > 0.8 {
-                        HStack(spacing: 8) {
-                            Circle()
-                                .fill(Color.petlyLightGreen)
-                                .frame(width: 32, height: 32)
-                                .overlay(
-                                    Image(systemName: "dog.fill")
-                                        .font(.system(size: 16))
-                                        .foregroundColor(.petlyDarkGreen)
-                                )
-                            
-                            Text("\(appState.currentDog?.name ?? "Arlo")")
-                                .font(.petlyTitle(18))
-                                .foregroundColor(.petlyDarkGreen)
-                        }
-                        .opacity(Double((collapseProgress - 0.8) * 5))
-                        
-                        Spacer()
-                    }
+            HStack {
+                Button(action: { dismiss() }) {
+                    Image(systemName: "chevron.left")
+                        .font(.system(size: 20))
+                        .foregroundColor(.petlyDarkGreen)
+                        .padding()
+                        .background(Color.petlyLightGreen)
+                        .clipShape(Circle())
                 }
-                .padding(.horizontal)
-                .padding(.top, 8)
                 
-                if collapseProgress < 0.9 {
-                    VStack(spacing: 8) {
-                        Text("Pet Account")
-                            .font(.petlyTitle(28))
-                            .foregroundColor(.petlyDarkGreen)
-                            .opacity(titleOpacity)
-                        
+                Spacer()
+                
+                if showMiniHeader {
+                    HStack(spacing: 8) {
                         Circle()
                             .fill(Color.petlyLightGreen)
-                            .frame(width: avatarSize, height: avatarSize)
+                            .frame(width: 32, height: 32)
                             .overlay(
                                 Image(systemName: "dog.fill")
-                                    .font(.system(size: avatarSize * 0.5))
+                                    .font(.system(size: 16))
                                     .foregroundColor(.petlyDarkGreen)
                             )
-                            .overlay(
-                                Circle()
-                                    .fill(Color.petlyDarkGreen)
-                                    .frame(width: avatarSize * 0.3, height: avatarSize * 0.3)
-                                    .overlay(
-                                        Image(systemName: "pencil")
-                                            .font(.system(size: avatarSize * 0.12))
-                                            .foregroundColor(.white)
-                                    )
-                                    .offset(x: avatarSize * 0.33, y: avatarSize * 0.33)
-                            )
-                            .opacity(titleOpacity)
                         
-                        Text("\(appState.currentDog?.name ?? "Arlo"), \(appState.currentDog?.age ?? 1) Year")
-                            .font(.petlyTitle(24))
+                        Text("\(appState.currentDog?.name ?? "Arlo")")
+                            .font(.petlyTitle(18))
                             .foregroundColor(.petlyDarkGreen)
-                            .opacity(titleOpacity)
-                        
-                        Text("Breed: \(appState.currentDog?.breed ?? "Mini Poodle")")
-                            .font(.petlyBody(14))
-                            .foregroundColor(.petlyFormIcon)
-                            .opacity(titleOpacity)
                     }
-                    .padding(.bottom, 12)
+                    .transition(.opacity.combined(with: .move(edge: .top)))
+                    
+                    Spacer()
                 }
             }
-            .frame(height: headerHeight, alignment: .top)
-            .background(Color.petlyBackground)
+            .padding(.horizontal)
+            .padding(.top, 8)
+            .background(
+                Color.petlyBackground
+                    .opacity(showMiniHeader ? 1 : 0)
+                    .ignoresSafeArea(edges: .top)
+            )
+            .animation(.easeInOut(duration: 0.2), value: showMiniHeader)
         }
-        .animation(.easeOut(duration: 0.15), value: collapseProgress)
     }
 }
 
