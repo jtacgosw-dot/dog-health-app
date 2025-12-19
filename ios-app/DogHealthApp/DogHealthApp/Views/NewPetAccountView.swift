@@ -4,39 +4,167 @@ struct NewPetAccountView: View {
     @EnvironmentObject var appState: AppState
     @Environment(\.dismiss) var dismiss
     @State private var scrollOffset: CGFloat = 0
+    @State private var showingNutrition = false
+    @State private var showingPersonality = false
+    @State private var showingHealthConcerns = false
+    @State private var showingWeight = false
+    @State private var showingGeneral = false
+    @State private var showingMembership = false
+    @State private var showingInviteFriends = false
+    @State private var showingCustomerSupport = false
     
-    let topMenuItems = [
-        MenuItem(icon: "person.2.fill", title: "Invite Friends"),
-        MenuItem(icon: "headphones", title: "Customer Support")
-    ]
+    private let expandedHeaderHeight: CGFloat = 280
+    private let collapsedHeaderHeight: CGFloat = 120
+    private let collapseRange: CGFloat = 160
     
-    let mainMenuItems = [
-        MenuItem(icon: "fork.knife", title: "Nutrition"),
-        MenuItem(icon: "pawprint.fill", title: "Personality"),
-        MenuItem(icon: "heart.fill", title: "Health Concerns"),
-        MenuItem(icon: "scalemass", title: "Weight"),
-        MenuItem(icon: "gearshape.fill", title: "General"),
-        MenuItem(icon: "sparkles", title: "Membership")
-    ]
-    
-    var headerScale: CGFloat {
-        let minScale: CGFloat = 0.6
-        let maxScale: CGFloat = 1.0
-        let scale = max(minScale, maxScale - (scrollOffset / 300))
-        return scale
+    var collapseProgress: CGFloat {
+        min(max(scrollOffset / collapseRange, 0), 1)
     }
     
-    var headerOpacity: Double {
-        let minOpacity: Double = 0.3
-        let maxOpacity: Double = 1.0
-        let opacity = max(minOpacity, maxOpacity - Double(scrollOffset / 200))
-        return opacity
+    var currentHeaderHeight: CGFloat {
+        expandedHeaderHeight - (collapseProgress * (expandedHeaderHeight - collapsedHeaderHeight))
+    }
+    
+    var avatarSize: CGFloat {
+        let expanded: CGFloat = 120
+        let collapsed: CGFloat = 50
+        return expanded - (collapseProgress * (expanded - collapsed))
+    }
+    
+    var titleFontSize: CGFloat {
+        let expanded: CGFloat = 28
+        let collapsed: CGFloat = 18
+        return expanded - (collapseProgress * (expanded - collapsed))
+    }
+    
+    var petNameFontSize: CGFloat {
+        let expanded: CGFloat = 24
+        let collapsed: CGFloat = 16
+        return expanded - (collapseProgress * (expanded - collapsed))
+    }
+    
+    var subtitleOpacity: Double {
+        max(0, 1 - Double(collapseProgress * 2))
     }
     
     var body: some View {
-        ZStack {
+        ZStack(alignment: .top) {
             Color.petlyBackground
                 .ignoresSafeArea()
+            
+            ScrollView {
+                GeometryReader { geometry in
+                    Color.clear.preference(
+                        key: ScrollOffsetPreferenceKey.self,
+                        value: geometry.frame(in: .named("scroll")).minY
+                    )
+                }
+                .frame(height: 0)
+                
+                VStack(spacing: 12) {
+                    Button(action: { showingInviteFriends = true }) {
+                        HStack(spacing: 16) {
+                            Image(systemName: "person.2.fill")
+                                .font(.system(size: 20))
+                                .foregroundColor(.petlyDarkGreen)
+                                .frame(width: 24)
+                            
+                            Text("Invite Friends")
+                                .font(.petlyBody(16))
+                                .foregroundColor(.petlyDarkGreen)
+                            
+                            Spacer()
+                            
+                            Image(systemName: "chevron.right")
+                                .foregroundColor(.petlyFormIcon)
+                                .font(.system(size: 14))
+                        }
+                        .padding()
+                        .background(Color.petlyLightGreen)
+                        .cornerRadius(12)
+                    }
+                    .buttonStyle(PetlyButtonStyle())
+                    
+                    Button(action: { showingCustomerSupport = true }) {
+                        HStack(spacing: 16) {
+                            Image(systemName: "headphones")
+                                .font(.system(size: 20))
+                                .foregroundColor(.petlyDarkGreen)
+                                .frame(width: 24)
+                            
+                            Text("Customer Support")
+                                .font(.petlyBody(16))
+                                .foregroundColor(.petlyDarkGreen)
+                            
+                            Spacer()
+                            
+                            Image(systemName: "chevron.right")
+                                .foregroundColor(.petlyFormIcon)
+                                .font(.system(size: 14))
+                        }
+                        .padding()
+                        .background(Color.petlyLightGreen)
+                        .cornerRadius(12)
+                    }
+                    .buttonStyle(PetlyButtonStyle())
+                    
+                    VStack(spacing: 0) {
+                        AccountMenuButton(icon: "fork.knife", title: "Nutrition") {
+                            showingNutrition = true
+                        }
+                        AccountMenuButton(icon: "pawprint.fill", title: "Personality") {
+                            showingPersonality = true
+                        }
+                        AccountMenuButton(icon: "heart.fill", title: "Health Concerns") {
+                            showingHealthConcerns = true
+                        }
+                        AccountMenuButton(icon: "scalemass", title: "Weight") {
+                            showingWeight = true
+                        }
+                        AccountMenuButton(icon: "gearshape.fill", title: "General") {
+                            showingGeneral = true
+                        }
+                        AccountMenuButton(icon: "sparkles", title: "Membership", isLast: true) {
+                            showingMembership = true
+                        }
+                    }
+                    .background(Color.petlyLightGreen)
+                    .cornerRadius(12)
+                }
+                .padding(.horizontal)
+                .padding(.top, currentHeaderHeight + 20)
+                .padding(.bottom, 100)
+            }
+            .coordinateSpace(name: "scroll")
+            .onPreferenceChange(ScrollOffsetPreferenceKey.self) { value in
+                withAnimation(.easeOut(duration: 0.1)) {
+                    scrollOffset = max(0, -value)
+                }
+            }
+            .sheet(isPresented: $showingNutrition) {
+                AccountDetailView(title: "Nutrition", icon: "fork.knife", description: "Manage your pet's dietary preferences and meal plans.")
+            }
+            .sheet(isPresented: $showingPersonality) {
+                AccountDetailView(title: "Personality", icon: "pawprint.fill", description: "Track your pet's personality traits and behaviors.")
+            }
+            .sheet(isPresented: $showingHealthConcerns) {
+                AccountDetailView(title: "Health Concerns", icon: "heart.fill", description: "Monitor and manage your pet's health conditions.")
+            }
+            .sheet(isPresented: $showingWeight) {
+                WeightTrackingView()
+            }
+            .sheet(isPresented: $showingGeneral) {
+                SettingsView()
+            }
+            .sheet(isPresented: $showingMembership) {
+                NewPaywallView()
+            }
+            .sheet(isPresented: $showingInviteFriends) {
+                AccountDetailView(title: "Invite Friends", icon: "person.2.fill", description: "Share Petly with friends and family to help them care for their pets too!")
+            }
+            .sheet(isPresented: $showingCustomerSupport) {
+                AccountDetailView(title: "Customer Support", icon: "headphones", description: "Need help? Our support team is here for you 24/7.")
+            }
             
             VStack(spacing: 0) {
                 HStack {
@@ -50,95 +178,60 @@ struct NewPetAccountView: View {
                     }
                     
                     Spacer()
-                }
-                .padding()
-                
-                VStack(spacing: 12) {
-                    Text("Pet Account")
-                        .font(.petlyTitle(28))
-                        .foregroundColor(.petlyDarkGreen)
                     
-                    Circle()
-                        .fill(Color.petlyLightGreen)
-                        .frame(width: 120 * headerScale, height: 120 * headerScale)
-                        .overlay(
-                            Image(systemName: "dog.fill")
-                                .font(.system(size: 60 * headerScale))
-                                .foregroundColor(.petlyDarkGreen)
-                        )
-                        .overlay(
-                            Circle()
-                                .fill(Color.petlyDarkGreen)
-                                .frame(width: 36 * headerScale, height: 36 * headerScale)
-                                .overlay(
-                                    Image(systemName: "pencil")
-                                        .font(.system(size: 14 * headerScale))
-                                        .foregroundColor(.white)
-                                )
-                                .offset(x: 40 * headerScale, y: 40 * headerScale)
-                        )
-                    
-                    Text("\(appState.currentDog?.name ?? "Arlo"), \(appState.currentDog?.age ?? 1) Year")
-                        .font(.petlyTitle(24 * headerScale))
-                        .foregroundColor(.petlyDarkGreen)
-                        .opacity(headerOpacity)
-                    
-                    Text("Breed: \(appState.currentDog?.breed ?? "Mini Poodle")")
-                        .font(.petlyBody(14))
-                        .foregroundColor(.petlyFormIcon)
-                        .opacity(headerOpacity)
-                }
-                .padding(.bottom, 20)
-                .animation(.spring(response: 0.3, dampingFraction: 0.8), value: scrollOffset)
-                
-                ScrollView {
-                    GeometryReader { geometry in
-                        Color.clear.preference(
-                            key: ScrollOffsetPreferenceKey.self,
-                            value: geometry.frame(in: .named("scroll")).minY
-                        )
-                    }
-                    .frame(height: 0)
-                    
-                    VStack(spacing: 12) {
-                        ForEach(topMenuItems) { item in
-                            HStack(spacing: 16) {
-                                Image(systemName: item.icon)
-                                    .font(.system(size: 20))
-                                    .foregroundColor(.petlyDarkGreen)
-                                    .frame(width: 24)
-                                
-                                Text(item.title)
-                                    .font(.petlyBody(16))
-                                    .foregroundColor(.petlyDarkGreen)
-                                
-                                Spacer()
-                                
-                                Image(systemName: "chevron.right")
-                                    .foregroundColor(.petlyFormIcon)
-                                    .font(.system(size: 14))
-                            }
-                            .padding()
-                            .background(Color.petlyLightGreen)
-                            .cornerRadius(12)
-                        }
+                    if collapseProgress > 0.5 {
+                        Text("\(appState.currentDog?.name ?? "Arlo")")
+                            .font(.petlyTitle(18))
+                            .foregroundColor(.petlyDarkGreen)
+                            .opacity(Double((collapseProgress - 0.5) * 2))
                         
-                        VStack(spacing: 0) {
-                            ForEach(mainMenuItems) { item in
-                                MenuItemRow(item: item)
-                            }
-                        }
-                        .background(Color.petlyLightGreen)
-                        .cornerRadius(12)
+                        Spacer()
                     }
-                    .padding(.horizontal)
-                    .padding(.bottom, 100)
                 }
-                .coordinateSpace(name: "scroll")
-                .onPreferenceChange(ScrollOffsetPreferenceKey.self) { value in
-                    scrollOffset = max(0, -value)
+                .padding(.horizontal)
+                .padding(.top, 8)
+                
+                if collapseProgress < 1 {
+                    VStack(spacing: 8) {
+                        Text("Pet Account")
+                            .font(.petlyTitle(titleFontSize))
+                            .foregroundColor(.petlyDarkGreen)
+                            .opacity(subtitleOpacity)
+                        
+                        Circle()
+                            .fill(Color.petlyLightGreen)
+                            .frame(width: avatarSize, height: avatarSize)
+                            .overlay(
+                                Image(systemName: "dog.fill")
+                                    .font(.system(size: avatarSize * 0.5))
+                                    .foregroundColor(.petlyDarkGreen)
+                            )
+                            .overlay(
+                                Circle()
+                                    .fill(Color.petlyDarkGreen)
+                                    .frame(width: avatarSize * 0.3, height: avatarSize * 0.3)
+                                    .overlay(
+                                        Image(systemName: "pencil")
+                                            .font(.system(size: avatarSize * 0.12))
+                                            .foregroundColor(.white)
+                                    )
+                                    .offset(x: avatarSize * 0.33, y: avatarSize * 0.33)
+                            )
+                        
+                        Text("\(appState.currentDog?.name ?? "Arlo"), \(appState.currentDog?.age ?? 1) Year")
+                            .font(.petlyTitle(petNameFontSize))
+                            .foregroundColor(.petlyDarkGreen)
+                        
+                        Text("Breed: \(appState.currentDog?.breed ?? "Mini Poodle")")
+                            .font(.petlyBody(14))
+                            .foregroundColor(.petlyFormIcon)
+                            .opacity(subtitleOpacity)
+                    }
+                    .padding(.bottom, 12)
                 }
             }
+            .frame(height: currentHeaderHeight)
+            .background(Color.petlyBackground)
         }
     }
 }
@@ -150,14 +243,12 @@ struct ScrollOffsetPreferenceKey: PreferenceKey {
     }
 }
 
-struct MenuItem: Identifiable {
-    let id = UUID()
+struct AccountMenuButton: View {
     let icon: String
     let title: String
-}
-
-struct MenuItemRow: View {
-    let item: MenuItem
+    var isLast: Bool = false
+    let action: () -> Void
+    
     @State private var isPressed = false
     
     var body: some View {
@@ -169,15 +260,16 @@ struct MenuItemRow: View {
                 withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) {
                     isPressed = false
                 }
+                action()
             }
         }) {
             HStack(spacing: 16) {
-                Image(systemName: item.icon)
+                Image(systemName: icon)
                     .font(.system(size: 20))
                     .foregroundColor(.petlyDarkGreen)
                     .frame(width: 24)
                 
-                Text(item.title)
+                Text(title)
                     .font(.petlyBody(16))
                     .foregroundColor(.petlyDarkGreen)
                 
@@ -192,12 +284,74 @@ struct MenuItemRow: View {
         }
         .scaleEffect(isPressed ? 0.98 : 1.0)
         .overlay(
-            Rectangle()
-                .fill(Color.petlyDarkGreen.opacity(0.1))
-                .frame(height: 1)
-                .padding(.leading, 60),
+            Group {
+                if !isLast {
+                    Rectangle()
+                        .fill(Color.petlyDarkGreen.opacity(0.1))
+                        .frame(height: 1)
+                        .padding(.leading, 60)
+                }
+            },
             alignment: .bottom
         )
+    }
+}
+
+struct AccountDetailView: View {
+    @Environment(\.dismiss) var dismiss
+    let title: String
+    let icon: String
+    let description: String
+    
+    var body: some View {
+        NavigationView {
+            ZStack {
+                Color.petlyBackground
+                    .ignoresSafeArea()
+                
+                VStack(spacing: 24) {
+                    Circle()
+                        .fill(Color.petlyLightGreen)
+                        .frame(width: 100, height: 100)
+                        .overlay(
+                            Image(systemName: icon)
+                                .font(.system(size: 40))
+                                .foregroundColor(.petlyDarkGreen)
+                        )
+                    
+                    Text(title)
+                        .font(.petlyTitle(28))
+                        .foregroundColor(.petlyDarkGreen)
+                    
+                    Text(description)
+                        .font(.petlyBody(16))
+                        .foregroundColor(.petlyFormIcon)
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal, 32)
+                    
+                    Spacer()
+                    
+                    Text("Coming Soon")
+                        .font(.petlyBodyMedium(14))
+                        .foregroundColor(.petlyFormIcon)
+                        .padding()
+                        .background(Color.petlyLightGreen)
+                        .cornerRadius(12)
+                    
+                    Spacer()
+                }
+                .padding(.top, 40)
+            }
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button(action: { dismiss() }) {
+                        Image(systemName: "xmark")
+                            .foregroundColor(.petlyDarkGreen)
+                    }
+                }
+            }
+        }
     }
 }
 
