@@ -1,4 +1,5 @@
 import SwiftUI
+import CoreText
 
 struct NewPaywallView: View {
     @EnvironmentObject var appState: AppState
@@ -39,9 +40,12 @@ struct NewPaywallView: View {
                 
                 ScrollView {
                     VStack(spacing: 24) {
-                        Text("PETLY PREMIUM")
-                            .font(.petlyTitle(28))
-                            .foregroundColor(.petlyDarkGreen)
+                        ArcTextView(
+                            text: "PETLY PREMIUM",
+                            radius: 450,
+                            arcAngle: 28
+                        )
+                        .frame(height: 60)
                         
                         HStack(spacing: 4) {
                             Text("Try us")
@@ -229,6 +233,80 @@ struct PlanCard: View {
         }
         .scaleEffect(isPressed ? 0.95 : 1.0)
         .animation(.spring(response: 0.3, dampingFraction: 0.6), value: isPressed)
+    }
+}
+
+struct ArcTextView: View {
+    let text: String
+    let radius: CGFloat
+    let arcAngle: CGFloat
+    
+    var body: some View {
+        Canvas { context, size in
+            context.withCGContext { cgContext in
+                let font = UIFont(name: "Georgia-Italic", size: 24) ?? UIFont.systemFont(ofSize: 24, weight: .medium)
+                let attributes: [NSAttributedString.Key: Any] = [
+                    .font: font,
+                    .foregroundColor: UIColor(Color.petlyDarkGreen),
+                    .kern: 2.0
+                ]
+                
+                let attributedString = NSAttributedString(string: text, attributes: attributes)
+                let line = CTLineCreateWithAttributedString(attributedString)
+                let glyphRuns = CTLineGetGlyphRuns(line) as! [CTRun]
+                
+                var glyphPositions: [(glyph: CGGlyph, position: CGFloat, width: CGFloat)] = []
+                var currentX: CGFloat = 0
+                
+                for run in glyphRuns {
+                    let glyphCount = CTRunGetGlyphCount(run)
+                    var glyphs = [CGGlyph](repeating: 0, count: glyphCount)
+                    var advances = [CGSize](repeating: .zero, count: glyphCount)
+                    
+                    CTRunGetGlyphs(run, CFRangeMake(0, glyphCount), &glyphs)
+                    CTRunGetAdvances(run, CFRangeMake(0, glyphCount), &advances)
+                    
+                    for i in 0..<glyphCount {
+                        let width = advances[i].width
+                        glyphPositions.append((glyphs[i], currentX + width / 2, width))
+                        currentX += width
+                    }
+                }
+                
+                let totalWidth = currentX
+                let totalArcAngle = arcAngle * .pi / 180
+                let startAngle = (.pi / 2) + (totalArcAngle / 2)
+                
+                let centerX = size.width / 2
+                let centerY = size.height + radius - 30
+                
+                cgContext.saveGState()
+                cgContext.textMatrix = .identity
+                
+                for (glyph, position, _) in glyphPositions {
+                    let normalizedPosition = position / totalWidth
+                    let angle = startAngle - (normalizedPosition * totalArcAngle)
+                    
+                    let x = centerX + radius * cos(angle)
+                    let y = centerY - radius * sin(angle)
+                    
+                    cgContext.saveGState()
+                    cgContext.translateBy(x: x, y: y)
+                    cgContext.rotate(by: -(angle - .pi / 2))
+                    cgContext.scaleBy(x: 1, y: -1)
+                    
+                    let ctFont = CTFontCreateWithName(font.fontName as CFString, font.pointSize, nil)
+                    var glyphCopy = glyph
+                    var glyphPosition = CGPoint.zero
+                    
+                    CTFontDrawGlyphs(ctFont, &glyphCopy, &glyphPosition, 1, cgContext)
+                    
+                    cgContext.restoreGState()
+                }
+                
+                cgContext.restoreGState()
+            }
+        }
     }
 }
 
