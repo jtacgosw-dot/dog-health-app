@@ -7,6 +7,7 @@ struct SettingsView: View {
     @State private var showWeightTracking = false
     @State private var showPetReminders = false
     @State private var showVetSummary = false
+    @State private var showHealthInsights = false
     
     var body: some View {
         NavigationView {
@@ -33,6 +34,9 @@ struct SettingsView: View {
                                 }
                                 Button(action: { showVetSummary = true }) {
                                     SettingsRow(icon: "doc.text.fill", title: "Vet Visit Summary", subtitle: "Export health logs as PDF", showChevron: true)
+                                }
+                                Button(action: { showHealthInsights = true }) {
+                                    SettingsRow(icon: "chart.bar.fill", title: "Health Insights", subtitle: "View trends and analytics", showChevron: true)
                                 }
                             }
                             
@@ -130,6 +134,10 @@ struct SettingsView: View {
                     VetSummaryExportView()
                         .environmentObject(appState)
                 }
+            }
+            .sheet(isPresented: $showHealthInsights) {
+                HealthInsightsDashboardView()
+                    .environmentObject(appState)
             }
         }
     }
