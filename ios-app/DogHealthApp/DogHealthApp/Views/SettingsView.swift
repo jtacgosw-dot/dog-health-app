@@ -5,6 +5,7 @@ struct SettingsView: View {
     @State private var showSignOutAlert = false
     @State private var showNotificationSettings = false
     @State private var showWeightTracking = false
+    @State private var showPetReminders = false
     
     var body: some View {
         NavigationView {
@@ -25,6 +26,9 @@ struct SettingsView: View {
                             SettingsSection(title: "Pet Health") {
                                 Button(action: { showWeightTracking = true }) {
                                     SettingsRow(icon: "scalemass.fill", title: "Weight Tracking", subtitle: "Track your pet's weight", showChevron: true)
+                                }
+                                Button(action: { showPetReminders = true }) {
+                                    SettingsRow(icon: "calendar.badge.clock", title: "Pet Reminders", subtitle: "Vaccinations, medications & more", showChevron: true)
                                 }
                             }
                             
@@ -108,6 +112,12 @@ struct SettingsView: View {
             .sheet(isPresented: $showWeightTracking) {
                 NavigationView {
                     WeightTrackingView()
+                        .environmentObject(appState)
+                }
+            }
+            .sheet(isPresented: $showPetReminders) {
+                NavigationView {
+                    PetRemindersView()
                         .environmentObject(appState)
                 }
             }
