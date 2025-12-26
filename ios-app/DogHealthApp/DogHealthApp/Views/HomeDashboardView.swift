@@ -1,18 +1,77 @@
 import SwiftUI
+import SwiftData
 
 struct HomeDashboardView: View {
     @EnvironmentObject var appState: AppState
-    @State private var mealsLogged = 2
-    @State private var mealsTotal = 2
-    @State private var activityMinutes = 45
-    @State private var activityGoal = 60
-    @State private var waterOnTrack = true
-    @State private var hasSymptoms = false
+    @Environment(\.modelContext) private var modelContext
+    @Query private var allLogs: [HealthLogEntry]
+    
     @State private var showDailyLog = false
     @State private var selectedLogType: LogType?
     @State private var initialMealType: Int?
     @State private var showHealthTimeline = false
     @State private var showHealthScore = false
+    @State private var showNutritionDetail = false
+    @State private var showScheduleDetail = false
+    
+    private let activityGoal = 60
+    private let mealsTotal = 3
+    
+    private var todayLogs: [HealthLogEntry] {
+        let startOfDay = Calendar.current.startOfDay(for: Date())
+        let dogId = appState.currentDog?.id ?? "default"
+        return allLogs.filter { $0.dogId == dogId && $0.timestamp >= startOfDay }
+    }
+    
+    private var mealsLogged: Int {
+        todayLogs.filter { $0.logType == "Meals" }.count
+    }
+    
+    private var activityMinutes: Int {
+        let walkMinutes = todayLogs
+            .filter { $0.logType == "Walk" }
+            .compactMap { Int($0.duration ?? "0") }
+            .reduce(0, +)
+        let playtimeMinutes = todayLogs
+            .filter { $0.logType == "Playtime" }
+            .compactMap { Int($0.duration ?? "0") }
+            .reduce(0, +)
+        return walkMinutes + playtimeMinutes
+    }
+    
+    private var waterOnTrack: Bool {
+        todayLogs.filter { $0.logType == "Water" }.count >= 1
+    }
+    
+    private var hasSymptoms: Bool {
+        !todayLogs.filter { $0.logType == "Symptom" }.isEmpty
+    }
+    
+    private var nextAppointment: HealthLogEntry? {
+        let now = Date()
+        let dogId = appState.currentDog?.id ?? "default"
+        return allLogs
+            .filter { $0.dogId == dogId && $0.logType == "Upcoming Appointments" && $0.timestamp > now }
+            .sorted { $0.timestamp < $1.timestamp }
+            .first
+    }
+    
+    private var todayMeals: [(type: String, time: Date?)] {
+        let mealLogs = todayLogs.filter { $0.logType == "Meals" }
+        var meals: [(type: String, time: Date?)] = [
+            ("Breakfast", nil),
+            ("Lunch", nil),
+            ("Dinner", nil)
+        ]
+        for log in mealLogs {
+            if let mealType = log.mealType {
+                if mealType == "Breakfast" { meals[0].time = log.timestamp }
+                else if mealType == "Lunch" { meals[1].time = log.timestamp }
+                else if mealType == "Dinner" { meals[2].time = log.timestamp }
+            }
+        }
+        return meals
+    }
     
     private var userName: String {
         if let fullName = appState.currentUser?.fullName, !fullName.isEmpty {
@@ -98,7 +157,8 @@ struct HomeDashboardView: View {
                         HStack(spacing: 12) {
                             DailyActivityRingCard(
                                 activityMinutes: activityMinutes,
-                                activityGoal: activityGoal
+                                activityGoal: activityGoal,
+                                onViewSchedule: { showScheduleDetail = true }
                             )
                             
                             WellnessTrackerCard(
@@ -110,16 +170,19 @@ struct HomeDashboardView: View {
                         .padding(.horizontal)
                         
                         UpcomingCareCard(
+                            appointment: nextAppointment,
                             onUpdateInfo: { selectedLogType = .appointments },
                             onAddNote: { selectedLogType = .notes }
                         )
                         .padding(.horizontal)
                         
                         MealsAndTreatsCard(
+                            meals: todayMeals,
                             onLogDinner: {
                                 initialMealType = 2
                                 selectedLogType = .meals
-                            }
+                            },
+                            onViewNutrition: { showNutritionDetail = true }
                         )
                         .padding(.horizontal)
                         .padding(.bottom, 100)
@@ -149,7 +212,229 @@ struct HomeDashboardView: View {
                 PetHealthScoreView()
                     .environmentObject(appState)
             }
+            .sheet(isPresented: $showNutritionDetail) {
+                NutritionDetailView()
+                    .environmentObject(appState)
+            }
+            .sheet(isPresented: $showScheduleDetail) {
+                ScheduleDetailView()
+                    .environmentObject(appState)
+            }
         }
+    }
+}
+
+struct NutritionDetailView: View {
+    @Environment(\.dismiss) var dismiss
+    @EnvironmentObject var appState: AppState
+    @Environment(\.modelContext) private var modelContext
+    @Query private var allLogs: [HealthLogEntry]
+    
+    private var mealLogs: [HealthLogEntry] {
+        let dogId = appState.currentDog?.id ?? "default"
+        return allLogs
+            .filter { $0.dogId == dogId && $0.logType == "Meals" }
+            .sorted { $0.timestamp > $1.timestamp }
+    }
+    
+    var body: some View {
+        NavigationView {
+            ZStack {
+                Color.petlyBackground
+                    .ignoresSafeArea()
+                
+                ScrollView {
+                    VStack(spacing: 16) {
+                        if mealLogs.isEmpty {
+                            VStack(spacing: 12) {
+                                Image(systemName: "fork.knife")
+                                    .font(.system(size: 50))
+                                    .foregroundColor(.petlyFormIcon)
+                                Text("No meals logged yet")
+                                    .font(.petlyBodyMedium(16))
+                                    .foregroundColor(.petlyDarkGreen)
+                                Text("Start logging meals to track your pet's nutrition")
+                                    .font(.petlyBody(14))
+                                    .foregroundColor(.petlyFormIcon)
+                                    .multilineTextAlignment(.center)
+                            }
+                            .padding(.top, 60)
+                        } else {
+                            ForEach(mealLogs, id: \.id) { log in
+                                MealLogRow(log: log)
+                            }
+                        }
+                    }
+                    .padding()
+                }
+            }
+            .navigationTitle("Nutrition")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button(action: { dismiss() }) {
+                        Image(systemName: "xmark")
+                            .foregroundColor(.petlyDarkGreen)
+                    }
+                }
+            }
+        }
+    }
+}
+
+struct MealLogRow: View {
+    let log: HealthLogEntry
+    
+    private var timeString: String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "MMM d, h:mm a"
+        return formatter.string(from: log.timestamp)
+    }
+    
+    var body: some View {
+        HStack {
+            VStack(alignment: .leading, spacing: 4) {
+                Text(log.mealType ?? "Meal")
+                    .font(.petlyBodyMedium(16))
+                    .foregroundColor(.petlyDarkGreen)
+                Text(timeString)
+                    .font(.petlyBody(12))
+                    .foregroundColor(.petlyFormIcon)
+                if let amount = log.amount, !amount.isEmpty {
+                    Text(amount)
+                        .font(.petlyBody(14))
+                        .foregroundColor(.petlyDarkGreen)
+                }
+            }
+            Spacer()
+            Image(systemName: "fork.knife")
+                .foregroundColor(.petlyDarkGreen)
+        }
+        .padding()
+        .background(Color.petlyLightGreen)
+        .cornerRadius(12)
+    }
+}
+
+struct ScheduleDetailView: View {
+    @Environment(\.dismiss) var dismiss
+    @EnvironmentObject var appState: AppState
+    @Environment(\.modelContext) private var modelContext
+    @Query private var allLogs: [HealthLogEntry]
+    
+    private var activityLogs: [HealthLogEntry] {
+        let dogId = appState.currentDog?.id ?? "default"
+        let sevenDaysAgo = Calendar.current.date(byAdding: .day, value: -7, to: Date()) ?? Date()
+        return allLogs
+            .filter { $0.dogId == dogId && ($0.logType == "Walk" || $0.logType == "Playtime") && $0.timestamp >= sevenDaysAgo }
+            .sorted { $0.timestamp > $1.timestamp }
+    }
+    
+    private var totalMinutesThisWeek: Int {
+        activityLogs.compactMap { Int($0.duration ?? "0") }.reduce(0, +)
+    }
+    
+    var body: some View {
+        NavigationView {
+            ZStack {
+                Color.petlyBackground
+                    .ignoresSafeArea()
+                
+                ScrollView {
+                    VStack(spacing: 16) {
+                        VStack(spacing: 8) {
+                            Text("This Week")
+                                .font(.petlyBodyMedium(14))
+                                .foregroundColor(.petlyFormIcon)
+                            Text("\(totalMinutesThisWeek) min")
+                                .font(.petlyTitle(36))
+                                .foregroundColor(.petlyDarkGreen)
+                            Text("of activity")
+                                .font(.petlyBody(14))
+                                .foregroundColor(.petlyFormIcon)
+                        }
+                        .padding()
+                        .frame(maxWidth: .infinity)
+                        .background(Color.petlyLightGreen)
+                        .cornerRadius(16)
+                        
+                        if activityLogs.isEmpty {
+                            VStack(spacing: 12) {
+                                Image(systemName: "figure.walk")
+                                    .font(.system(size: 50))
+                                    .foregroundColor(.petlyFormIcon)
+                                Text("No activities logged yet")
+                                    .font(.petlyBodyMedium(16))
+                                    .foregroundColor(.petlyDarkGreen)
+                                Text("Start logging walks and playtime")
+                                    .font(.petlyBody(14))
+                                    .foregroundColor(.petlyFormIcon)
+                            }
+                            .padding(.top, 40)
+                        } else {
+                            VStack(alignment: .leading, spacing: 8) {
+                                Text("Recent Activity")
+                                    .font(.petlyBodyMedium(16))
+                                    .foregroundColor(.petlyDarkGreen)
+                                
+                                ForEach(activityLogs, id: \.id) { log in
+                                    ActivityLogRow(log: log)
+                                }
+                            }
+                        }
+                    }
+                    .padding()
+                }
+            }
+            .navigationTitle("Activity Schedule")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button(action: { dismiss() }) {
+                        Image(systemName: "xmark")
+                            .foregroundColor(.petlyDarkGreen)
+                    }
+                }
+            }
+        }
+    }
+}
+
+struct ActivityLogRow: View {
+    let log: HealthLogEntry
+    
+    private var timeString: String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "EEE, MMM d 'at' h:mm a"
+        return formatter.string(from: log.timestamp)
+    }
+    
+    var body: some View {
+        HStack {
+            Image(systemName: log.logType == "Walk" ? "figure.walk" : "sportscourt.fill")
+                .foregroundColor(.petlyDarkGreen)
+                .frame(width: 30)
+            
+            VStack(alignment: .leading, spacing: 2) {
+                Text(log.logType)
+                    .font(.petlyBodyMedium(14))
+                    .foregroundColor(.petlyDarkGreen)
+                Text(timeString)
+                    .font(.petlyBody(12))
+                    .foregroundColor(.petlyFormIcon)
+            }
+            
+            Spacer()
+            
+            if let duration = log.duration {
+                Text("\(duration) min")
+                    .font(.petlyBodyMedium(14))
+                    .foregroundColor(.petlyDarkGreen)
+            }
+        }
+        .padding()
+        .background(Color.petlyLightGreen)
+        .cornerRadius(12)
     }
 }
 
@@ -268,6 +553,7 @@ struct TodaysOverviewCard: View {
 struct DailyActivityRingCard: View {
     let activityMinutes: Int
     let activityGoal: Int
+    var onViewSchedule: () -> Void = {}
     @State private var animatedProgress: Double = 0
     
     var progress: Double {
@@ -314,7 +600,7 @@ struct DailyActivityRingCard: View {
                 .foregroundColor(.petlyFormIcon)
                 .fixedSize(horizontal: false, vertical: true)
             
-            Button(action: {}){
+            Button(action: onViewSchedule) {
                 Text("View Schedule ›")
                     .font(.petlyBodyMedium(12))
                     .foregroundColor(.petlyDarkGreen)
@@ -401,8 +687,23 @@ struct WellnessTrackerCard: View {
 }
 
 struct UpcomingCareCard: View {
+    var appointment: HealthLogEntry?
     var onUpdateInfo: () -> Void = {}
     var onAddNote: () -> Void = {}
+    
+    private var daysUntilAppointment: Int? {
+        guard let appointment = appointment else { return nil }
+        let calendar = Calendar.current
+        let components = calendar.dateComponents([.day], from: Date(), to: appointment.timestamp)
+        return components.day
+    }
+    
+    private var appointmentDateString: String {
+        guard let appointment = appointment else { return "" }
+        let formatter = DateFormatter()
+        formatter.dateFormat = "M/d/yy"
+        return formatter.string(from: appointment.timestamp)
+    }
     
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -425,20 +726,30 @@ struct UpcomingCareCard: View {
                 .buttonStyle(PetlyButtonStyle())
             }
             
-            Text("Vet Appointment: in 12 days")
-                .font(.petlyBody(14))
-                .foregroundColor(.petlyDarkGreen)
-            
-            HStack(spacing: 6) {
-                Image(systemName: "mappin.circle")
+            if let appointment = appointment, let days = daysUntilAppointment {
+                Text("\(appointment.appointmentType ?? "Appointment"): in \(days) days")
+                    .font(.petlyBody(14))
                     .foregroundColor(.petlyDarkGreen)
-                Text("Dr.Lee Animal Clinic on 12/3/25")
+                
+                HStack(spacing: 6) {
+                    Image(systemName: "mappin.circle")
+                        .foregroundColor(.petlyDarkGreen)
+                    Text("\(appointment.location ?? "Location TBD") on \(appointmentDateString)")
+                        .font(.petlyBody(12))
+                        .foregroundColor(.petlyFormIcon)
+                }
+            } else {
+                Text("No upcoming appointments")
+                    .font(.petlyBody(14))
+                    .foregroundColor(.petlyDarkGreen)
+                
+                Text("Schedule your pet's next checkup")
                     .font(.petlyBody(12))
                     .foregroundColor(.petlyFormIcon)
             }
             
             Button(action: onAddNote) {
-                Text("Add Note ›")
+                Text(appointment == nil ? "Add Appointment ›" : "Add Note ›")
                     .font(.petlyBodyMedium(12))
                     .foregroundColor(.petlyDarkGreen)
             }
@@ -450,7 +761,15 @@ struct UpcomingCareCard: View {
 }
 
 struct MealsAndTreatsCard: View {
+    var meals: [(type: String, time: Date?)] = []
     var onLogDinner: () -> Void = {}
+    var onViewNutrition: () -> Void = {}
+    
+    private func formatTime(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "h:mma"
+        return formatter.string(from: date).lowercased()
+    }
     
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -473,29 +792,26 @@ struct MealsAndTreatsCard: View {
                 .buttonStyle(PetlyButtonStyle())
             }
             
-            HStack {
-                Text("Breakfast")
-                    .font(.petlyBody(14))
-                    .foregroundColor(.petlyDarkGreen)
-                Text("-")
-                    .foregroundColor(.petlyFormIcon)
-                Text("at 8am")
-                    .font(.petlyBody(14))
-                    .foregroundColor(.petlyFormIcon)
+            ForEach(meals, id: \.type) { meal in
+                HStack {
+                    Text(meal.type)
+                        .font(.petlyBody(14))
+                        .foregroundColor(.petlyDarkGreen)
+                    Text("-")
+                        .foregroundColor(.petlyFormIcon)
+                    if let time = meal.time {
+                        Text("at \(formatTime(time))")
+                            .font(.petlyBody(14))
+                            .foregroundColor(.petlyFormIcon)
+                    } else {
+                        Text("Not logged yet")
+                            .font(.petlyBody(14))
+                            .foregroundColor(.petlyFormIcon)
+                    }
+                }
             }
             
-            HStack {
-                Text("Dinner")
-                    .font(.petlyBody(14))
-                    .foregroundColor(.petlyDarkGreen)
-                Text("-")
-                    .foregroundColor(.petlyFormIcon)
-                Text("Not logged yet")
-                    .font(.petlyBody(14))
-                    .foregroundColor(.petlyFormIcon)
-            }
-            
-            Button(action: {}) {
+            Button(action: onViewNutrition) {
                 Text("View Nutrition ›")
                     .font(.petlyBodyMedium(12))
                     .foregroundColor(.petlyDarkGreen)

@@ -3,6 +3,7 @@ import PhotosUI
 
 struct NewPetProfileView: View {
     @EnvironmentObject var appState: AppState
+    @Environment(\.dismiss) var dismiss
     @State private var name = ""
     @State private var age = ""
     @State private var breed = ""
@@ -25,7 +26,7 @@ struct NewPetProfileView: View {
             
             VStack(spacing: 0) {
                 HStack {
-                    Button(action: {}) {
+                    Button(action: { dismiss() }) {
                         Image(systemName: "chevron.left")
                             .font(.system(size: 16, weight: .medium))
                             .foregroundColor(.petlyDarkGreen)
@@ -96,14 +97,15 @@ struct NewPetProfileView: View {
                                     .foregroundColor(.petlyFormIcon)
                                     .frame(width: 24)
                                 
-                                Text("Gender")
-                                    .font(.petlyBody(14))
-                                    .foregroundColor(.petlyFormIcon)
+                                Picker("Gender", selection: $gender) {
+                                    ForEach(genders, id: \.self) { g in
+                                        Text(g).tag(g)
+                                    }
+                                }
+                                .pickerStyle(.menu)
+                                .tint(.petlyDarkGreen)
                                 
                                 Spacer()
-                                
-                                Image(systemName: "chevron.down")
-                                    .foregroundColor(.petlyFormIcon)
                             }
                             .padding()
                             .background(Color.petlyLightGreen)

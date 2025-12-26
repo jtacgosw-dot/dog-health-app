@@ -37,7 +37,7 @@ struct SettingsView: View {
                                         badge: "Active"
                                     )
                                 } else {
-                                    NavigationLink(destination: PaywallView()) {
+                                    NavigationLink(destination: NewPaywallView()) {
                                         SettingsRow(
                                             icon: "crown.fill",
                                             title: "Upgrade to Premium",
