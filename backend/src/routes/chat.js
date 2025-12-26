@@ -70,6 +70,8 @@ router.post('/',
       }
 
       let dogProfile = null;
+      let healthLogs = null;
+      
       if (conversation.dog_id) {
         const { data: dog } = await supabase
           .from('dogs')
@@ -77,9 +79,24 @@ router.post('/',
           .eq('id', conversation.dog_id)
           .single();
         dogProfile = dog;
+
+        // Fetch recent health logs (last 7 days) for context
+        const sevenDaysAgo = new Date();
+        sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+        
+        const { data: logs } = await supabase
+          .from('health_logs')
+          .select('*')
+          .eq('dog_id', conversation.dog_id)
+          .eq('user_id', userId)
+          .gte('timestamp', sevenDaysAgo.toISOString())
+          .order('timestamp', { ascending: false })
+          .limit(50);
+        
+        healthLogs = logs;
       }
 
-      const aiResponse = await generateAIResponse(message, currentConversationId, dogProfile);
+      const aiResponse = await generateAIResponse(message, currentConversationId, dogProfile, healthLogs);
 
       const { data: assistantMessage, error: aiMsgError } = await supabase
         .from('messages')
