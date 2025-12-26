@@ -25,11 +25,11 @@ final class HealthLogEntry {
     var treatName: String?
     var waterAmount: String?
     
-    // Sync tracking fields
-    var isSynced: Bool
-    var serverLogId: String?
-    var lastSyncedAt: Date?
-    var needsSync: Bool
+    // Sync tracking fields - defaults at property level for SwiftData migration
+    var isSynced: Bool = false
+    var serverLogId: String? = nil
+    var lastSyncedAt: Date? = nil
+    var needsSync: Bool = true
     
     init(
         id: UUID = UUID(),
