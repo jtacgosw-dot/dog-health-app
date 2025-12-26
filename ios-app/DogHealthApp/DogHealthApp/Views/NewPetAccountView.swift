@@ -145,13 +145,16 @@ struct NewPetAccountView: View {
                 scrollOffset = value
             }
             .sheet(isPresented: $showingNutrition) {
-                AccountDetailView(title: "Nutrition", icon: "fork.knife", description: "Manage your pet's dietary preferences and meal plans.")
+                NutritionEditView()
+                    .environmentObject(appState)
             }
             .sheet(isPresented: $showingPersonality) {
-                AccountDetailView(title: "Personality", icon: "pawprint.fill", description: "Track your pet's personality traits and behaviors.")
+                PersonalityEditView()
+                    .environmentObject(appState)
             }
             .sheet(isPresented: $showingHealthConcerns) {
-                AccountDetailView(title: "Health Concerns", icon: "heart.fill", description: "Monitor and manage your pet's health conditions.")
+                HealthConcernsEditView()
+                    .environmentObject(appState)
             }
             .sheet(isPresented: $showingWeight) {
                 WeightTrackingView()
@@ -163,10 +166,10 @@ struct NewPetAccountView: View {
                 NewPaywallView()
             }
             .sheet(isPresented: $showingInviteFriends) {
-                AccountDetailView(title: "Invite Friends", icon: "person.2.fill", description: "Share Petly with friends and family to help them care for their pets too!")
+                InviteFriendsView()
             }
             .sheet(isPresented: $showingCustomerSupport) {
-                AccountDetailView(title: "Customer Support", icon: "headphones", description: "Need help? Our support team is here for you 24/7.")
+                CustomerSupportView()
             }
             
             HStack {
@@ -274,11 +277,422 @@ struct AccountMenuButton: View {
     }
 }
 
-struct AccountDetailView: View {
+struct NutritionEditView: View {
     @Environment(\.dismiss) var dismiss
-    let title: String
-    let icon: String
-    let description: String
+    @EnvironmentObject var appState: AppState
+    @State private var feedingSchedule = "Twice daily"
+    @State private var foodType = "Dry kibble"
+    @State private var portionSize = "1 cup"
+    @State private var allergies = ""
+    @State private var showSaved = false
+    
+    let feedingOptions = ["Once daily", "Twice daily", "Three times daily", "Free feeding"]
+    let foodTypes = ["Dry kibble", "Wet food", "Raw diet", "Home cooked", "Mixed"]
+    let portionSizes = ["1/2 cup", "1 cup", "1.5 cups", "2 cups", "Custom"]
+    
+    var body: some View {
+        NavigationView {
+            ZStack {
+                Color.petlyBackground
+                    .ignoresSafeArea()
+                
+                ScrollView {
+                    VStack(spacing: 20) {
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Feeding Schedule")
+                                .font(.petlyBodyMedium(14))
+                                .foregroundColor(.petlyDarkGreen)
+                            
+                            Picker("Feeding Schedule", selection: $feedingSchedule) {
+                                ForEach(feedingOptions, id: \.self) { option in
+                                    Text(option).tag(option)
+                                }
+                            }
+                            .pickerStyle(.menu)
+                            .padding()
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .background(Color.petlyLightGreen)
+                            .cornerRadius(12)
+                        }
+                        
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Food Type")
+                                .font(.petlyBodyMedium(14))
+                                .foregroundColor(.petlyDarkGreen)
+                            
+                            Picker("Food Type", selection: $foodType) {
+                                ForEach(foodTypes, id: \.self) { type in
+                                    Text(type).tag(type)
+                                }
+                            }
+                            .pickerStyle(.menu)
+                            .padding()
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .background(Color.petlyLightGreen)
+                            .cornerRadius(12)
+                        }
+                        
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Portion Size")
+                                .font(.petlyBodyMedium(14))
+                                .foregroundColor(.petlyDarkGreen)
+                            
+                            Picker("Portion Size", selection: $portionSize) {
+                                ForEach(portionSizes, id: \.self) { size in
+                                    Text(size).tag(size)
+                                }
+                            }
+                            .pickerStyle(.menu)
+                            .padding()
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .background(Color.petlyLightGreen)
+                            .cornerRadius(12)
+                        }
+                        
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Food Allergies / Sensitivities")
+                                .font(.petlyBodyMedium(14))
+                                .foregroundColor(.petlyDarkGreen)
+                            
+                            TextField("e.g., chicken, grains", text: $allergies)
+                                .padding()
+                                .background(Color.petlyLightGreen)
+                                .cornerRadius(12)
+                        }
+                        
+                        Button(action: {
+                            showSaved = true
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                                dismiss()
+                            }
+                        }) {
+                            Text("Save Changes")
+                                .font(.petlyBodyMedium(16))
+                                .foregroundColor(.white)
+                                .frame(maxWidth: .infinity)
+                                .padding()
+                                .background(Color.petlyDarkGreen)
+                                .cornerRadius(12)
+                        }
+                        .padding(.top, 20)
+                    }
+                    .padding()
+                }
+            }
+            .navigationTitle("Nutrition")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button(action: { dismiss() }) {
+                        Image(systemName: "xmark")
+                            .foregroundColor(.petlyDarkGreen)
+                    }
+                }
+            }
+            .overlay {
+                if showSaved {
+                    VStack {
+                        Image(systemName: "checkmark.circle.fill")
+                            .font(.system(size: 60))
+                            .foregroundColor(.petlyDarkGreen)
+                        Text("Saved!")
+                            .font(.petlyBodyMedium(18))
+                            .foregroundColor(.petlyDarkGreen)
+                    }
+                    .padding(40)
+                    .background(Color.petlyLightGreen)
+                    .cornerRadius(20)
+                }
+            }
+        }
+    }
+}
+
+struct PersonalityEditView: View {
+    @Environment(\.dismiss) var dismiss
+    @EnvironmentObject var appState: AppState
+    @State private var energyLevel = 3
+    @State private var friendliness = 4
+    @State private var trainability = 3
+    @State private var selectedTraits: Set<String> = []
+    @State private var showSaved = false
+    
+    let traits = ["Playful", "Calm", "Curious", "Protective", "Affectionate", "Independent", "Social", "Shy", "Energetic", "Lazy"]
+    
+    var body: some View {
+        NavigationView {
+            ZStack {
+                Color.petlyBackground
+                    .ignoresSafeArea()
+                
+                ScrollView {
+                    VStack(spacing: 24) {
+                        VStack(alignment: .leading, spacing: 12) {
+                            Text("Energy Level")
+                                .font(.petlyBodyMedium(14))
+                                .foregroundColor(.petlyDarkGreen)
+                            
+                            HStack {
+                                ForEach(1...5, id: \.self) { level in
+                                    Button(action: { energyLevel = level }) {
+                                        Image(systemName: level <= energyLevel ? "bolt.fill" : "bolt")
+                                            .font(.system(size: 24))
+                                            .foregroundColor(level <= energyLevel ? .petlyDarkGreen : .petlyFormIcon)
+                                    }
+                                }
+                            }
+                            .padding()
+                            .frame(maxWidth: .infinity)
+                            .background(Color.petlyLightGreen)
+                            .cornerRadius(12)
+                        }
+                        
+                        VStack(alignment: .leading, spacing: 12) {
+                            Text("Friendliness")
+                                .font(.petlyBodyMedium(14))
+                                .foregroundColor(.petlyDarkGreen)
+                            
+                            HStack {
+                                ForEach(1...5, id: \.self) { level in
+                                    Button(action: { friendliness = level }) {
+                                        Image(systemName: level <= friendliness ? "heart.fill" : "heart")
+                                            .font(.system(size: 24))
+                                            .foregroundColor(level <= friendliness ? .petlyDarkGreen : .petlyFormIcon)
+                                    }
+                                }
+                            }
+                            .padding()
+                            .frame(maxWidth: .infinity)
+                            .background(Color.petlyLightGreen)
+                            .cornerRadius(12)
+                        }
+                        
+                        VStack(alignment: .leading, spacing: 12) {
+                            Text("Trainability")
+                                .font(.petlyBodyMedium(14))
+                                .foregroundColor(.petlyDarkGreen)
+                            
+                            HStack {
+                                ForEach(1...5, id: \.self) { level in
+                                    Button(action: { trainability = level }) {
+                                        Image(systemName: level <= trainability ? "star.fill" : "star")
+                                            .font(.system(size: 24))
+                                            .foregroundColor(level <= trainability ? .petlyDarkGreen : .petlyFormIcon)
+                                    }
+                                }
+                            }
+                            .padding()
+                            .frame(maxWidth: .infinity)
+                            .background(Color.petlyLightGreen)
+                            .cornerRadius(12)
+                        }
+                        
+                        VStack(alignment: .leading, spacing: 12) {
+                            Text("Personality Traits")
+                                .font(.petlyBodyMedium(14))
+                                .foregroundColor(.petlyDarkGreen)
+                            
+                            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 10) {
+                                ForEach(traits, id: \.self) { trait in
+                                    Button(action: {
+                                        if selectedTraits.contains(trait) {
+                                            selectedTraits.remove(trait)
+                                        } else {
+                                            selectedTraits.insert(trait)
+                                        }
+                                    }) {
+                                        Text(trait)
+                                            .font(.petlyBody(14))
+                                            .foregroundColor(selectedTraits.contains(trait) ? .white : .petlyDarkGreen)
+                                            .padding(.horizontal, 16)
+                                            .padding(.vertical, 10)
+                                            .frame(maxWidth: .infinity)
+                                            .background(selectedTraits.contains(trait) ? Color.petlyDarkGreen : Color.petlyLightGreen)
+                                            .cornerRadius(20)
+                                    }
+                                }
+                            }
+                        }
+                        
+                        Button(action: {
+                            showSaved = true
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                                dismiss()
+                            }
+                        }) {
+                            Text("Save Changes")
+                                .font(.petlyBodyMedium(16))
+                                .foregroundColor(.white)
+                                .frame(maxWidth: .infinity)
+                                .padding()
+                                .background(Color.petlyDarkGreen)
+                                .cornerRadius(12)
+                        }
+                        .padding(.top, 20)
+                    }
+                    .padding()
+                }
+            }
+            .navigationTitle("Personality")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button(action: { dismiss() }) {
+                        Image(systemName: "xmark")
+                            .foregroundColor(.petlyDarkGreen)
+                    }
+                }
+            }
+            .overlay {
+                if showSaved {
+                    VStack {
+                        Image(systemName: "checkmark.circle.fill")
+                            .font(.system(size: 60))
+                            .foregroundColor(.petlyDarkGreen)
+                        Text("Saved!")
+                            .font(.petlyBodyMedium(18))
+                            .foregroundColor(.petlyDarkGreen)
+                    }
+                    .padding(40)
+                    .background(Color.petlyLightGreen)
+                    .cornerRadius(20)
+                }
+            }
+        }
+    }
+}
+
+struct HealthConcernsEditView: View {
+    @Environment(\.dismiss) var dismiss
+    @EnvironmentObject var appState: AppState
+    @State private var selectedConditions: Set<String> = []
+    @State private var otherConditions = ""
+    @State private var medications = ""
+    @State private var vetNotes = ""
+    @State private var showSaved = false
+    
+    let commonConditions = ["Allergies", "Arthritis", "Diabetes", "Heart Disease", "Hip Dysplasia", "Obesity", "Dental Issues", "Skin Conditions", "Anxiety", "Digestive Issues"]
+    
+    var body: some View {
+        NavigationView {
+            ZStack {
+                Color.petlyBackground
+                    .ignoresSafeArea()
+                
+                ScrollView {
+                    VStack(spacing: 20) {
+                        VStack(alignment: .leading, spacing: 12) {
+                            Text("Known Health Conditions")
+                                .font(.petlyBodyMedium(14))
+                                .foregroundColor(.petlyDarkGreen)
+                            
+                            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 10) {
+                                ForEach(commonConditions, id: \.self) { condition in
+                                    Button(action: {
+                                        if selectedConditions.contains(condition) {
+                                            selectedConditions.remove(condition)
+                                        } else {
+                                            selectedConditions.insert(condition)
+                                        }
+                                    }) {
+                                        Text(condition)
+                                            .font(.petlyBody(12))
+                                            .foregroundColor(selectedConditions.contains(condition) ? .white : .petlyDarkGreen)
+                                            .padding(.horizontal, 12)
+                                            .padding(.vertical, 8)
+                                            .frame(maxWidth: .infinity)
+                                            .background(selectedConditions.contains(condition) ? Color.petlyDarkGreen : Color.petlyLightGreen)
+                                            .cornerRadius(16)
+                                    }
+                                }
+                            }
+                        }
+                        
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Other Conditions")
+                                .font(.petlyBodyMedium(14))
+                                .foregroundColor(.petlyDarkGreen)
+                            
+                            TextField("Enter any other conditions", text: $otherConditions)
+                                .padding()
+                                .background(Color.petlyLightGreen)
+                                .cornerRadius(12)
+                        }
+                        
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Current Medications")
+                                .font(.petlyBodyMedium(14))
+                                .foregroundColor(.petlyDarkGreen)
+                            
+                            TextField("List any medications", text: $medications)
+                                .padding()
+                                .background(Color.petlyLightGreen)
+                                .cornerRadius(12)
+                        }
+                        
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Vet Notes")
+                                .font(.petlyBodyMedium(14))
+                                .foregroundColor(.petlyDarkGreen)
+                            
+                            TextEditor(text: $vetNotes)
+                                .frame(minHeight: 100)
+                                .padding(8)
+                                .background(Color.petlyLightGreen)
+                                .cornerRadius(12)
+                        }
+                        
+                        Button(action: {
+                            showSaved = true
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                                dismiss()
+                            }
+                        }) {
+                            Text("Save Changes")
+                                .font(.petlyBodyMedium(16))
+                                .foregroundColor(.white)
+                                .frame(maxWidth: .infinity)
+                                .padding()
+                                .background(Color.petlyDarkGreen)
+                                .cornerRadius(12)
+                        }
+                        .padding(.top, 20)
+                    }
+                    .padding()
+                }
+            }
+            .navigationTitle("Health Concerns")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button(action: { dismiss() }) {
+                        Image(systemName: "xmark")
+                            .foregroundColor(.petlyDarkGreen)
+                    }
+                }
+            }
+            .overlay {
+                if showSaved {
+                    VStack {
+                        Image(systemName: "checkmark.circle.fill")
+                            .font(.system(size: 60))
+                            .foregroundColor(.petlyDarkGreen)
+                        Text("Saved!")
+                            .font(.petlyBodyMedium(18))
+                            .foregroundColor(.petlyDarkGreen)
+                    }
+                    .padding(40)
+                    .background(Color.petlyLightGreen)
+                    .cornerRadius(20)
+                }
+            }
+        }
+    }
+}
+
+struct InviteFriendsView: View {
+    @Environment(\.dismiss) var dismiss
+    @State private var showShareSheet = false
     
     var body: some View {
         NavigationView {
@@ -291,16 +705,16 @@ struct AccountDetailView: View {
                         .fill(Color.petlyLightGreen)
                         .frame(width: 100, height: 100)
                         .overlay(
-                            Image(systemName: icon)
+                            Image(systemName: "person.2.fill")
                                 .font(.system(size: 40))
                                 .foregroundColor(.petlyDarkGreen)
                         )
                     
-                    Text(title)
+                    Text("Invite Friends")
                         .font(.petlyTitle(28))
                         .foregroundColor(.petlyDarkGreen)
                     
-                    Text(description)
+                    Text("Share Petly with friends and family to help them care for their pets too!")
                         .font(.petlyBody(16))
                         .foregroundColor(.petlyFormIcon)
                         .multilineTextAlignment(.center)
@@ -308,12 +722,19 @@ struct AccountDetailView: View {
                     
                     Spacer()
                     
-                    Text("Coming Soon")
-                        .font(.petlyBodyMedium(14))
-                        .foregroundColor(.petlyFormIcon)
+                    Button(action: { showShareSheet = true }) {
+                        HStack {
+                            Image(systemName: "square.and.arrow.up")
+                            Text("Share Petly")
+                        }
+                        .font(.petlyBodyMedium(16))
+                        .foregroundColor(.white)
+                        .frame(maxWidth: .infinity)
                         .padding()
-                        .background(Color.petlyLightGreen)
+                        .background(Color.petlyDarkGreen)
                         .cornerRadius(12)
+                    }
+                    .padding(.horizontal, 32)
                     
                     Spacer()
                 }
@@ -326,6 +747,134 @@ struct AccountDetailView: View {
                         Image(systemName: "xmark")
                             .foregroundColor(.petlyDarkGreen)
                     }
+                }
+            }
+            .sheet(isPresented: $showShareSheet) {
+                ShareSheet(items: ["Check out Petly - the best app for tracking your pet's health! Download it now."])
+            }
+        }
+    }
+}
+
+struct ShareSheet: UIViewControllerRepresentable {
+    let items: [Any]
+    
+    func makeUIViewController(context: Context) -> UIActivityViewController {
+        UIActivityViewController(activityItems: items, applicationActivities: nil)
+    }
+    
+    func updateUIViewController(_ uiViewController: UIActivityViewController, context: Context) {}
+}
+
+struct CustomerSupportView: View {
+    @Environment(\.dismiss) var dismiss
+    @State private var subject = ""
+    @State private var message = ""
+    @State private var showSent = false
+    
+    var body: some View {
+        NavigationView {
+            ZStack {
+                Color.petlyBackground
+                    .ignoresSafeArea()
+                
+                ScrollView {
+                    VStack(spacing: 20) {
+                        Circle()
+                            .fill(Color.petlyLightGreen)
+                            .frame(width: 80, height: 80)
+                            .overlay(
+                                Image(systemName: "headphones")
+                                    .font(.system(size: 36))
+                                    .foregroundColor(.petlyDarkGreen)
+                            )
+                        
+                        Text("How can we help?")
+                            .font(.petlyTitle(24))
+                            .foregroundColor(.petlyDarkGreen)
+                        
+                        Text("Our support team typically responds within 24 hours")
+                            .font(.petlyBody(14))
+                            .foregroundColor(.petlyFormIcon)
+                        
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Subject")
+                                .font(.petlyBodyMedium(14))
+                                .foregroundColor(.petlyDarkGreen)
+                            
+                            TextField("What's this about?", text: $subject)
+                                .padding()
+                                .background(Color.petlyLightGreen)
+                                .cornerRadius(12)
+                        }
+                        
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Message")
+                                .font(.petlyBodyMedium(14))
+                                .foregroundColor(.petlyDarkGreen)
+                            
+                            TextEditor(text: $message)
+                                .frame(minHeight: 150)
+                                .padding(8)
+                                .background(Color.petlyLightGreen)
+                                .cornerRadius(12)
+                        }
+                        
+                        Button(action: {
+                            showSent = true
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                                dismiss()
+                            }
+                        }) {
+                            Text("Send Message")
+                                .font(.petlyBodyMedium(16))
+                                .foregroundColor(.white)
+                                .frame(maxWidth: .infinity)
+                                .padding()
+                                .background(Color.petlyDarkGreen)
+                                .cornerRadius(12)
+                        }
+                        .disabled(subject.isEmpty || message.isEmpty)
+                        .opacity(subject.isEmpty || message.isEmpty ? 0.6 : 1)
+                        
+                        HStack(spacing: 4) {
+                            Text("Or email us at")
+                                .font(.petlyBody(14))
+                                .foregroundColor(.petlyFormIcon)
+                            Text("support@petly.app")
+                                .font(.petlyBodyMedium(14))
+                                .foregroundColor(.petlyDarkGreen)
+                        }
+                    }
+                    .padding()
+                }
+            }
+            .navigationTitle("Customer Support")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button(action: { dismiss() }) {
+                        Image(systemName: "xmark")
+                            .foregroundColor(.petlyDarkGreen)
+                    }
+                }
+            }
+            .overlay {
+                if showSent {
+                    VStack {
+                        Image(systemName: "paperplane.fill")
+                            .font(.system(size: 60))
+                            .foregroundColor(.petlyDarkGreen)
+                        Text("Message Sent!")
+                            .font(.petlyBodyMedium(18))
+                            .foregroundColor(.petlyDarkGreen)
+                        Text("We'll get back to you soon")
+                            .font(.petlyBody(14))
+                            .foregroundColor(.petlyFormIcon)
+                    }
+                    .padding(40)
+                    .background(Color.petlyLightGreen)
+                    .cornerRadius(20)
                 }
             }
         }

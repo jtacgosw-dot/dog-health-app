@@ -106,12 +106,6 @@ struct NewChatView: View {
                         .cornerRadius(25)
                         .lineLimit(1...5)
                     
-                    Button(action: {}) {
-                        Image(systemName: "photo")
-                            .font(.system(size: 20))
-                            .foregroundColor(.petlyDarkGreen)
-                    }
-                    
                     Button(action: sendMessage) {
                         Image(systemName: "paperplane.fill")
                             .font(.system(size: 20))
