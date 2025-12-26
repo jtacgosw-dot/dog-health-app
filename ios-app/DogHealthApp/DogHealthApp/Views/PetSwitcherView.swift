@@ -106,17 +106,15 @@ struct PetCard: View {
                         .font(.petlyBodyMedium(18))
                         .foregroundColor(.petlyDarkGreen)
                     
-                    if let breed = dog.breed, !breed.isEmpty {
-                        Text(breed)
+                    if !dog.breed.isEmpty {
+                        Text(dog.breed)
                             .font(.petlyBody(14))
                             .foregroundColor(.petlyFormIcon)
                     }
                     
-                    if let age = dog.age {
-                        Text("\(age) years old")
-                            .font(.petlyBody(12))
-                            .foregroundColor(.petlyFormIcon)
-                    }
+                    Text("\(dog.age) years old")
+                        .font(.petlyBody(12))
+                        .foregroundColor(.petlyFormIcon)
                 }
                 
                 Spacer()
@@ -175,10 +173,10 @@ struct AddPetView: View {
                         .padding(.top)
                         
                         VStack(spacing: 16) {
-                            PetFormField(title: "Name", placeholder: "Pet's name", text: $name)
-                            PetFormField(title: "Breed", placeholder: "e.g., Golden Retriever", text: $breed)
-                            PetFormField(title: "Age", placeholder: "Age in years", text: $age, keyboardType: .numberPad)
-                            PetFormField(title: "Weight", placeholder: "Weight in lbs", text: $weight, keyboardType: .decimalPad)
+                            AddPetFormField(title: "Name", placeholder: "Pet's name", text: $name)
+                            AddPetFormField(title: "Breed", placeholder: "e.g., Golden Retriever", text: $breed)
+                            AddPetFormField(title: "Age", placeholder: "Age in years", text: $age, keyboardType: .numberPad)
+                            AddPetFormField(title: "Weight", placeholder: "Weight in lbs", text: $weight, keyboardType: .decimalPad)
                             
                             VStack(alignment: .leading, spacing: 8) {
                                 Text("Gender")
@@ -235,10 +233,9 @@ struct AddPetView: View {
         let newDog = Dog(
             id: UUID().uuidString,
             name: name,
-            breed: breed.isEmpty ? nil : breed,
-            age: Int(age),
-            weight: Double(weight),
-            gender: gender
+            breed: breed.isEmpty ? "Unknown" : breed,
+            age: Int(age) ?? 0,
+            weight: Double(weight)
         )
         appState.dogs.append(newDog)
         appState.currentDog = newDog
@@ -246,7 +243,7 @@ struct AddPetView: View {
     }
 }
 
-struct PetFormField: View {
+struct AddPetFormField: View {
     let title: String
     let placeholder: String
     @Binding var text: String
