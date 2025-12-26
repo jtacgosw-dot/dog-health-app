@@ -6,6 +6,7 @@ struct SettingsView: View {
     @State private var showNotificationSettings = false
     @State private var showWeightTracking = false
     @State private var showPetReminders = false
+    @State private var showVetSummary = false
     
     var body: some View {
         NavigationView {
@@ -29,6 +30,9 @@ struct SettingsView: View {
                                 }
                                 Button(action: { showPetReminders = true }) {
                                     SettingsRow(icon: "calendar.badge.clock", title: "Pet Reminders", subtitle: "Vaccinations, medications & more", showChevron: true)
+                                }
+                                Button(action: { showVetSummary = true }) {
+                                    SettingsRow(icon: "doc.text.fill", title: "Vet Visit Summary", subtitle: "Export health logs as PDF", showChevron: true)
                                 }
                             }
                             
@@ -118,6 +122,12 @@ struct SettingsView: View {
             .sheet(isPresented: $showPetReminders) {
                 NavigationView {
                     PetRemindersView()
+                        .environmentObject(appState)
+                }
+            }
+            .sheet(isPresented: $showVetSummary) {
+                NavigationView {
+                    VetSummaryExportView()
                         .environmentObject(appState)
                 }
             }
