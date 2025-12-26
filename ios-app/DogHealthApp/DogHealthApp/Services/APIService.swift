@@ -103,6 +103,72 @@ class APIService {
     func checkEntitlements() async throws -> EntitlementsResponse {
         return try await makeRequest(endpoint: "/entitlements")
     }
+    
+    // MARK: - Health Logs
+    
+    func getHealthLogs(dogId: String, since: Date? = nil) async throws -> HealthLogsResponse {
+        var endpoint = "/health-logs?dogId=\(dogId)"
+        if let since = since {
+            let formatter = ISO8601DateFormatter()
+            endpoint += "&since=\(formatter.string(from: since))"
+        }
+        return try await makeRequest(endpoint: endpoint)
+    }
+    
+    func createHealthLog(log: HealthLogRequest) async throws -> HealthLogResponse {
+        let encoder = JSONEncoder()
+        encoder.dateEncodingStrategy = .iso8601
+        let data = try encoder.encode(log)
+        return try await makeRequest(endpoint: "/health-logs", method: "POST", body: data)
+    }
+    
+    func syncHealthLogs(dogId: String, lastSyncAt: Date?, localLogs: [HealthLogRequest]) async throws -> HealthLogSyncResponse {
+        var body: [String: Any] = ["dogId": dogId, "localLogs": []]
+        
+        if let lastSyncAt = lastSyncAt {
+            let formatter = ISO8601DateFormatter()
+            body["lastSyncAt"] = formatter.string(from: lastSyncAt)
+        }
+        
+        // Convert local logs to dictionaries
+        let logsArray = localLogs.map { log -> [String: Any?] in
+            var dict: [String: Any?] = [
+                "dogId": log.dogId,
+                "logType": log.logType,
+                "clientId": log.clientId
+            ]
+            
+            let formatter = ISO8601DateFormatter()
+            dict["timestamp"] = formatter.string(from: log.timestamp)
+            
+            if let notes = log.notes { dict["notes"] = notes }
+            if let mealType = log.mealType { dict["mealType"] = mealType }
+            if let amount = log.amount { dict["amount"] = amount }
+            if let duration = log.duration { dict["duration"] = duration }
+            if let moodLevel = log.moodLevel { dict["moodLevel"] = moodLevel }
+            if let symptomType = log.symptomType { dict["symptomType"] = symptomType }
+            if let severityLevel = log.severityLevel { dict["severityLevel"] = severityLevel }
+            if let digestionQuality = log.digestionQuality { dict["digestionQuality"] = digestionQuality }
+            if let activityType = log.activityType { dict["activityType"] = activityType }
+            if let supplementName = log.supplementName { dict["supplementName"] = supplementName }
+            if let dosage = log.dosage { dict["dosage"] = dosage }
+            if let appointmentType = log.appointmentType { dict["appointmentType"] = appointmentType }
+            if let location = log.location { dict["location"] = location }
+            if let groomingType = log.groomingType { dict["groomingType"] = groomingType }
+            if let treatName = log.treatName { dict["treatName"] = treatName }
+            if let waterAmount = log.waterAmount { dict["waterAmount"] = waterAmount }
+            
+            return dict
+        }
+        body["localLogs"] = logsArray
+        
+        let data = try JSONSerialization.data(withJSONObject: body)
+        return try await makeRequest(endpoint: "/health-logs/sync", method: "POST", body: data)
+    }
+    
+    func deleteHealthLog(id: String) async throws -> DeleteResponse {
+        return try await makeRequest(endpoint: "/health-logs/\(id)", method: "DELETE")
+    }
 }
 
 enum APIError: Error {
@@ -157,4 +223,133 @@ struct DogResponse: Codable {
 struct EntitlementsResponse: Codable {
     let hasActiveSubscription: Bool
     let subscriptionStatus: String
+}
+
+// MARK: - Health Log Types
+
+struct HealthLogRequest: Codable {
+    let dogId: String
+    let logType: String
+    let timestamp: Date
+    let clientId: String
+    let notes: String?
+    let mealType: String?
+    let amount: String?
+    let duration: String?
+    let moodLevel: Int?
+    let symptomType: String?
+    let severityLevel: Int?
+    let digestionQuality: String?
+    let activityType: String?
+    let supplementName: String?
+    let dosage: String?
+    let appointmentType: String?
+    let location: String?
+    let groomingType: String?
+    let treatName: String?
+    let waterAmount: String?
+    
+    init(from entry: HealthLogEntry) {
+        self.dogId = entry.dogId
+        self.logType = entry.logType
+        self.timestamp = entry.timestamp
+        self.clientId = entry.id.uuidString
+        self.notes = entry.notes.isEmpty ? nil : entry.notes
+        self.mealType = entry.mealType
+        self.amount = entry.amount
+        self.duration = entry.duration
+        self.moodLevel = entry.moodLevel
+        self.symptomType = entry.symptomType
+        self.severityLevel = entry.severityLevel
+        self.digestionQuality = entry.digestionQuality
+        self.activityType = entry.activityType
+        self.supplementName = entry.supplementName
+        self.dosage = entry.dosage
+        self.appointmentType = entry.appointmentType
+        self.location = entry.location
+        self.groomingType = entry.groomingType
+        self.treatName = entry.treatName
+        self.waterAmount = entry.waterAmount
+    }
+}
+
+struct HealthLogsResponse: Codable {
+    let success: Bool
+    let logs: [ServerHealthLog]
+    let syncedAt: String
+}
+
+struct HealthLogResponse: Codable {
+    let success: Bool
+    let log: ServerHealthLog
+    let duplicate: Bool?
+}
+
+struct HealthLogSyncResponse: Codable {
+    let success: Bool
+    let serverLogs: [ServerHealthLog]
+    let uploadedCount: Int
+    let duplicateClientIds: [String]
+    let syncedAt: String
+}
+
+struct DeleteResponse: Codable {
+    let success: Bool
+    let message: String?
+}
+
+struct ServerHealthLog: Codable {
+    let id: String
+    let userId: String
+    let dogId: String
+    let logType: String
+    let timestamp: String
+    let notes: String?
+    let mealType: String?
+    let amount: String?
+    let duration: String?
+    let moodLevel: Int?
+    let symptomType: String?
+    let severityLevel: Int?
+    let digestionQuality: String?
+    let activityType: String?
+    let supplementName: String?
+    let dosage: String?
+    let appointmentType: String?
+    let location: String?
+    let groomingType: String?
+    let treatName: String?
+    let waterAmount: String?
+    let clientId: String?
+    let isDeleted: Bool?
+    let createdAt: String
+    let updatedAt: String
+    
+    enum CodingKeys: String, CodingKey {
+        case id
+        case userId = "user_id"
+        case dogId = "dog_id"
+        case logType = "log_type"
+        case timestamp
+        case notes
+        case mealType = "meal_type"
+        case amount
+        case duration
+        case moodLevel = "mood_level"
+        case symptomType = "symptom_type"
+        case severityLevel = "severity_level"
+        case digestionQuality = "digestion_quality"
+        case activityType = "activity_type"
+        case supplementName = "supplement_name"
+        case dosage
+        case appointmentType = "appointment_type"
+        case location
+        case groomingType = "grooming_type"
+        case treatName = "treat_name"
+        case waterAmount = "water_amount"
+        case clientId = "client_id"
+        case isDeleted = "is_deleted"
+        case createdAt = "created_at"
+        case updatedAt = "updated_at"
+    }
 }

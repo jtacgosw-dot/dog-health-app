@@ -35,6 +35,18 @@ struct DogHealthAppApp: App {
             ContentView()
                 .environmentObject(appState)
                 .modelContainer(sharedModelContainer)
+                .onAppear {
+                    // Initialize sync service with model context
+                    let context = sharedModelContainer.mainContext
+                    HealthLogSyncService.shared.setModelContext(context)
+                    
+                    // Trigger initial sync if signed in
+                    if appState.isSignedIn {
+                        Task {
+                            await HealthLogSyncService.shared.syncPendingLogs()
+                        }
+                    }
+                }
         }
     }
 }

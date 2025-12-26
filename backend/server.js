@@ -9,6 +9,7 @@ const chatRoutes = require('./src/routes/chat');
 const userRoutes = require('./src/routes/users');
 const dogRoutes = require('./src/routes/dogs');
 const subscriptionRoutes = require('./src/routes/subscription');
+const healthLogsRoutes = require('./src/routes/healthLogs');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -45,6 +46,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/chat', chatRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/dogs', dogRoutes);
+app.use('/api/health-logs', healthLogsRoutes);
 app.use('/api/iap', subscriptionRoutes);
 app.use('/api/entitlements', subscriptionRoutes);
 
@@ -88,6 +90,12 @@ app.listen(PORT, () => {
   console.log(`   POST   /api/dogs`);
   console.log(`   PUT    /api/dogs/:id`);
   console.log(`   DELETE /api/dogs/:id`);
+  console.log(`   GET    /api/health-logs`);
+  console.log(`   POST   /api/health-logs`);
+  console.log(`   POST   /api/health-logs/batch`);
+  console.log(`   POST   /api/health-logs/sync`);
+  console.log(`   PUT    /api/health-logs/:id`);
+  console.log(`   DELETE /api/health-logs/:id`);
   console.log(`   POST   /api/iap/verify`);
   console.log(`   GET    /api/entitlements`);
 });
