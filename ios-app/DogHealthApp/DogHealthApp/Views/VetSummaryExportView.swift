@@ -327,8 +327,8 @@ struct VetSummaryExportView: View {
                     
                     var logText = "• \(dateFormatter.string(from: log.timestamp))"
                     
-                    if let notes = log.notes, !notes.isEmpty {
-                        logText += ": \(notes)"
+                    if !log.notes.isEmpty {
+                        logText += ": \(log.notes)"
                     }
                     
                     if logType == "Symptom", let symptomType = log.symptomType {
