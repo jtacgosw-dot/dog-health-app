@@ -186,6 +186,7 @@
 				CA96F9FDAE4244DB93CD29C6 /* NewPetAccountView.swift */,
 				25603DBD67304B5DBC50CDB7 /* NewPetProfileView.swift */,
 				83D1D15E596243A187B3D12E /* SignUpView.swift */,
+				ANIMATIONSPOLISH000002 /* AnimationsAndPolish.swift */,
 );
 			path = Views;
 			sourceTree = "<group>";
