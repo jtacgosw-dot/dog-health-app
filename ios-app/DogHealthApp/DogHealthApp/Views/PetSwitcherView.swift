@@ -88,9 +88,15 @@ struct PetCard: View {
     let dog: Dog
     let isSelected: Bool
     var onSelect: () -> Void
+    @State private var isPressed = false
+    @State private var checkmarkScale: CGFloat = 0
     
     var body: some View {
-        Button(action: onSelect) {
+        Button(action: {
+            let generator = UIImpactFeedbackGenerator(style: .medium)
+            generator.impactOccurred()
+            onSelect()
+        }) {
             HStack(spacing: 16) {
                 Circle()
                     .fill(Color.petlyLightGreen)
@@ -123,6 +129,12 @@ struct PetCard: View {
                     Image(systemName: "checkmark.circle.fill")
                         .font(.system(size: 24))
                         .foregroundColor(.petlyDarkGreen)
+                        .scaleEffect(checkmarkScale)
+                        .onAppear {
+                            withAnimation(.spring(response: 0.3, dampingFraction: 0.5)) {
+                                checkmarkScale = 1.0
+                            }
+                        }
                 }
             }
             .padding()
@@ -132,7 +144,13 @@ struct PetCard: View {
                 RoundedRectangle(cornerRadius: 16)
                     .stroke(isSelected ? Color.petlyDarkGreen : Color.petlySageGreen.opacity(0.3), lineWidth: isSelected ? 2 : 1)
             )
+            .scaleEffect(isPressed ? 0.97 : 1.0)
+            .animation(.spring(response: 0.2, dampingFraction: 0.6), value: isPressed)
         }
+        .buttonStyle(PlainButtonStyle())
+        .onLongPressGesture(minimumDuration: .infinity, pressing: { pressing in
+            isPressed = pressing
+        }, perform: {})
     }
 }
 

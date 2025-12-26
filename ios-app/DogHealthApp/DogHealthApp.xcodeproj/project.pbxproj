@@ -31,6 +31,7 @@
 		PETSWITCHERVIEW0000001 /* PetSwitcherView.swift in Sources */ = {isa = PBXBuildFile; fileRef = PETSWITCHERVIEW0000002 /* PetSwitcherView.swift */; };
 		HEALTHINSIGHTS00000001 /* HealthInsightsDashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = HEALTHINSIGHTS00000002 /* HealthInsightsDashboardView.swift */; };
 		PHOTOATTACHMENT0000001 /* PhotoAttachmentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = PHOTOATTACHMENT0000002 /* PhotoAttachmentView.swift */; };
+		ANIMATIONSPOLISH000001 /* AnimationsAndPolish.swift in Sources */ = {isa = PBXBuildFile; fileRef = ANIMATIONSPOLISH000002 /* AnimationsAndPolish.swift */; };
 		A1000001000000000000001 /* DogHealthAppApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000002000000000000001 /* DogHealthAppApp.swift */; };
 		A1000003000000000000001 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000004000000000000001 /* ContentView.swift */; };
 		A1000005000000000000001 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A1000006000000000000001 /* Assets.xcassets */; };
@@ -84,6 +85,7 @@
 		PETSWITCHERVIEW0000002 /* PetSwitcherView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PetSwitcherView.swift; sourceTree = "<group>"; };
 		HEALTHINSIGHTS00000002 /* HealthInsightsDashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthInsightsDashboardView.swift; sourceTree = "<group>"; };
 		PHOTOATTACHMENT0000002 /* PhotoAttachmentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotoAttachmentView.swift; sourceTree = "<group>"; };
+		ANIMATIONSPOLISH000002 /* AnimationsAndPolish.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnimationsAndPolish.swift; sourceTree = "<group>"; };
 		A1000017000000000000001 /* DogHealthApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DogHealthApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A1000002000000000000001 /* DogHealthAppApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DogHealthAppApp.swift; sourceTree = "<group>"; };
 		A1000004000000000000001 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -345,6 +347,7 @@
 				HEALTHTIMELINE0001000001 /* HealthTimelineView.swift in Sources */,
 				PETHEALTHSCORE0001000001 /* PetHealthScore.swift in Sources */,
 				PETHEALTHSCOREVIEW000001 /* PetHealthScoreView.swift in Sources */,
+				ANIMATIONSPOLISH000001 /* AnimationsAndPolish.swift in Sources */,
 				PETREMINDER00001000001 /* PetReminder.swift in Sources */,
 				PETREMINDERSVIEW000001 /* PetRemindersView.swift in Sources */,
 				VETSUMMARYEXPORT000001 /* VetSummaryExportView.swift in Sources */,

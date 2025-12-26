@@ -109,6 +109,7 @@ struct TabBarButton: View {
     let isSelected: Bool
     let action: () -> Void
     @State private var isPressed = false
+    @State private var bounceScale: CGFloat = 1.0
     
     var body: some View {
         Button(action: {
@@ -126,6 +127,7 @@ struct TabBarButton: View {
                 Image(systemName: icon)
                     .font(.system(size: 20))
                     .foregroundColor(isSelected ? .petlyLightGreen : .petlyFormIcon)
+                    .scaleEffect(bounceScale)
                 
                 Text(title)
                     .font(.petlyBody(10))
@@ -134,6 +136,20 @@ struct TabBarButton: View {
             .frame(maxWidth: .infinity)
         }
         .scaleEffect(isPressed ? 0.9 : 1.0)
+        .onChange(of: isSelected) { _, newValue in
+            if newValue {
+                withAnimation(.spring(response: 0.25, dampingFraction: 0.4)) {
+                    bounceScale = 1.3
+                }
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+                    withAnimation(.spring(response: 0.25, dampingFraction: 0.5)) {
+                        bounceScale = 1.0
+                    }
+                }
+                let generator = UIImpactFeedbackGenerator(style: .light)
+                generator.impactOccurred()
+            }
+        }
     }
 }
 

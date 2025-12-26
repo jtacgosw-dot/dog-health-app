@@ -51,6 +51,7 @@ struct LogDetailView: View {
     @State private var selectedDigestion = 0
     @State private var isSaved = false
     @State private var photoData: Data? = nil
+    @State private var showSuccessAnimation = false
     
     let mealTypes = ["Breakfast", "Lunch", "Dinner", "Snack"]
     
@@ -111,10 +112,13 @@ struct LogDetailView: View {
                 }
             }
         }
-        .alert("Saved!", isPresented: $isSaved) {
-            Button("OK") { dismiss() }
-        } message: {
-            Text("Your \(logType.rawValue.lowercased()) entry has been logged.")
+        .overlay {
+            SuccessCheckmarkView(isShowing: $showSuccessAnimation)
+        }
+        .onChange(of: showSuccessAnimation) { _, newValue in
+            if !newValue && isSaved {
+                dismiss()
+            }
         }
     }
     
@@ -476,6 +480,7 @@ struct LogDetailView: View {
         }
         
         isSaved = true
+        showSuccessAnimation = true
     }
 }
 
