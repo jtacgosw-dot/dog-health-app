@@ -90,7 +90,7 @@ class PetHealthScoreCalculator {
     
     private func calculateActivityScore(entries: [HealthLogEntry]) -> Int {
         let activityEntries = entries.filter { 
-            $0.logType == "walk" || $0.logType == "playtime" 
+            $0.logType == "Walk" || $0.logType == "Playtime" 
         }
         
         let daysWithActivity = Set(activityEntries.map { 
@@ -112,8 +112,8 @@ class PetHealthScoreCalculator {
     }
     
     private func calculateNutritionScore(entries: [HealthLogEntry]) -> Int {
-        let mealEntries = entries.filter { $0.logType == "meals" }
-        let waterEntries = entries.filter { $0.logType == "water" }
+        let mealEntries = entries.filter { $0.logType == "Meals" }
+        let waterEntries = entries.filter { $0.logType == "Water" }
         
         let daysWithMeals = Set(mealEntries.map { 
             Calendar.current.startOfDay(for: $0.timestamp) 
@@ -126,13 +126,22 @@ class PetHealthScoreCalculator {
     }
     
     private func calculateWellnessScore(entries: [HealthLogEntry]) -> Int {
-        let symptomEntries = entries.filter { $0.logType == "symptom" }
-        let moodEntries = entries.filter { $0.logType == "mood" }
+        let symptomEntries = entries.filter { $0.logType == "Symptom" }
+        let digestionEntries = entries.filter { $0.logType == "Digestion" }
+        let moodEntries = entries.filter { $0.logType == "Mood" }
         
         var score = 100
         
         for symptom in symptomEntries {
             if let severity = symptom.severityLevel {
+                score -= severity * 5
+            } else {
+                score -= 10
+            }
+        }
+        
+        for digestion in digestionEntries {
+            if let severity = digestion.severityLevel {
                 score -= severity * 5
             } else {
                 score -= 10
