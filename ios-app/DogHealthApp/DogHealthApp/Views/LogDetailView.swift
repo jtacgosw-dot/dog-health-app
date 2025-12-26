@@ -461,6 +461,11 @@ struct LogDetailView: View {
         
         do {
             try modelContext.save()
+            
+            // Trigger sync to backend
+            Task {
+                await HealthLogSyncService.shared.syncSingleLog(entry)
+            }
         } catch {
             print("Failed to save entry: \(error)")
         }

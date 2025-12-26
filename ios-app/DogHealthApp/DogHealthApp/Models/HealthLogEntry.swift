@@ -25,6 +25,12 @@ final class HealthLogEntry {
     var treatName: String?
     var waterAmount: String?
     
+    // Sync tracking fields
+    var isSynced: Bool
+    var serverLogId: String?
+    var lastSyncedAt: Date?
+    var needsSync: Bool
+    
     init(
         id: UUID = UUID(),
         dogId: String,
@@ -45,7 +51,11 @@ final class HealthLogEntry {
         location: String? = nil,
         groomingType: String? = nil,
         treatName: String? = nil,
-        waterAmount: String? = nil
+        waterAmount: String? = nil,
+        isSynced: Bool = false,
+        serverLogId: String? = nil,
+        lastSyncedAt: Date? = nil,
+        needsSync: Bool = true
     ) {
         self.id = id
         self.dogId = dogId
@@ -67,6 +77,10 @@ final class HealthLogEntry {
         self.groomingType = groomingType
         self.treatName = treatName
         self.waterAmount = waterAmount
+        self.isSynced = isSynced
+        self.serverLogId = serverLogId
+        self.lastSyncedAt = lastSyncedAt
+        self.needsSync = needsSync
     }
     
     var logTypeEnum: LogType? {
