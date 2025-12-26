@@ -91,7 +91,7 @@ struct VetSummaryExportView: View {
         }
         .sheet(isPresented: $showShareSheet) {
             if let url = pdfURL {
-                ShareSheet(items: [url])
+                VetSummaryShareSheet(items: [url])
             }
         }
     }
@@ -406,7 +406,7 @@ struct CategoryToggle: View {
     }
 }
 
-struct ShareSheet: UIViewControllerRepresentable {
+struct VetSummaryShareSheet: UIViewControllerRepresentable {
     let items: [Any]
     
     func makeUIViewController(context: Context) -> UIActivityViewController {
