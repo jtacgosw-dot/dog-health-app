@@ -152,16 +152,19 @@ struct HomeDashboardView: View {
                             onLogMore: { showDailyLog = true }
                         )
                         .padding(.horizontal)
+                        .appearAnimation(delay: 0.1)
                         
                         PetHealthScoreCard(
                             onViewDetails: { showHealthScore = true }
                         )
                         .padding(.horizontal)
+                        .appearAnimation(delay: 0.15)
                         
                         HealthTimelineCard(
                             onViewTimeline: { showHealthTimeline = true }
                         )
                         .padding(.horizontal)
+                        .appearAnimation(delay: 0.2)
                         
                         HStack(spacing: 12) {
                             DailyActivityRingCard(
@@ -177,6 +180,7 @@ struct HomeDashboardView: View {
                             )
                         }
                         .padding(.horizontal)
+                        .appearAnimation(delay: 0.25)
                         
                         UpcomingCareCard(
                             appointment: nextAppointment,
@@ -184,6 +188,7 @@ struct HomeDashboardView: View {
                             onAddNote: { selectedLogType = .notes }
                         )
                         .padding(.horizontal)
+                        .appearAnimation(delay: 0.3)
                         
                         MealsAndTreatsCard(
                             meals: todayMeals,
@@ -195,6 +200,7 @@ struct HomeDashboardView: View {
                         )
                         .padding(.horizontal)
                         .padding(.bottom, 100)
+                        .appearAnimation(delay: 0.35)
                     }
                 }
             }

@@ -11,6 +11,8 @@ struct HealthTimelineView: View {
     @State private var selectedFilter: LogType?
     @State private var selectedTimeRange: TimeRange = .week
     @State private var showingAddEntry = false
+    @State private var entriesVisible = false
+    @State private var isRefreshing = false
     
     enum TimeRange: String, CaseIterable {
         case today = "Today"
@@ -86,19 +88,30 @@ struct HealthTimelineView: View {
                 ScrollView {
                     VStack(spacing: 20) {
                         statsCards
+                            .appearAnimation(delay: 0.1)
                         
                         filterSection
+                            .appearAnimation(delay: 0.2)
                         
                         timeRangeSelector
+                            .appearAnimation(delay: 0.3)
                         
                         if filteredEntries.isEmpty {
                             emptyState
+                                .appearAnimation(delay: 0.4)
                         } else {
                             timelineContent
                         }
                     }
                     .padding()
                     .padding(.bottom, 100)
+                }
+                .onAppear {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                        withAnimation {
+                            entriesVisible = true
+                        }
+                    }
                 }
             }
         }
@@ -261,6 +274,7 @@ struct HealthTimelineView: View {
                             .foregroundColor(.petlyFormIcon)
                     }
                     .padding(.vertical, 12)
+                    .slideIn(index: index, isVisible: entriesVisible)
                     
                     ForEach(Array(group.entries.enumerated()), id: \.element.id) { entryIndex, entry in
                         TimelineEntryRow(
@@ -269,6 +283,7 @@ struct HealthTimelineView: View {
                             isLast: entryIndex == group.entries.count - 1,
                             onDelete: { deleteEntry(entry) }
                         )
+                        .slideIn(index: index * 10 + entryIndex, isVisible: entriesVisible)
                     }
                 }
                 
