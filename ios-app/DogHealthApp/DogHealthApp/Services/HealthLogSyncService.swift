@@ -119,11 +119,12 @@ class HealthLogSyncService: ObservableObject {
                         }
                         
                         if !existsLocally {
-                            // Check by serverLogId
-                            let serverIdDescriptor = FetchDescriptor<HealthLogEntry>(
-                                predicate: #Predicate { $0.serverLogId == serverLog.id }
-                            )
-                            existsLocally = (try? context.fetch(serverIdDescriptor).first) != nil
+                            // Check by serverLogId - fetch all and filter manually due to #Predicate limitations with optional String
+                            let serverLogId = serverLog.id
+                            let allLogsDescriptor = FetchDescriptor<HealthLogEntry>()
+                            if let allLogs = try? context.fetch(allLogsDescriptor) {
+                                existsLocally = allLogs.contains { $0.serverLogId == serverLogId }
+                            }
                         }
                         
                         if !existsLocally {
@@ -210,10 +211,12 @@ class HealthLogSyncService: ObservableObject {
                 }
                 
                 if !existsLocally {
-                    let serverIdDescriptor = FetchDescriptor<HealthLogEntry>(
-                        predicate: #Predicate { $0.serverLogId == serverLog.id }
-                    )
-                    existsLocally = (try? context.fetch(serverIdDescriptor).first) != nil
+                    // Check by serverLogId - fetch all and filter manually due to #Predicate limitations with optional String
+                    let serverLogId = serverLog.id
+                    let allLogsDescriptor = FetchDescriptor<HealthLogEntry>()
+                    if let allLogs = try? context.fetch(allLogsDescriptor) {
+                        existsLocally = allLogs.contains { $0.serverLogId == serverLogId }
+                    }
                 }
                 
                 if !existsLocally {
