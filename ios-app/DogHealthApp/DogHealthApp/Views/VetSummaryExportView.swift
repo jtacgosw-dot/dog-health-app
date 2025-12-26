@@ -292,7 +292,7 @@ struct VetSummaryExportView: View {
             yPosition += 30
             
             if let dog = appState.currentDog {
-                let petInfo = "Pet: \(dog.name) | Breed: \(dog.breed ?? "Unknown") | Period: \(selectedTimeRange.rawValue)"
+                let petInfo = "Pet: \(dog.name) | Breed: \(dog.breed) | Period: \(selectedTimeRange.rawValue)"
                 petInfo.draw(at: CGPoint(x: margin, y: yPosition), withAttributes: bodyAttributes)
                 yPosition += 25
             }
