@@ -25,6 +25,10 @@ final class HealthLogEntry {
     var treatName: String?
     var waterAmount: String?
     
+    // Photo attachment - stored as Data for SwiftData compatibility
+    @Attribute(.externalStorage) var photoData: Data? = nil
+    var hasPhoto: Bool = false
+    
     // Sync tracking fields - defaults at property level for SwiftData migration
     var isSynced: Bool = false
     var serverLogId: String? = nil
@@ -52,6 +56,8 @@ final class HealthLogEntry {
         groomingType: String? = nil,
         treatName: String? = nil,
         waterAmount: String? = nil,
+        photoData: Data? = nil,
+        hasPhoto: Bool = false,
         isSynced: Bool = false,
         serverLogId: String? = nil,
         lastSyncedAt: Date? = nil,
@@ -77,6 +83,8 @@ final class HealthLogEntry {
         self.groomingType = groomingType
         self.treatName = treatName
         self.waterAmount = waterAmount
+        self.photoData = photoData
+        self.hasPhoto = hasPhoto
         self.isSynced = isSynced
         self.serverLogId = serverLogId
         self.lastSyncedAt = lastSyncedAt

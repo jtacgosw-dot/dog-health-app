@@ -50,6 +50,7 @@ struct LogDetailView: View {
     @State private var selectedSymptom = 0
     @State private var selectedDigestion = 0
     @State private var isSaved = false
+    @State private var photoData: Data? = nil
     
     let mealTypes = ["Breakfast", "Lunch", "Dinner", "Snack"]
     
@@ -98,6 +99,8 @@ struct LogDetailView: View {
                         dateSection
                         
                         logTypeSpecificContent
+                        
+                        PhotoAttachmentView(photoData: $photoData)
                         
                         notesSection
                         
@@ -421,7 +424,9 @@ struct LogDetailView: View {
             dogId: dogId,
             logType: logType.rawValue,
             timestamp: selectedDate,
-            notes: notes
+            notes: notes,
+            photoData: photoData,
+            hasPhoto: photoData != nil
         )
         
         switch logType {
