@@ -13,6 +13,7 @@ struct HomeDashboardView: View {
     @State private var showHealthScore = false
     @State private var showNutritionDetail = false
     @State private var showScheduleDetail = false
+    @State private var showPetSwitcher = false
     
     private let activityGoal = 60
     private let mealsTotal = 3
@@ -102,33 +103,41 @@ struct HomeDashboardView: View {
                 
                 ScrollView {
                     VStack(alignment: .leading, spacing: 20) {
-                        HStack {
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text("\(greeting), \(userName).")
-                                    .font(.petlyTitle(28))
-                                    .foregroundColor(.petlyDarkGreen)
-                                
-                                HStack(spacing: 4) {
-                                    Text("Here's how \(dogName)'s doing today")
-                                        .font(.petlyBody(16))
-                                        .foregroundColor(.petlyDarkGreen)
-                                    Image(systemName: "pawprint.fill")
-                                        .font(.system(size: 14))
-                                        .foregroundColor(.petlyDarkGreen)
-                                }
+                        VStack(alignment: .leading, spacing: 12) {
+                            if appState.dogs.count > 1 {
+                                PetSwitcherButton(showPetSwitcher: $showPetSwitcher)
                             }
                             
-                            Spacer()
-                            
-                            if appState.currentDog != nil {
-                                Circle()
-                                    .fill(Color.petlyLightGreen)
-                                    .frame(width: 60, height: 60)
-                                    .overlay(
-                                        Image(systemName: "dog.fill")
-                                            .font(.system(size: 28))
+                            HStack {
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text("\(greeting), \(userName).")
+                                        .font(.petlyTitle(28))
+                                        .foregroundColor(.petlyDarkGreen)
+                                    
+                                    HStack(spacing: 4) {
+                                        Text("Here's how \(dogName)'s doing today")
+                                            .font(.petlyBody(16))
                                             .foregroundColor(.petlyDarkGreen)
-                                    )
+                                        Image(systemName: "pawprint.fill")
+                                            .font(.system(size: 14))
+                                            .foregroundColor(.petlyDarkGreen)
+                                    }
+                                }
+                                
+                                Spacer()
+                                
+                                if appState.currentDog != nil {
+                                    Button(action: { showPetSwitcher = true }) {
+                                        Circle()
+                                            .fill(Color.petlyLightGreen)
+                                            .frame(width: 60, height: 60)
+                                            .overlay(
+                                                Image(systemName: "dog.fill")
+                                                    .font(.system(size: 28))
+                                                    .foregroundColor(.petlyDarkGreen)
+                                            )
+                                    }
+                                }
                             }
                         }
                         .padding(.horizontal)
@@ -218,6 +227,10 @@ struct HomeDashboardView: View {
             }
             .sheet(isPresented: $showScheduleDetail) {
                 ScheduleDetailView()
+                    .environmentObject(appState)
+            }
+            .sheet(isPresented: $showPetSwitcher) {
+                PetSwitcherView()
                     .environmentObject(appState)
             }
         }

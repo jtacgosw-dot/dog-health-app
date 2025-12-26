@@ -5,6 +5,9 @@ struct SettingsView: View {
     @State private var showSignOutAlert = false
     @State private var showNotificationSettings = false
     @State private var showWeightTracking = false
+    @State private var showPetReminders = false
+    @State private var showVetSummary = false
+    @State private var showHealthInsights = false
     
     var body: some View {
         NavigationView {
@@ -25,6 +28,15 @@ struct SettingsView: View {
                             SettingsSection(title: "Pet Health") {
                                 Button(action: { showWeightTracking = true }) {
                                     SettingsRow(icon: "scalemass.fill", title: "Weight Tracking", subtitle: "Track your pet's weight", showChevron: true)
+                                }
+                                Button(action: { showPetReminders = true }) {
+                                    SettingsRow(icon: "calendar.badge.clock", title: "Pet Reminders", subtitle: "Vaccinations, medications & more", showChevron: true)
+                                }
+                                Button(action: { showVetSummary = true }) {
+                                    SettingsRow(icon: "doc.text.fill", title: "Vet Visit Summary", subtitle: "Export health logs as PDF", showChevron: true)
+                                }
+                                Button(action: { showHealthInsights = true }) {
+                                    SettingsRow(icon: "chart.bar.fill", title: "Health Insights", subtitle: "View trends and analytics", showChevron: true)
                                 }
                             }
                             
@@ -110,6 +122,22 @@ struct SettingsView: View {
                     WeightTrackingView()
                         .environmentObject(appState)
                 }
+            }
+            .sheet(isPresented: $showPetReminders) {
+                NavigationView {
+                    PetRemindersView()
+                        .environmentObject(appState)
+                }
+            }
+            .sheet(isPresented: $showVetSummary) {
+                NavigationView {
+                    VetSummaryExportView()
+                        .environmentObject(appState)
+                }
+            }
+            .sheet(isPresented: $showHealthInsights) {
+                HealthInsightsDashboardView()
+                    .environmentObject(appState)
             }
         }
     }

@@ -13,6 +13,7 @@ class NotificationManager: ObservableObject {
     @Published var eveningWalkTime = Calendar.current.date(from: DateComponents(hour: 17, minute: 30)) ?? Date()
     
     private let userDefaults = UserDefaults.standard
+    private let notificationCenter = UNUserNotificationCenter.current()
     
     private init() {
         loadSettings()
@@ -127,6 +128,97 @@ class NotificationManager: ObservableObject {
         }
         if let eveningWalk = userDefaults.object(forKey: "eveningWalkTime") as? Date {
             eveningWalkTime = eveningWalk
+        }
+    }
+    
+    func scheduleReminderNotification(for reminder: PetReminder) {
+        guard reminder.isEnabled else { return }
+        
+        let content = UNMutableNotificationContent()
+        content.title = reminderNotificationTitle(for: reminder)
+        content.body = reminder.title
+        content.sound = .default
+        content.categoryIdentifier = "PET_REMINDER"
+        content.userInfo = ["reminderId": reminder.id]
+        
+        let calendar = Calendar.current
+        let components = calendar.dateComponents([.year, .month, .day, .hour, .minute], from: reminder.nextDueDate)
+        
+        let trigger = UNCalendarNotificationTrigger(dateMatching: components, repeats: false)
+        let request = UNNotificationRequest(
+            identifier: "pet-reminder-\(reminder.id)",
+            content: content,
+            trigger: trigger
+        )
+        
+        notificationCenter.add(request) { error in
+            if let error = error {
+                print("Error scheduling pet reminder notification: \(error)")
+            }
+        }
+        
+        if reminder.daysUntilDue > 1 {
+            scheduleDayBeforeReminder(for: reminder)
+        }
+    }
+    
+    private func scheduleDayBeforeReminder(for reminder: PetReminder) {
+        guard let dayBefore = Calendar.current.date(byAdding: .day, value: -1, to: reminder.nextDueDate) else { return }
+        
+        let content = UNMutableNotificationContent()
+        content.title = "Reminder Tomorrow"
+        content.body = "\(reminder.title) is due tomorrow"
+        content.sound = .default
+        content.userInfo = ["reminderId": reminder.id]
+        
+        let calendar = Calendar.current
+        var components = calendar.dateComponents([.year, .month, .day], from: dayBefore)
+        components.hour = 9
+        components.minute = 0
+        
+        let trigger = UNCalendarNotificationTrigger(dateMatching: components, repeats: false)
+        let request = UNNotificationRequest(
+            identifier: "pet-reminder-dayBefore-\(reminder.id)",
+            content: content,
+            trigger: trigger
+        )
+        
+        notificationCenter.add(request) { error in
+            if let error = error {
+                print("Error scheduling day-before reminder: \(error)")
+            }
+        }
+    }
+    
+    private func reminderNotificationTitle(for reminder: PetReminder) -> String {
+        switch reminder.type {
+        case .vaccination:
+            return "Vaccination Due"
+        case .medication:
+            return "Medication Reminder"
+        case .fleaTick:
+            return "Flea & Tick Treatment Due"
+        case .heartworm:
+            return "Heartworm Prevention Due"
+        case .grooming:
+            return "Grooming Appointment"
+        case .vetAppointment:
+            return "Vet Appointment"
+        case .other:
+            return "Pet Reminder"
+        }
+    }
+    
+    func cancelReminderNotification(for reminder: PetReminder) {
+        notificationCenter.removePendingNotificationRequests(withIdentifiers: [
+            "pet-reminder-\(reminder.id)",
+            "pet-reminder-dayBefore-\(reminder.id)"
+        ])
+    }
+    
+    func rescheduleAllPetReminders(_ reminders: [PetReminder]) {
+        for reminder in reminders where reminder.isEnabled {
+            scheduleReminderNotification(for: reminder)
         }
     }
 }

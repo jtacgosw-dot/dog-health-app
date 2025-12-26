@@ -9,6 +9,7 @@ struct DogHealthAppApp: App {
     var sharedModelContainer: ModelContainer = {
         let schema = Schema([
             HealthLogEntry.self,
+            PetReminder.self,
         ])
         let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
         
