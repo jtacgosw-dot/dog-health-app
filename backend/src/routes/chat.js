@@ -80,18 +80,18 @@ router.post('/',
           .single();
         dogProfile = dog;
 
-        // Fetch recent health logs (last 7 days) for context
-        const sevenDaysAgo = new Date();
-        sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+        // Fetch recent health logs (last 30 days) for comprehensive AI context
+        const thirtyDaysAgo = new Date();
+        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
         
         const { data: logs } = await supabase
           .from('health_logs')
           .select('*')
           .eq('dog_id', conversation.dog_id)
           .eq('user_id', userId)
-          .gte('timestamp', sevenDaysAgo.toISOString())
+          .gte('timestamp', thirtyDaysAgo.toISOString())
           .order('timestamp', { ascending: false })
-          .limit(50);
+          .limit(100);
         
         healthLogs = logs;
       }
