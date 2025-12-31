@@ -60,31 +60,33 @@ router.post('/dev',
         return res.status(404).json({ error: 'Not found' });
       }
 
-            const devEmail = 'dev@test.com';
-            const devUserId = '00000000-0000-0000-0000-000000000001';
-            const devAppleUserId = 'dev.apple.user.id.for.testing';
+      const devEmail = 'dev@test.com';
+      const devUserId = '00000000-0000-0000-0000-000000000001';
+      const devAppleUserId = 'dev.apple.user.id.for.testing';
+      const devAppleSub = 'dev-apple-subscription-id';
 
-            // Check if dev user exists
-            let { data: user, error } = await supabase
-              .from('users')
-              .select('*')
-              .eq('email', devEmail)
-              .single();
+      // Check if dev user exists
+      let { data: user, error } = await supabase
+        .from('users')
+        .select('*')
+        .eq('email', devEmail)
+        .single();
 
-            // Create dev user if doesn't exist
-            if (error || !user) {
-              const { data: newUser, error: createError } = await supabase
-                .from('users')
-                .insert([{
-                  id: devUserId,
-                  apple_user_id: devAppleUserId,
-                  email: devEmail,
-                  full_name: 'Dev User',
-                  subscription_status: 'premium',
-                  subscription_expires_at: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString() // 1 year from now
-                }])
-                .select()
-                .single();
+      // Create dev user if doesn't exist
+      if (error || !user) {
+        const { data: newUser, error: createError } = await supabase
+          .from('users')
+          .insert([{
+            id: devUserId,
+            apple_user_id: devAppleUserId,
+            apple_sub: devAppleSub,
+            email: devEmail,
+            full_name: 'Dev User',
+            subscription_status: 'premium',
+            subscription_expires_at: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString()
+          }])
+          .select()
+          .single();
 
         if (createError) {
           console.error('Failed to create dev user:', createError);
