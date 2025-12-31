@@ -60,12 +60,24 @@ class AppState: ObservableObject {
     @Published var currentDog: Dog?
     @Published var dogs: [Dog] = []
     
-    init() {
-        if APIService.shared.getAuthToken() != nil {
-            isSignedIn = true
-            hasCompletedOnboarding = true
+        init() {
+            if APIService.shared.getAuthToken() != nil {
+                isSignedIn = true
+                hasCompletedOnboarding = true
+            }
+        
+            #if DEBUG
+            Task {
+                await APIService.shared.ensureDevAuthenticated()
+                await MainActor.run {
+                    if APIService.shared.getAuthToken() != nil {
+                        self.isSignedIn = true
+                        self.hasCompletedOnboarding = true
+                    }
+                }
+            }
+            #endif
         }
-    }
     
     func loadUserData() async {
         do {
