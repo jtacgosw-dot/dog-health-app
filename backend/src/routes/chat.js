@@ -24,8 +24,8 @@ router.post('/',
         return res.status(400).json({ errors: errors.array() });
       }
 
-      const { message, conversationId, dogId } = req.body;
-      const userId = req.user.id;
+            const { message, conversationId, dogId, dogProfile: clientDogProfile, healthLogs: clientHealthLogs } = req.body;
+            const userId = req.user.id;
 
       let currentConversationId = conversationId;
 
@@ -69,32 +69,74 @@ router.post('/',
         throw new Error('Failed to save user message');
       }
 
-      let dogProfile = null;
-      let healthLogs = null;
+            let dogProfile = null;
+            let healthLogs = null;
       
-      if (conversation.dog_id) {
-        const { data: dog } = await supabase
-          .from('dogs')
-          .select('*')
-          .eq('id', conversation.dog_id)
-          .single();
-        dogProfile = dog;
-
-        // Fetch recent health logs (last 30 days) for comprehensive AI context
-        const thirtyDaysAgo = new Date();
-        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+            // Use client-provided dog profile and health logs if available (from local SwiftData)
+            // This allows the AI to have context even without Supabase sync
+            if (clientDogProfile) {
+              dogProfile = {
+                name: clientDogProfile.name,
+                breed: clientDogProfile.breed,
+                age_years: clientDogProfile.ageYears,
+                age_months: clientDogProfile.ageMonths,
+                weight_lbs: clientDogProfile.weightLbs,
+                sex: clientDogProfile.sex,
+                medical_history: clientDogProfile.medicalHistory,
+                allergies: clientDogProfile.allergies,
+                current_medications: clientDogProfile.currentMedications
+              };
+            }
+      
+            if (clientHealthLogs && clientHealthLogs.length > 0) {
+              healthLogs = clientHealthLogs.map(log => ({
+                log_type: log.logType,
+                timestamp: log.timestamp,
+                notes: log.notes,
+                meal_type: log.mealType,
+                amount: log.amount,
+                duration: log.duration,
+                mood_level: log.moodLevel,
+                symptom_type: log.symptomType,
+                severity_level: log.severityLevel,
+                digestion_quality: log.digestionQuality,
+                activity_type: log.activityType,
+                supplement_name: log.supplementName,
+                dosage: log.dosage,
+                appointment_type: log.appointmentType,
+                location: log.location,
+                grooming_type: log.groomingType,
+                treat_name: log.treatName,
+                water_amount: log.waterAmount
+              }));
+            }
+      
+            // Fall back to database queries if client didn't provide data
+            if (!dogProfile && conversation.dog_id) {
+              const { data: dog } = await supabase
+                .from('dogs')
+                .select('*')
+                .eq('id', conversation.dog_id)
+                .single();
+              dogProfile = dog;
+            }
+      
+            if (!healthLogs && conversation.dog_id) {
+              // Fetch recent health logs (last 30 days) for comprehensive AI context
+              const thirtyDaysAgo = new Date();
+              thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
         
-        const { data: logs } = await supabase
-          .from('health_logs')
-          .select('*')
-          .eq('dog_id', conversation.dog_id)
-          .eq('user_id', userId)
-          .gte('timestamp', thirtyDaysAgo.toISOString())
-          .order('timestamp', { ascending: false })
-          .limit(100);
+              const { data: logs } = await supabase
+                .from('health_logs')
+                .select('*')
+                .eq('dog_id', conversation.dog_id)
+                .eq('user_id', userId)
+                .gte('timestamp', thirtyDaysAgo.toISOString())
+                .order('timestamp', { ascending: false })
+                .limit(100);
         
-        healthLogs = logs;
-      }
+              healthLogs = logs;
+            }
 
       const aiResponse = await generateAIResponse(message, currentConversationId, dogProfile, healthLogs);
 
