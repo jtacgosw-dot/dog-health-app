@@ -78,13 +78,10 @@ router.post('/',
               dogProfile = {
                 name: clientDogProfile.name,
                 breed: clientDogProfile.breed,
-                age_years: clientDogProfile.ageYears,
-                age_months: clientDogProfile.ageMonths,
-                weight_lbs: clientDogProfile.weightLbs,
-                sex: clientDogProfile.sex,
-                medical_history: clientDogProfile.medicalHistory,
-                allergies: clientDogProfile.allergies,
-                current_medications: clientDogProfile.currentMedications
+                age: clientDogProfile.age,
+                weight: clientDogProfile.weight,
+                health_concerns: clientDogProfile.healthConcerns,
+                allergies: clientDogProfile.allergies
               };
             }
       
