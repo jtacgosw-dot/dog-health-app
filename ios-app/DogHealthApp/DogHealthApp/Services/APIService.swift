@@ -90,11 +90,11 @@ class APIService {
             #endif
         }
     
-    func sendChatMessage(message: String, conversationId: String?, dogId: String?) async throws -> ChatResponse {
-        let body = ChatRequest(message: message, conversationId: conversationId, dogId: dogId)
-        let data = try JSONEncoder().encode(body)
-        return try await makeRequest(endpoint: "/chat", method: "POST", body: data)
-    }
+        func sendChatMessage(message: String, conversationId: String?, dogId: String?, dogProfile: ChatDogProfile?, healthLogs: [ChatHealthLog]?) async throws -> ChatResponse {
+            let body = ChatRequest(message: message, conversationId: conversationId, dogId: dogId, dogProfile: dogProfile, healthLogs: healthLogs)
+            let data = try JSONEncoder().encode(body)
+            return try await makeRequest(endpoint: "/chat", method: "POST", body: data)
+        }
     
     func getConversations() async throws -> [Conversation] {
         let response: ConversationsResponse = try await makeRequest(endpoint: "/chat/conversations")
@@ -224,6 +224,41 @@ struct ChatRequest: Codable {
     let message: String
     let conversationId: String?
     let dogId: String?
+    let dogProfile: ChatDogProfile?
+    let healthLogs: [ChatHealthLog]?
+}
+
+struct ChatDogProfile: Codable {
+    let name: String
+    let breed: String?
+    let ageYears: Int?
+    let ageMonths: Int?
+    let weightLbs: Double?
+    let sex: String?
+    let medicalHistory: String?
+    let allergies: String?
+    let currentMedications: String?
+}
+
+struct ChatHealthLog: Codable {
+    let logType: String
+    let timestamp: String
+    let notes: String?
+    let mealType: String?
+    let amount: String?
+    let duration: String?
+    let moodLevel: Int?
+    let symptomType: String?
+    let severityLevel: Int?
+    let digestionQuality: String?
+    let activityType: String?
+    let supplementName: String?
+    let dosage: String?
+    let appointmentType: String?
+    let location: String?
+    let groomingType: String?
+    let treatName: String?
+    let waterAmount: String?
 }
 
 struct ChatResponse: Codable {
