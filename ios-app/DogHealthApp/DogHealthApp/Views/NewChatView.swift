@@ -1,7 +1,10 @@
 import SwiftUI
+import SwiftData
 
 struct NewChatView: View {
     @EnvironmentObject var appState: AppState
+    @Environment(\.modelContext) private var modelContext
+    @Query(sort: \HealthLogEntry.timestamp, order: .reverse) private var allHealthLogs: [HealthLogEntry]
     @Binding var initialPrompt: String
     @State private var messageText = ""
     @State private var messages: [Message] = []
@@ -153,10 +156,15 @@ struct NewChatView: View {
         
         Task {
             do {
+                let dogProfile = buildDogProfile()
+                let healthLogs = buildHealthLogs()
+                
                 let response = try await APIService.shared.sendChatMessage(
                     message: currentMessage,
                     conversationId: conversationId,
-                    dogId: appState.currentDog?.id
+                    dogId: appState.currentDog?.id,
+                    dogProfile: dogProfile,
+                    healthLogs: healthLogs
                 )
                 
                 await MainActor.run {
@@ -179,6 +187,51 @@ struct NewChatView: View {
                     isLoading = false
                 }
             }
+        }
+    }
+    
+    private func buildDogProfile() -> ChatDogProfile? {
+        guard let dog = appState.currentDog else { return nil }
+        
+        return ChatDogProfile(
+            name: dog.name,
+            breed: dog.breed,
+            age: dog.age,
+            weight: dog.weight,
+            healthConcerns: dog.healthConcerns.isEmpty ? nil : dog.healthConcerns,
+            allergies: dog.allergies.isEmpty ? nil : dog.allergies
+        )
+    }
+    
+    private func buildHealthLogs() -> [ChatHealthLog]? {
+        let thirtyDaysAgo = Calendar.current.date(byAdding: .day, value: -30, to: Date()) ?? Date()
+        let recentLogs = allHealthLogs.filter { $0.timestamp >= thirtyDaysAgo }
+        
+        guard !recentLogs.isEmpty else { return nil }
+        
+        let formatter = ISO8601DateFormatter()
+        
+        return Array(recentLogs.prefix(100)).map { log in
+            ChatHealthLog(
+                logType: log.logType,
+                timestamp: formatter.string(from: log.timestamp),
+                notes: log.notes.isEmpty ? nil : log.notes,
+                mealType: log.mealType,
+                amount: log.amount,
+                duration: log.duration,
+                moodLevel: log.moodLevel,
+                symptomType: log.symptomType,
+                severityLevel: log.severityLevel,
+                digestionQuality: log.digestionQuality,
+                activityType: log.activityType,
+                supplementName: log.supplementName,
+                dosage: log.dosage,
+                appointmentType: log.appointmentType,
+                location: log.location,
+                groomingType: log.groomingType,
+                treatName: log.treatName,
+                waterAmount: log.waterAmount
+            )
         }
     }
 }
