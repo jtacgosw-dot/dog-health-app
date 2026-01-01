@@ -185,13 +185,10 @@ struct ChatView: View {
         return ChatDogProfile(
             name: dog.name,
             breed: dog.breed,
-            ageYears: dog.ageYears,
-            ageMonths: dog.ageMonths,
-            weightLbs: dog.weightLbs,
-            sex: dog.sex,
-            medicalHistory: dog.medicalHistory,
-            allergies: dog.allergies,
-            currentMedications: dog.currentMedications
+            age: dog.age,
+            weight: dog.weight,
+            healthConcerns: dog.healthConcerns.isEmpty ? nil : dog.healthConcerns,
+            allergies: dog.allergies.isEmpty ? nil : dog.allergies
         )
     }
     
