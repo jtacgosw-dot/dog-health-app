@@ -103,17 +103,16 @@ struct HomeDashboardView: View {
     }
     
     var body: some View {
-        NavigationView {
-            ZStack {
-                Color.petlyBackground
-                    .ignoresSafeArea()
-                
-                ScrollView {
-                    VStack(alignment: .leading, spacing: 20) {
-                        VStack(alignment: .leading, spacing: 12) {
-                            if appState.dogs.count > 1 {
-                                PetSwitcherButton(showPetSwitcher: $showPetSwitcher)
-                            }
+        ZStack {
+            Color.petlyBackground
+                .ignoresSafeArea()
+            
+            ScrollView {
+                VStack(alignment: .leading, spacing: 20) {
+                    VStack(alignment: .leading, spacing: 12) {
+                        if appState.dogs.count > 1 {
+                            PetSwitcherButton(showPetSwitcher: $showPetSwitcher)
+                        }
                             
                             HStack {
                                 VStack(alignment: .leading, spacing: 4) {
@@ -233,7 +232,6 @@ struct HomeDashboardView: View {
                     }
                 }
             }
-            .navigationBarHidden(true)
             .sheet(isPresented: $showDailyLog) {
                 DailyLogEntryView()
                     .presentationDetents([.medium, .large])
