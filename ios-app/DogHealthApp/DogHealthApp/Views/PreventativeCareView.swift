@@ -12,11 +12,11 @@ struct PreventativeCareView: View {
     @State private var selectedReminderType: ReminderType = .vaccination
     
     private var dogId: String {
-        appState.selectedDog?.id ?? ""
+        appState.currentDog?.id ?? ""
     }
     
     private var dogName: String {
-        appState.selectedDog?.name ?? "your pet"
+        appState.currentDog?.name ?? "your pet"
     }
     
     private var dogReminders: [PetReminder] {
@@ -344,7 +344,7 @@ struct AddReminderView: View {
     @State private var notes = ""
     
     private var dogId: String {
-        appState.selectedDog?.id ?? ""
+        appState.currentDog?.id ?? ""
     }
     
     var body: some View {

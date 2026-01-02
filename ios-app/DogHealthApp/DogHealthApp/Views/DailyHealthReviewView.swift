@@ -19,11 +19,11 @@ struct DailyHealthReviewView: View {
     private let totalSteps = 4
     
     private var dogId: String {
-        appState.selectedDog?.id ?? ""
+        appState.currentDog?.id ?? ""
     }
     
     private var dogName: String {
-        appState.selectedDog?.name ?? "your pet"
+        appState.currentDog?.name ?? "your pet"
     }
     
     private var todaysMeals: [HealthLogEntry] {
