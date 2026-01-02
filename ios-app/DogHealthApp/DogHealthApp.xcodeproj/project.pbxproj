@@ -37,6 +37,10 @@
 		CAREPLANVIEW000000001 /* CarePlanView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAREPLANVIEW000000002 /* CarePlanView.swift */; };
 		CAREPLANMODEL00000001 /* CarePlan.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAREPLANMODEL00000002 /* CarePlan.swift */; };
 		VETVISITPACK000000001 /* VetVisitPackView.swift in Sources */ = {isa = PBXBuildFile; fileRef = VETVISITPACK000000002 /* VetVisitPackView.swift */; };
+		DAILYCHECKIN000000001 /* DailyCheckIn.swift in Sources */ = {isa = PBXBuildFile; fileRef = DAILYCHECKIN000000002 /* DailyCheckIn.swift */; };
+		DAILYHEALTHREVIEW0001 /* DailyHealthReviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DAILYHEALTHREVIEW0002 /* DailyHealthReviewView.swift */; };
+		PREVENTATIVECARE00001 /* PreventativeCareView.swift in Sources */ = {isa = PBXBuildFile; fileRef = PREVENTATIVECARE00002 /* PreventativeCareView.swift */; };
+		SMARTINSIGHTSVIEW0001 /* SmartInsightsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = SMARTINSIGHTSVIEW0002 /* SmartInsightsView.swift */; };
 		A1000001000000000000001 /* DogHealthAppApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000002000000000000001 /* DogHealthAppApp.swift */; };
 		A1000003000000000000001 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000004000000000000001 /* ContentView.swift */; };
 		A1000005000000000000001 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A1000006000000000000001 /* Assets.xcassets */; };
@@ -96,6 +100,10 @@
 		CAREPLANVIEW000000002 /* CarePlanView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CarePlanView.swift; sourceTree = "<group>"; };
 		CAREPLANMODEL00000002 /* CarePlan.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CarePlan.swift; sourceTree = "<group>"; };
 		VETVISITPACK000000002 /* VetVisitPackView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VetVisitPackView.swift; sourceTree = "<group>"; };
+		DAILYCHECKIN000000002 /* DailyCheckIn.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DailyCheckIn.swift; sourceTree = "<group>"; };
+		DAILYHEALTHREVIEW0002 /* DailyHealthReviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DailyHealthReviewView.swift; sourceTree = "<group>"; };
+		PREVENTATIVECARE00002 /* PreventativeCareView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreventativeCareView.swift; sourceTree = "<group>"; };
+		SMARTINSIGHTSVIEW0002 /* SmartInsightsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmartInsightsView.swift; sourceTree = "<group>"; };
 		A1000017000000000000001 /* DogHealthApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DogHealthApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A1000002000000000000001 /* DogHealthAppApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DogHealthAppApp.swift; sourceTree = "<group>"; };
 		A1000004000000000000001 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -197,6 +205,9 @@
 				25603DBD67304B5DBC50CDB7 /* NewPetProfileView.swift */,
 				83D1D15E596243A187B3D12E /* SignUpView.swift */,
 				ANIMATIONSPOLISH000002 /* AnimationsAndPolish.swift */,
+				DAILYHEALTHREVIEW0002 /* DailyHealthReviewView.swift */,
+				PREVENTATIVECARE00002 /* PreventativeCareView.swift */,
+				SMARTINSIGHTSVIEW0002 /* SmartInsightsView.swift */,
 				HEALTHDIGESTVIEW000002 /* HealthDigestView.swift */,
 				SYMPTOMTRIAGEVIEW00002 /* SymptomTriageView.swift */,
 				CAREPLANVIEW000000002 /* CarePlanView.swift */,
@@ -217,15 +228,16 @@
 	A1000051000000000000001 /* Models */ = {
 		isa = PBXGroup;
 		children = (
-			A0A1000034000000000000003 /* Dog.swift */,
-			A0A1000034000000000000005 /* Message.swift */,
-			A0A1000034000000000000007 /* User.swift */,
-			HEALTHLOG0002000000000001 /* HealthLogEntry.swift */,
-			PETHEALTHSCORE0002000001 /* PetHealthScore.swift */,
-			PETREMINDER00002000001 /* PetReminder.swift */,
-			CAREPLANMODEL00000002 /* CarePlan.swift */,
-		);
-		path = Models;
+				A0A1000034000000000000003 /* Dog.swift */,
+				A0A1000034000000000000005 /* Message.swift */,
+				A0A1000034000000000000007 /* User.swift */,
+				HEALTHLOG0002000000000001 /* HealthLogEntry.swift */,
+				PETHEALTHSCORE0002000001 /* PetHealthScore.swift */,
+				PETREMINDER00002000001 /* PetReminder.swift */,
+				CAREPLANMODEL00000002 /* CarePlan.swift */,
+				DAILYCHECKIN000000002 /* DailyCheckIn.swift */,
+			);
+			path = Models;
 		sourceTree = "<group>";
 	};
 	A1000052000000000000001 /* Services */ = {
@@ -377,7 +389,11 @@
 				SYMPTOMTRIAGEVIEW00001 /* SymptomTriageView.swift in Sources */,
 				CAREPLANVIEW000000001 /* CarePlanView.swift in Sources */,
 				CAREPLANMODEL00000001 /* CarePlan.swift in Sources */,
-				VETVISITPACK000000001 /* VetVisitPackView.swift in Sources */,
+			VETVISITPACK000000001 /* VetVisitPackView.swift in Sources */,
+				DAILYCHECKIN000000001 /* DailyCheckIn.swift in Sources */,
+				DAILYHEALTHREVIEW0001 /* DailyHealthReviewView.swift in Sources */,
+				PREVENTATIVECARE00001 /* PreventativeCareView.swift in Sources */,
+				SMARTINSIGHTSVIEW0001 /* SmartInsightsView.swift in Sources */,
 );
 			runOnlyForDeploymentPostprocessing = 0;
 		};

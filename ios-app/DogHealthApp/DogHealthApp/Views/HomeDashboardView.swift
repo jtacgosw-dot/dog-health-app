@@ -18,6 +18,9 @@ struct HomeDashboardView: View {
     @State private var showSymptomTriage = false
     @State private var showCarePlans = false
     @State private var showVetVisitPack = false
+    @State private var showDailyHealthReview = false
+    @State private var showPreventativeCare = false
+    @State private var showSmartInsights = false
     
     private let activityGoal = 60
     private let mealsTotal = 3
@@ -147,6 +150,10 @@ struct HomeDashboardView: View {
                         .padding(.horizontal)
                         .padding(.top, 10)
                         
+                        DailyHealthReviewCard(onStartReview: { showDailyHealthReview = true })
+                        .padding(.horizontal)
+                        .appearAnimation(delay: 0.08)
+                        
                         TodaysOverviewCard(
                             mealsLogged: mealsLogged,
                             mealsTotal: mealsTotal,
@@ -176,6 +183,13 @@ struct HomeDashboardView: View {
                         }
                         .padding(.horizontal)
                         .appearAnimation(delay: 0.22)
+                        
+                        HStack(spacing: 12) {
+                            SmartInsightsCard(onViewInsights: { showSmartInsights = true })
+                            PreventativeCareCard(onViewCare: { showPreventativeCare = true })
+                        }
+                        .padding(.horizontal)
+                        .appearAnimation(delay: 0.24)
                         
                         HStack(spacing: 12) {
                             DailyActivityRingCard(
@@ -268,6 +282,18 @@ struct HomeDashboardView: View {
             }
             .fullScreenCover(isPresented: $showVetVisitPack) {
                 VetVisitPackView()
+                    .environmentObject(appState)
+            }
+            .sheet(isPresented: $showDailyHealthReview) {
+                DailyHealthReviewView()
+                    .environmentObject(appState)
+            }
+            .fullScreenCover(isPresented: $showPreventativeCare) {
+                PreventativeCareView()
+                    .environmentObject(appState)
+            }
+            .fullScreenCover(isPresented: $showSmartInsights) {
+                SmartInsightsView()
                     .environmentObject(appState)
             }
         }
@@ -1106,6 +1132,162 @@ struct VetVisitPackCard: View {
                 RoundedRectangle(cornerRadius: 16)
                     .stroke(Color.red.opacity(0.2), lineWidth: 1)
             )
+            .shadow(color: .black.opacity(0.06), radius: 8, x: 0, y: 2)
+        }
+        .buttonStyle(PlainButtonStyle())
+    }
+}
+
+struct DailyHealthReviewCard: View {
+    @EnvironmentObject var appState: AppState
+    @Query private var checkIns: [DailyCheckIn]
+    
+    var onStartReview: () -> Void
+    
+    private var dogId: String {
+        appState.selectedDog?.id ?? ""
+    }
+    
+    private var hasCompletedToday: Bool {
+        let calendar = Calendar.current
+        let today = calendar.startOfDay(for: Date())
+        return checkIns.contains { checkIn in
+            checkIn.dogId == dogId &&
+            calendar.isDate(checkIn.date, inSameDayAs: today)
+        }
+    }
+    
+    private var checkInsThisWeek: Int {
+        let calendar = Calendar.current
+        let today = calendar.startOfDay(for: Date())
+        let weekStart = calendar.date(byAdding: .day, value: -6, to: today)!
+        return checkIns.filter { checkIn in
+            checkIn.dogId == dogId &&
+            checkIn.date >= weekStart && checkIn.date <= today
+        }.count
+    }
+    
+    var body: some View {
+        Button(action: onStartReview) {
+            HStack(spacing: 16) {
+                ZStack {
+                    Circle()
+                        .fill(hasCompletedToday ? Color.green.opacity(0.15) : Color.petlyLightGreen)
+                        .frame(width: 50, height: 50)
+                    
+                    Image(systemName: hasCompletedToday ? "checkmark.circle.fill" : "heart.text.square")
+                        .font(.system(size: 22))
+                        .foregroundColor(hasCompletedToday ? .green : .petlyDarkGreen)
+                }
+                
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Daily Health Review")
+                        .font(.petlyBodyMedium(16))
+                        .foregroundColor(.primary)
+                    
+                    if hasCompletedToday {
+                        Text("Completed today")
+                            .font(.petlyBody(12))
+                            .foregroundColor(.green)
+                    } else {
+                        Text("\(checkInsThisWeek) of 7 days this week")
+                            .font(.petlyBody(12))
+                            .foregroundColor(.secondary)
+                    }
+                }
+                
+                Spacer()
+                
+                if !hasCompletedToday {
+                    Text("Start")
+                        .font(.petlyBodyMedium(12))
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 6)
+                        .background(Color.petlyDarkGreen)
+                        .cornerRadius(16)
+                } else {
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundColor(.gray)
+                }
+            }
+            .padding()
+            .background(Color(.systemBackground))
+            .cornerRadius(16)
+            .shadow(color: .black.opacity(0.06), radius: 8, x: 0, y: 2)
+        }
+        .buttonStyle(PlainButtonStyle())
+    }
+}
+
+struct PreventativeCareCard: View {
+    @EnvironmentObject var appState: AppState
+    @Query(sort: \PetReminder.nextDueDate) private var reminders: [PetReminder]
+    
+    var onViewCare: () -> Void
+    
+    private var dogId: String {
+        appState.selectedDog?.id ?? ""
+    }
+    
+    private var dueCount: Int {
+        reminders.filter { $0.dogId == dogId && $0.isEnabled && $0.isDue }.count
+    }
+    
+    private var nextReminder: PetReminder? {
+        reminders.filter { $0.dogId == dogId && $0.isEnabled && !$0.isDue }.first
+    }
+    
+    var body: some View {
+        Button(action: onViewCare) {
+            VStack(alignment: .leading, spacing: 8) {
+                HStack {
+                    Image(systemName: "calendar.badge.checkmark")
+                        .font(.title2)
+                        .foregroundColor(.teal)
+                    Spacer()
+                    if dueCount > 0 {
+                        Text("\(dueCount) due")
+                            .font(.caption)
+                            .fontWeight(.medium)
+                            .foregroundColor(.white)
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 4)
+                            .background(Color.orange)
+                            .cornerRadius(8)
+                    } else {
+                        Image(systemName: "chevron.right")
+                            .font(.caption)
+                            .foregroundColor(.gray)
+                    }
+                }
+                
+                Text("Preventative Care")
+                    .font(.headline)
+                    .foregroundColor(.primary)
+                
+                if let next = nextReminder {
+                    Text("Next: \(next.title)")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                        .lineLimit(1)
+                } else {
+                    Text("Set up care schedule")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+            }
+            .padding()
+            .frame(maxWidth: .infinity, minHeight: 120, alignment: .leading)
+            .background(
+                LinearGradient(
+                    gradient: Gradient(colors: [Color.teal.opacity(0.15), Color.teal.opacity(0.05)]),
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                )
+            )
+            .cornerRadius(16)
             .shadow(color: .black.opacity(0.06), radius: 8, x: 0, y: 2)
         }
         .buttonStyle(PlainButtonStyle())
