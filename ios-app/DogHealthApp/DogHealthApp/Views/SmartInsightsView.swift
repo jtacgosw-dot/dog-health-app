@@ -485,7 +485,8 @@ struct SmartInsightsCard: View {
                     .lineLimit(2)
             }
             .padding()
-            .frame(maxWidth: .infinity, minHeight: 120, alignment: .leading)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .frame(height: 130)
             .background(
                 LinearGradient(
                     gradient: Gradient(colors: [Color.purple.opacity(0.15), Color.purple.opacity(0.05)]),
