@@ -133,7 +133,7 @@ struct VetVisitPackView: View {
     
     private var quickActionsSection: some View {
         HStack(spacing: 12) {
-            QuickActionButton(
+            VetPackQuickActionButton(
                 icon: "creditcard.fill",
                 title: "Emergency Card",
                 subtitle: "For pet sitters",
@@ -142,7 +142,7 @@ struct VetVisitPackView: View {
                 showEmergencyCard = true
             }
             
-            QuickActionButton(
+            VetPackQuickActionButton(
                 icon: "square.and.arrow.up",
                 title: "Quick Share",
                 subtitle: "Text to vet",
@@ -315,12 +315,14 @@ struct VetVisitPackView: View {
                 
                 let response = try await APIService.shared.sendChatMessage(
                     message: prompt,
+                    conversationId: nil,
+                    dogId: appState.currentDog?.id,
                     dogProfile: dogProfile,
                     healthLogs: healthLogs
                 )
                 
                 await MainActor.run {
-                    aiSummary = response
+                    aiSummary = response.message.content
                     isGeneratingAISummary = false
                 }
             } catch {
@@ -351,30 +353,36 @@ struct VetVisitPackView: View {
             name: dog.name,
             breed: dog.breed,
             age: dog.age,
-            weight: dog.weight
+            weight: dog.weight,
+            healthConcerns: dog.healthConcerns.isEmpty ? nil : dog.healthConcerns,
+            allergies: dog.allergies.isEmpty ? nil : dog.allergies
         )
     }
     
     private func buildHealthLogs() -> [ChatHealthLog] {
-        filteredLogs.prefix(50).map { log in
+        let formatter = ISO8601DateFormatter()
+        return filteredLogs.prefix(50).map { log in
             ChatHealthLog(
-                type: log.logType,
-                date: log.timestamp,
-                notes: log.notes,
-                details: buildLogDetails(log)
+                logType: log.logType,
+                timestamp: formatter.string(from: log.timestamp),
+                notes: log.notes.isEmpty ? nil : log.notes,
+                mealType: log.mealType,
+                amount: log.amount,
+                duration: log.duration,
+                moodLevel: log.moodLevel,
+                symptomType: log.symptomType,
+                severityLevel: log.severityLevel,
+                digestionQuality: log.digestionQuality,
+                activityType: log.activityType,
+                supplementName: log.supplementName,
+                dosage: log.dosage,
+                appointmentType: log.appointmentType,
+                location: log.location,
+                groomingType: log.groomingType,
+                treatName: log.treatName,
+                waterAmount: log.waterAmount
             )
         }
-    }
-    
-    private func buildLogDetails(_ log: HealthLogEntry) -> [String: String] {
-        var details: [String: String] = [:]
-        if let symptomType = log.symptomType { details["symptomType"] = symptomType }
-        if let severity = log.severityLevel { details["severity"] = "\(severity)" }
-        if let duration = log.duration { details["duration"] = duration }
-        if let mealType = log.mealType { details["mealType"] = mealType }
-        if let moodLevel = log.moodLevel { details["mood"] = "\(moodLevel)" }
-        if let digestionQuality = log.digestionQuality { details["digestion"] = digestionQuality }
-        return details
     }
     
     private func generateAndShare() {
@@ -399,12 +407,14 @@ struct VetVisitPackView: View {
             
             let response = try await APIService.shared.sendChatMessage(
                 message: prompt,
+                conversationId: nil,
+                dogId: appState.currentDog?.id,
                 dogProfile: dogProfile,
                 healthLogs: healthLogs
             )
             
             await MainActor.run {
-                aiSummary = response
+                aiSummary = response.message.content
             }
         } catch {
             await MainActor.run {
@@ -502,11 +512,12 @@ struct VetVisitPackView: View {
             yPosition += 25
             
             if let dog = appState.currentDog {
+                let weightText = dog.weight.map { String(format: "%.1f", $0) + " lbs" } ?? "Unknown"
                 let profileInfo = [
                     ("Name:", dog.name),
                     ("Breed:", dog.breed),
                     ("Age:", "\(dog.age) years"),
-                    ("Weight:", "\(String(format: "%.1f", dog.weight)) lbs")
+                    ("Weight:", weightText)
                 ]
                 
                 for (label, value) in profileInfo {
@@ -641,7 +652,7 @@ struct VetVisitPackView: View {
     }
 }
 
-struct QuickActionButton: View {
+struct VetPackQuickActionButton: View {
     let icon: String
     let title: String
     let subtitle: String
@@ -784,13 +795,14 @@ struct EmergencyCardView: View {
             
             VStack(alignment: .leading, spacing: 12) {
                 if let dog = appState.currentDog {
+                    let weightText = dog.weight.map { String(format: "%.0f", $0) + " lbs" } ?? "Unknown"
                     HStack {
                         VStack(alignment: .leading, spacing: 4) {
                             Text(dog.name)
                                 .font(.system(size: 22, weight: .bold))
                                 .foregroundColor(.primary)
                             
-                            Text("\(dog.breed) • \(dog.age) yrs • \(String(format: "%.0f", dog.weight)) lbs")
+                            Text("\(dog.breed) • \(dog.age) yrs • \(weightText)")
                                 .font(.system(size: 12))
                                 .foregroundColor(.secondary)
                         }
