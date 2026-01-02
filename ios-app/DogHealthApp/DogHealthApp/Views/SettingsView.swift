@@ -8,6 +8,7 @@ struct SettingsView: View {
     @State private var showPetReminders = false
     @State private var showVetSummary = false
     @State private var showHealthInsights = false
+    @State private var showFeedbackSheet = false
     
     var body: some View {
         NavigationView {
@@ -62,9 +63,15 @@ struct SettingsView: View {
                             }
                             
                             SettingsSection(title: "Support") {
-                                SettingsRow(icon: "questionmark.circle.fill", title: "Help & FAQ", subtitle: "Get help")
-                                SettingsRow(icon: "envelope.fill", title: "Contact Us", subtitle: "Send feedback")
-                                SettingsRow(icon: "doc.text.fill", title: "Terms & Privacy", subtitle: "Legal information")
+                                Button(action: openHelpCenter) {
+                                    SettingsRow(icon: "questionmark.circle.fill", title: "Help & FAQ", subtitle: "Get help", showChevron: true)
+                                }
+                                Button(action: { showFeedbackSheet = true }) {
+                                    SettingsRow(icon: "envelope.fill", title: "Send Feedback", subtitle: "Report issues or suggestions", showChevron: true)
+                                }
+                                Button(action: openLegalInfo) {
+                                    SettingsRow(icon: "doc.text.fill", title: "Terms & Privacy", subtitle: "Legal information", showChevron: true)
+                                }
                             }
                             
                             SettingsSection(title: "App") {
@@ -139,6 +146,21 @@ struct SettingsView: View {
                 HealthInsightsDashboardView()
                     .environmentObject(appState)
             }
+            .sheet(isPresented: $showFeedbackSheet) {
+                FeedbackView()
+            }
+        }
+    }
+    
+    private func openHelpCenter() {
+        if let url = URL(string: "https://petlyapp.com/help") {
+            UIApplication.shared.open(url)
+        }
+    }
+    
+    private func openLegalInfo() {
+        if let url = URL(string: "https://petlyapp.com/legal") {
+            UIApplication.shared.open(url)
         }
     }
 }
@@ -212,6 +234,119 @@ struct SettingsRow: View {
         }
         .padding()
         .contentShape(Rectangle())
+    }
+}
+
+struct FeedbackView: View {
+    @Environment(\.dismiss) var dismiss
+    @State private var feedbackType: FeedbackType = .suggestion
+    @State private var feedbackText: String = ""
+    @State private var email: String = ""
+    @State private var showSuccessAlert = false
+    
+    enum FeedbackType: String, CaseIterable {
+        case bug = "Bug Report"
+        case suggestion = "Suggestion"
+        case question = "Question"
+        case other = "Other"
+    }
+    
+    var body: some View {
+        NavigationView {
+            ZStack {
+                Color.petlyBackground
+                    .ignoresSafeArea()
+                
+                ScrollView {
+                    VStack(spacing: 20) {
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Feedback Type")
+                                .font(.petlyBodyMedium(14))
+                                .foregroundColor(.petlyDarkGreen)
+                            
+                            HStack(spacing: 8) {
+                                ForEach(FeedbackType.allCases, id: \.self) { type in
+                                    Button(action: { feedbackType = type }) {
+                                        Text(type.rawValue)
+                                            .font(.petlyBody(12))
+                                            .foregroundColor(feedbackType == type ? .white : .petlyDarkGreen)
+                                            .padding(.horizontal, 12)
+                                            .padding(.vertical, 8)
+                                            .background(feedbackType == type ? Color.petlyDarkGreen : Color.petlyLightGreen)
+                                            .cornerRadius(20)
+                                    }
+                                }
+                            }
+                        }
+                        
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Your Email (optional)")
+                                .font(.petlyBodyMedium(14))
+                                .foregroundColor(.petlyDarkGreen)
+                            
+                            TextField("email@example.com", text: $email)
+                                .keyboardType(.emailAddress)
+                                .autocapitalization(.none)
+                                .textFieldStyle(PetlyTextFieldStyle())
+                        }
+                        
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Your Feedback")
+                                .font(.petlyBodyMedium(14))
+                                .foregroundColor(.petlyDarkGreen)
+                            
+                            TextEditor(text: $feedbackText)
+                                .frame(minHeight: 150)
+                                .padding(12)
+                                .background(Color.petlyLightGreen)
+                                .cornerRadius(12)
+                                .scrollContentBackground(.hidden)
+                        }
+                        
+                        Button(action: submitFeedback) {
+                            Text("SUBMIT FEEDBACK")
+                                .font(.petlyBodyMedium(16))
+                                .foregroundColor(.white)
+                                .frame(maxWidth: .infinity)
+                                .padding()
+                                .background(feedbackText.isEmpty ? Color.gray : Color.petlyDarkGreen)
+                                .cornerRadius(25)
+                        }
+                        .disabled(feedbackText.isEmpty)
+                        .padding(.top, 10)
+                        
+                        Text("We read every piece of feedback and use it to improve Petly. Thank you for helping us make the app better!")
+                            .font(.petlyBody(12))
+                            .foregroundColor(.petlyFormIcon)
+                            .multilineTextAlignment(.center)
+                            .padding(.top, 10)
+                    }
+                    .padding()
+                    .padding(.bottom, 50)
+                }
+            }
+            .navigationTitle("Send Feedback")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button(action: { dismiss() }) {
+                        Image(systemName: "xmark")
+                            .foregroundColor(.petlyDarkGreen)
+                    }
+                }
+            }
+            .alert("Thank You!", isPresented: $showSuccessAlert) {
+                Button("OK") { dismiss() }
+            } message: {
+                Text("Your feedback has been submitted. We appreciate you taking the time to help us improve Petly!")
+            }
+        }
+    }
+    
+    private func submitFeedback() {
+        // In a real app, this would send the feedback to a server
+        // For now, we'll just show a success message
+        showSuccessAlert = true
     }
 }
 

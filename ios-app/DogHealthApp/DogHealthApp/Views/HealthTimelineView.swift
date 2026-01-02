@@ -13,6 +13,7 @@ struct HealthTimelineView: View {
     @State private var showingAddEntry = false
     @State private var entriesVisible = false
     @State private var isRefreshing = false
+    @State private var entryToEdit: HealthLogEntry?
     
     enum TimeRange: String, CaseIterable {
         case today = "Today"
@@ -117,6 +118,11 @@ struct HealthTimelineView: View {
         }
         .sheet(isPresented: $showingAddEntry) {
             DailyLogEntryView()
+                .presentationDetents([.medium, .large])
+                .presentationDragIndicator(.visible)
+        }
+        .sheet(item: $entryToEdit) { entry in
+            EditLogEntryView(entry: entry)
                 .presentationDetents([.medium, .large])
                 .presentationDragIndicator(.visible)
         }
@@ -281,7 +287,8 @@ struct HealthTimelineView: View {
                             entry: entry,
                             isFirst: entryIndex == 0,
                             isLast: entryIndex == group.entries.count - 1,
-                            onDelete: { deleteEntry(entry) }
+                            onDelete: { deleteEntry(entry) },
+                            onEdit: { entryToEdit = entry }
                         )
                         .slideIn(index: index * 10 + entryIndex, isVisible: entriesVisible)
                     }
@@ -375,6 +382,7 @@ struct TimelineEntryRow: View {
     let isFirst: Bool
     let isLast: Bool
     let onDelete: () -> Void
+    let onEdit: () -> Void
     
     @State private var showDeleteConfirmation = false
     
@@ -437,6 +445,9 @@ struct TimelineEntryRow: View {
             .background(Color.petlyLightGreen.opacity(0.5))
             .cornerRadius(12)
             .contextMenu {
+                Button(action: onEdit) {
+                    Label("Edit", systemImage: "pencil")
+                }
                 Button(role: .destructive, action: { showDeleteConfirmation = true }) {
                     Label("Delete", systemImage: "trash")
                 }
@@ -452,6 +463,190 @@ struct TimelineEntryRow: View {
         let formatter = DateFormatter()
         formatter.dateFormat = "h:mm a"
         return formatter.string(from: date)
+    }
+}
+
+struct EditLogEntryView: View {
+    @Bindable var entry: HealthLogEntry
+    @Environment(\.dismiss) var dismiss
+    @Environment(\.modelContext) private var modelContext
+    
+    @State private var selectedDate: Date
+    @State private var notes: String
+    @State private var amount: String
+    @State private var duration: String
+    @State private var selectedMood: Int
+    @State private var showSuccessAnimation = false
+    
+    init(entry: HealthLogEntry) {
+        self.entry = entry
+        _selectedDate = State(initialValue: entry.timestamp)
+        _notes = State(initialValue: entry.notes)
+        _amount = State(initialValue: entry.amount ?? entry.waterAmount ?? entry.treatName ?? entry.groomingType ?? entry.activityType ?? "")
+        _duration = State(initialValue: entry.duration ?? entry.dosage ?? entry.location ?? "")
+        _selectedMood = State(initialValue: entry.moodLevel ?? entry.severityLevel ?? 3)
+    }
+    
+    var body: some View {
+        NavigationView {
+            ZStack {
+                Color.petlyBackground
+                    .ignoresSafeArea()
+                
+                ScrollView {
+                    VStack(spacing: 20) {
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Date & Time")
+                                .font(.petlyBodyMedium(14))
+                                .foregroundColor(.petlyDarkGreen)
+                            
+                            DatePicker("", selection: $selectedDate)
+                                .datePickerStyle(.compact)
+                                .labelsHidden()
+                                .padding()
+                                .background(Color.petlyLightGreen)
+                                .cornerRadius(12)
+                        }
+                        
+                        if entry.logType == "Walk" || entry.logType == "Playtime" {
+                            VStack(alignment: .leading, spacing: 8) {
+                                Text("Duration (minutes)")
+                                    .font(.petlyBodyMedium(14))
+                                    .foregroundColor(.petlyDarkGreen)
+                                
+                                TextField("e.g., 30", text: $duration)
+                                    .keyboardType(.numberPad)
+                                    .textFieldStyle(PetlyTextFieldStyle())
+                            }
+                        }
+                        
+                        if entry.logType == "Meals" || entry.logType == "Water" || entry.logType == "Treat" {
+                            VStack(alignment: .leading, spacing: 8) {
+                                Text("Amount")
+                                    .font(.petlyBodyMedium(14))
+                                    .foregroundColor(.petlyDarkGreen)
+                                
+                                TextField("e.g., 1 cup", text: $amount)
+                                    .textFieldStyle(PetlyTextFieldStyle())
+                            }
+                        }
+                        
+                        if entry.logType == "Mood" {
+                            VStack(alignment: .leading, spacing: 8) {
+                                Text("Mood Level")
+                                    .font(.petlyBodyMedium(14))
+                                    .foregroundColor(.petlyDarkGreen)
+                                
+                                HStack(spacing: 12) {
+                                    ForEach(0..<5, id: \.self) { index in
+                                        let moods = ["😢", "😕", "😐", "🙂", "😄"]
+                                        Button(action: { selectedMood = index }) {
+                                            Text(moods[index])
+                                                .font(.system(size: 36))
+                                                .padding(8)
+                                                .background(selectedMood == index ? Color.petlyLightGreen : Color.clear)
+                                                .cornerRadius(12)
+                                                .overlay(
+                                                    RoundedRectangle(cornerRadius: 12)
+                                                        .stroke(selectedMood == index ? Color.petlyDarkGreen : Color.clear, lineWidth: 2)
+                                                )
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Notes")
+                                .font(.petlyBodyMedium(14))
+                                .foregroundColor(.petlyDarkGreen)
+                            
+                            TextEditor(text: $notes)
+                                .frame(minHeight: 100)
+                                .padding(8)
+                                .background(Color.petlyLightGreen)
+                                .cornerRadius(12)
+                                .scrollContentBackground(.hidden)
+                        }
+                        
+                        Button(action: saveChanges) {
+                            Text("SAVE CHANGES")
+                                .font(.petlyBodyMedium(16))
+                                .foregroundColor(.white)
+                                .frame(maxWidth: .infinity)
+                                .padding()
+                                .background(Color.petlyDarkGreen)
+                                .cornerRadius(25)
+                        }
+                        .padding(.top, 20)
+                    }
+                    .padding()
+                    .padding(.bottom, 100)
+                }
+            }
+            .navigationTitle("Edit \(entry.logType)")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button(action: { dismiss() }) {
+                        Image(systemName: "xmark")
+                            .foregroundColor(.petlyDarkGreen)
+                    }
+                }
+            }
+        }
+        .overlay {
+            SuccessCheckmarkView(isShowing: $showSuccessAnimation)
+        }
+        .onChange(of: showSuccessAnimation) { _, newValue in
+            if !newValue {
+                dismiss()
+            }
+        }
+    }
+    
+    private func saveChanges() {
+        entry.timestamp = selectedDate
+        entry.notes = notes
+        
+        switch entry.logType {
+        case "Walk", "Playtime":
+            entry.duration = duration
+            entry.amount = amount
+        case "Meals":
+            entry.amount = amount
+        case "Water":
+            entry.waterAmount = amount
+        case "Treat":
+            entry.treatName = amount
+        case "Grooming":
+            entry.groomingType = amount
+        case "Mood":
+            entry.moodLevel = selectedMood
+        case "Symptom":
+            entry.severityLevel = selectedMood
+        case "Supplements":
+            entry.supplementName = amount
+            entry.dosage = duration
+        case "Upcoming Appointments":
+            entry.appointmentType = amount
+            entry.location = duration
+        default:
+            break
+        }
+        
+        entry.needsSync = true
+        
+        do {
+            try modelContext.save()
+            Task {
+                await HealthLogSyncService.shared.syncSingleLog(entry)
+            }
+        } catch {
+            print("Failed to save changes: \(error)")
+        }
+        
+        showSuccessAnimation = true
     }
 }
 

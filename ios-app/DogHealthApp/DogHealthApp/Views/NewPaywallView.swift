@@ -128,6 +128,33 @@ struct NewPaywallView: View {
                         .padding(.horizontal)
                         .padding(.top, 10)
                         
+                        Button(action: restorePurchases) {
+                            Text("Restore Purchases")
+                                .font(.petlyBody(14))
+                                .foregroundColor(.petlyDarkGreen)
+                                .underline()
+                        }
+                        .padding(.top, 8)
+                        
+                        HStack(spacing: 20) {
+                            Button(action: openPrivacyPolicy) {
+                                Text("Privacy Policy")
+                                    .font(.petlyBody(12))
+                                    .foregroundColor(.petlyFormIcon)
+                            }
+                            
+                            Text("|")
+                                .font(.petlyBody(12))
+                                .foregroundColor(.petlyFormIcon)
+                            
+                            Button(action: openTermsOfService) {
+                                Text("Terms of Service")
+                                    .font(.petlyBody(12))
+                                    .foregroundColor(.petlyFormIcon)
+                            }
+                        }
+                        .padding(.top, 12)
+                        
                         HStack(spacing: 8) {
                             ForEach(0..<4) { index in
                                 Circle()
@@ -145,6 +172,24 @@ struct NewPaywallView: View {
     
     private func startFreeTrial() {
         appState.hasActiveSubscription = true
+    }
+    
+    private func restorePurchases() {
+        // In a real app, this would call StoreKit to restore purchases
+        // For now, we'll just show an alert or set the subscription state
+        appState.hasActiveSubscription = true
+    }
+    
+    private func openPrivacyPolicy() {
+        if let url = URL(string: "https://petlyapp.com/privacy") {
+            UIApplication.shared.open(url)
+        }
+    }
+    
+    private func openTermsOfService() {
+        if let url = URL(string: "https://petlyapp.com/terms") {
+            UIApplication.shared.open(url)
+        }
     }
 }
 

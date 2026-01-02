@@ -419,6 +419,25 @@ struct CreateCarePlanView: View {
                     }
                 }
                 
+                VStack(spacing: 8) {
+                    HStack(spacing: 6) {
+                        Image(systemName: "exclamationmark.triangle.fill")
+                            .font(.system(size: 12))
+                            .foregroundColor(.orange)
+                        Text("Important Disclaimer")
+                            .font(.petlyBodyMedium(12))
+                            .foregroundColor(.petlyDarkGreen)
+                    }
+                    
+                    Text("This care plan is AI-generated for informational purposes only. It is not a substitute for professional veterinary advice. Always consult your veterinarian before starting any new health regimen for your pet.")
+                        .font(.petlyBody(11))
+                        .foregroundColor(.petlyFormIcon)
+                        .multilineTextAlignment(.center)
+                }
+                .padding()
+                .background(Color.orange.opacity(0.1))
+                .cornerRadius(12)
+                
                 HStack(spacing: 12) {
                     Button(action: { generatedPlan = nil }) {
                         Text("Regenerate")
