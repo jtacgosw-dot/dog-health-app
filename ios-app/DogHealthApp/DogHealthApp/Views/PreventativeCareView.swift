@@ -64,7 +64,7 @@ struct PreventativeCareView: View {
                 }
             }
             .sheet(isPresented: $showingAddReminder) {
-                AddReminderView(selectedType: $selectedReminderType)
+                AddPreventativeCareReminderView(selectedType: $selectedReminderType)
             }
         }
     }
@@ -126,7 +126,7 @@ struct PreventativeCareView: View {
             }
             
             ForEach(dueReminders, id: \.id) { reminder in
-                ReminderCard(reminder: reminder, isDue: true) {
+                PreventativeCareReminderCard(reminder: reminder, isDue: true) {
                     markReminderComplete(reminder)
                 }
             }
@@ -150,7 +150,7 @@ struct PreventativeCareView: View {
                     .padding()
             } else {
                 ForEach(upcomingReminders.prefix(5), id: \.id) { reminder in
-                    ReminderCard(reminder: reminder, isDue: false) {
+                    PreventativeCareReminderCard(reminder: reminder, isDue: false) {
                         markReminderComplete(reminder)
                     }
                 }
@@ -209,7 +209,7 @@ struct PreventativeCareView: View {
     }
 }
 
-struct ReminderCard: View {
+struct PreventativeCareReminderCard: View {
     let reminder: PetReminder
     let isDue: Bool
     let onComplete: () -> Void
@@ -331,7 +331,7 @@ struct CareTypeButton: View {
     }
 }
 
-struct AddReminderView: View {
+struct AddPreventativeCareReminderView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
     @EnvironmentObject var appState: AppState
