@@ -657,7 +657,7 @@ struct DailyActivityRingCard: View {
             }
         }
         .padding()
-        .frame(maxWidth: .infinity)
+        .frame(maxWidth: .infinity, minHeight: 320)
         .background(Color.petlyLightGreen)
         .cornerRadius(16)
     }
@@ -730,7 +730,7 @@ struct WellnessTrackerCard: View {
             .padding(.top, 8)
         }
         .padding()
-        .frame(maxWidth: .infinity)
+        .frame(maxWidth: .infinity, minHeight: 320)
         .background(Color.petlyLightGreen)
         .cornerRadius(16)
     }
@@ -972,10 +972,6 @@ struct HealthTimelineCard: View {
             )
         )
         .cornerRadius(16)
-        .overlay(
-            RoundedRectangle(cornerRadius: 16)
-                .stroke(Color.petlyDarkGreen.opacity(0.2), lineWidth: 1)
-        )
     }
 }
 
@@ -1004,7 +1000,7 @@ struct HealthDigestCard: View {
                     .foregroundColor(.secondary)
             }
             .padding()
-            .frame(maxWidth: .infinity, alignment: .leading)
+            .frame(maxWidth: .infinity, minHeight: 120, alignment: .leading)
             .background(
                 LinearGradient(
                     gradient: Gradient(colors: [Color.petlyLightGreen.opacity(0.3), Color.petlyLightGreen.opacity(0.1)]),
@@ -1013,10 +1009,6 @@ struct HealthDigestCard: View {
                 )
             )
             .cornerRadius(16)
-            .overlay(
-                RoundedRectangle(cornerRadius: 16)
-                    .stroke(Color.petlyDarkGreen.opacity(0.2), lineWidth: 1)
-            )
         }
         .buttonStyle(PlainButtonStyle())
     }
@@ -1047,7 +1039,7 @@ struct CarePlansCard: View {
                     .foregroundColor(.secondary)
             }
             .padding()
-            .frame(maxWidth: .infinity, alignment: .leading)
+            .frame(maxWidth: .infinity, minHeight: 120, alignment: .leading)
             .background(
                 LinearGradient(
                     gradient: Gradient(colors: [Color.blue.opacity(0.15), Color.blue.opacity(0.05)]),
@@ -1056,10 +1048,6 @@ struct CarePlansCard: View {
                 )
             )
             .cornerRadius(16)
-            .overlay(
-                RoundedRectangle(cornerRadius: 16)
-                    .stroke(Color.blue.opacity(0.2), lineWidth: 1)
-            )
         }
         .buttonStyle(PlainButtonStyle())
     }
