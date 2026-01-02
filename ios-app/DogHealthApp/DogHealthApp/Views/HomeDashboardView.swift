@@ -1276,7 +1276,8 @@ struct PreventativeCareCard: View {
                 }
             }
             .padding()
-            .frame(maxWidth: .infinity, minHeight: 120, alignment: .leading)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .frame(height: 130)
             .background(
                 LinearGradient(
                     gradient: Gradient(colors: [Color.teal.opacity(0.15), Color.teal.opacity(0.05)]),
