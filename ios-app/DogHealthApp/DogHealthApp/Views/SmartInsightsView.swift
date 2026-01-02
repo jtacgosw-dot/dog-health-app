@@ -41,7 +41,7 @@ struct SmartInsightsView: View {
                 }
                 .padding()
             }
-            .background(Color(.systemGroupedBackground))
+            .background(Color.petlyBackground)
             .navigationTitle("Health Insights")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -75,17 +75,17 @@ struct SmartInsightsView: View {
                 
                 ZStack {
                     Circle()
-                        .fill(Color.purple.opacity(0.15))
+                        .fill(Color.petlyLightGreen)
                         .frame(width: 50, height: 50)
                     
                     Image(systemName: "lightbulb.fill")
                         .font(.title2)
-                        .foregroundColor(.purple)
+                        .foregroundColor(.petlyDarkGreen)
                 }
             }
         }
         .padding()
-        .background(Color(.systemBackground))
+        .background(Color.white)
         .cornerRadius(16)
         .shadow(color: .black.opacity(0.06), radius: 8, x: 0, y: 2)
     }
@@ -112,7 +112,7 @@ struct SmartInsightsView: View {
                     .foregroundColor(.secondary)
             }
             .padding()
-            .background(Color.blue.opacity(0.1))
+            .background(Color.petlyLightGreen)
             .cornerRadius(10)
         }
         .padding(.vertical, 32)
@@ -166,12 +166,12 @@ struct SmartInsightsView: View {
                 )
             }
             .padding()
-            .background(Color(.systemBackground))
+            .background(Color.white)
             .cornerRadius(12)
         }
     }
     
-    private func generateInsights() -> [HealthInsight] {
+    private func generateInsights()-> [HealthInsight] {
         var insights: [HealthInsight] = []
         let calendar = Calendar.current
         let now = Date()
@@ -383,13 +383,9 @@ struct HealthInsightCard: View {
             Spacer()
         }
         .padding()
-        .background(Color(.systemBackground))
+        .background(Color.white)
         .cornerRadius(12)
-        .overlay(
-            RoundedRectangle(cornerRadius: 12)
-                .stroke(insight.type.color.opacity(0.2), lineWidth: 1)
-        )
-        .shadow(color: .black.opacity(0.04), radius: 4, x: 0, y: 2)
+        .shadow(color: .black.opacity(0.06), radius: 8, x: 0, y: 2)
     }
 }
 
@@ -468,7 +464,7 @@ struct SmartInsightsCard: View {
                 HStack {
                     Image(systemName: "lightbulb.fill")
                         .font(.title2)
-                        .foregroundColor(.purple)
+                        .foregroundColor(.petlyDarkGreen)
                     Spacer()
                     Image(systemName: "chevron.right")
                         .font(.caption)
@@ -489,7 +485,7 @@ struct SmartInsightsCard: View {
             .frame(height: 130)
             .background(
                 LinearGradient(
-                    gradient: Gradient(colors: [Color.purple.opacity(0.15), Color.purple.opacity(0.05)]),
+                    gradient: Gradient(colors: [Color.petlyLightGreen.opacity(0.8), Color.petlyLightGreen.opacity(0.4)]),
                     startPoint: .topLeading,
                     endPoint: .bottomTrailing
                 )

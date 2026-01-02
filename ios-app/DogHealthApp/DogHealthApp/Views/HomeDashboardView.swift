@@ -1072,7 +1072,7 @@ struct CarePlansCard: View {
             .frame(maxWidth: .infinity, minHeight: 120, alignment: .leading)
             .background(
                 LinearGradient(
-                    gradient: Gradient(colors: [Color.blue.opacity(0.25), Color.blue.opacity(0.15)]),
+                    gradient: Gradient(colors: [Color.petlyLightGreen.opacity(0.8), Color.petlyLightGreen.opacity(0.4)]),
                     startPoint: .topLeading,
                     endPoint: .bottomTrailing
                 )
@@ -1084,7 +1084,7 @@ struct CarePlansCard: View {
     }
 }
 
-struct VetVisitPackCard: View {
+struct VetVisitPackCard:View {
     var onViewPack: () -> Void
     
     var body: some View {
@@ -1092,12 +1092,12 @@ struct VetVisitPackCard: View {
             HStack(spacing: 16) {
                 ZStack {
                     Circle()
-                        .fill(Color.red.opacity(0.15))
+                        .fill(Color.petlyLightGreen)
                         .frame(width: 50, height: 50)
                     
                     Image(systemName: "suitcase.fill")
                         .font(.system(size: 22))
-                        .foregroundColor(.red)
+                        .foregroundColor(.petlyDarkGreen)
                 }
                 
                 VStack(alignment: .leading, spacing: 4) {
@@ -1119,23 +1119,19 @@ struct VetVisitPackCard: View {
             .padding()
             .background(
                 LinearGradient(
-                    gradient: Gradient(colors: [Color.red.opacity(0.08), Color.orange.opacity(0.05)]),
+                    gradient: Gradient(colors: [Color.petlyLightGreen.opacity(0.8), Color.petlyLightGreen.opacity(0.4)]),
                     startPoint: .topLeading,
                     endPoint: .bottomTrailing
                 )
             )
             .cornerRadius(16)
-            .overlay(
-                RoundedRectangle(cornerRadius: 16)
-                    .stroke(Color.red.opacity(0.2), lineWidth: 1)
-            )
             .shadow(color: .black.opacity(0.06), radius: 8, x: 0, y: 2)
         }
         .buttonStyle(PlainButtonStyle())
     }
 }
 
-struct DailyHealthReviewCard: View {
+struct DailyHealthReviewCard:View {
     @EnvironmentObject var appState: AppState
     @Query private var checkIns: [DailyCheckIn]
     
@@ -1242,7 +1238,7 @@ struct PreventativeCareCard: View {
                 HStack {
                     Image(systemName: "calendar.badge.checkmark")
                         .font(.title2)
-                        .foregroundColor(.teal)
+                        .foregroundColor(.petlyDarkGreen)
                     Spacer()
                     if dueCount > 0 {
                         Text("\(dueCount) due")
@@ -1280,7 +1276,7 @@ struct PreventativeCareCard: View {
             .frame(height: 130)
             .background(
                 LinearGradient(
-                    gradient: Gradient(colors: [Color.teal.opacity(0.15), Color.teal.opacity(0.05)]),
+                    gradient: Gradient(colors: [Color.petlyLightGreen.opacity(0.8), Color.petlyLightGreen.opacity(0.4)]),
                     startPoint: .topLeading,
                     endPoint: .bottomTrailing
                 )

@@ -51,7 +51,7 @@ struct PreventativeCareView: View {
                 }
                 .padding()
             }
-            .background(Color(.systemGroupedBackground))
+            .background(Color.petlyBackground)
             .navigationTitle("Preventative Care")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -119,12 +119,12 @@ struct PreventativeCareView: View {
             }
         }
         .padding()
-        .background(Color(.systemBackground))
+        .background(Color.white)
         .cornerRadius(16)
         .shadow(color: .black.opacity(0.06), radius: 8, x: 0, y: 2)
     }
     
-    private var dueNowSection: some View {
+    private var dueNowSection:some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
                 Text("Due Now")
@@ -291,17 +291,13 @@ struct PreventativeCareReminderCard: View {
             }
         }
         .padding()
-        .background(Color(.systemBackground))
+        .background(Color.white)
         .cornerRadius(12)
-        .overlay(
-            RoundedRectangle(cornerRadius: 12)
-                .stroke(isDue ? Color.orange.opacity(0.3) : Color.clear, lineWidth: 1)
-        )
-        .shadow(color: .black.opacity(0.04), radius: 4, x: 0, y: 2)
+        .shadow(color: .black.opacity(0.06), radius: 8, x: 0, y: 2)
     }
 }
 
-struct CareTypeButton: View {
+struct CareTypeButton:View {
     let type: ReminderType
     let action: () -> Void
     
@@ -333,14 +329,14 @@ struct CareTypeButton: View {
             .frame(maxWidth: .infinity)
             .padding(.vertical, 12)
             .padding(.horizontal, 8)
-            .background(typeColor.opacity(0.1))
+            .background(Color.petlyLightGreen)
             .cornerRadius(10)
         }
         .buttonStyle(PlainButtonStyle())
     }
 }
 
-struct AddPreventativeCareReminderView: View {
+struct AddPreventativeCareReminderView:View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
     @EnvironmentObject var appState: AppState
