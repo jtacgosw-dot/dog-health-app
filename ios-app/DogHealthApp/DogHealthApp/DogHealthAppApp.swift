@@ -10,6 +10,9 @@ struct DogHealthAppApp: App {
         let schema = Schema([
             HealthLogEntry.self,
             PetReminder.self,
+            CarePlan.self,
+            CarePlanTask.self,
+            CarePlanMilestone.self,
         ])
         let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
         

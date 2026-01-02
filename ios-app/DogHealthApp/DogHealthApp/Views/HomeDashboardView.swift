@@ -14,6 +14,9 @@ struct HomeDashboardView: View {
     @State private var showNutritionDetail = false
     @State private var showScheduleDetail = false
     @State private var showPetSwitcher = false
+    @State private var showHealthDigest = false
+    @State private var showSymptomTriage = false
+    @State private var showCarePlans = false
     
     private let activityGoal = 60
     private let mealsTotal = 3
@@ -167,6 +170,13 @@ struct HomeDashboardView: View {
                         .appearAnimation(delay: 0.2)
                         
                         HStack(spacing: 12) {
+                            HealthDigestCard(onViewDigest: { showHealthDigest = true })
+                            CarePlansCard(onViewPlans: { showCarePlans = true })
+                        }
+                        .padding(.horizontal)
+                        .appearAnimation(delay: 0.22)
+                        
+                        HStack(spacing: 12) {
                             DailyActivityRingCard(
                                 activityMinutes: activityMinutes,
                                 activityGoal: activityGoal,
@@ -175,7 +185,7 @@ struct HomeDashboardView: View {
                             
                             WellnessTrackerCard(
                                 hasSymptoms: hasSymptoms,
-                                onLogSymptom: { selectedLogType = .symptom },
+                                onLogSymptom: { showSymptomTriage = true },
                                 onAddNote: { selectedLogType = .notes }
                             )
                         }
@@ -237,6 +247,18 @@ struct HomeDashboardView: View {
             }
             .sheet(isPresented: $showPetSwitcher) {
                 PetSwitcherView()
+                    .environmentObject(appState)
+            }
+            .fullScreenCover(isPresented: $showHealthDigest) {
+                HealthDigestView()
+                    .environmentObject(appState)
+            }
+            .fullScreenCover(isPresented: $showSymptomTriage) {
+                SymptomTriageView()
+                    .environmentObject(appState)
+            }
+            .fullScreenCover(isPresented: $showCarePlans) {
+                CarePlanView()
                     .environmentObject(appState)
             }
         }
@@ -945,6 +967,92 @@ struct HealthTimelineCard: View {
             RoundedRectangle(cornerRadius: 16)
                 .stroke(Color.petlyDarkGreen.opacity(0.2), lineWidth: 1)
         )
+    }
+}
+
+struct HealthDigestCard: View {
+    var onViewDigest: () -> Void
+    
+    var body: some View {
+        Button(action: onViewDigest) {
+            VStack(alignment: .leading, spacing: 8) {
+                HStack {
+                    Image(systemName: "chart.bar.doc.horizontal")
+                        .font(.title2)
+                        .foregroundColor(.petlyDarkGreen)
+                    Spacer()
+                    Image(systemName: "chevron.right")
+                        .font(.caption)
+                        .foregroundColor(.gray)
+                }
+                
+                Text("Health Digest")
+                    .font(.headline)
+                    .foregroundColor(.primary)
+                
+                Text("Weekly AI summary")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            }
+            .padding()
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(
+                LinearGradient(
+                    gradient: Gradient(colors: [Color.petlyLightGreen.opacity(0.3), Color.petlyLightGreen.opacity(0.1)]),
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                )
+            )
+            .cornerRadius(16)
+            .overlay(
+                RoundedRectangle(cornerRadius: 16)
+                    .stroke(Color.petlyDarkGreen.opacity(0.2), lineWidth: 1)
+            )
+        }
+        .buttonStyle(PlainButtonStyle())
+    }
+}
+
+struct CarePlansCard: View {
+    var onViewPlans: () -> Void
+    
+    var body: some View {
+        Button(action: onViewPlans) {
+            VStack(alignment: .leading, spacing: 8) {
+                HStack {
+                    Image(systemName: "list.clipboard")
+                        .font(.title2)
+                        .foregroundColor(.petlyDarkGreen)
+                    Spacer()
+                    Image(systemName: "chevron.right")
+                        .font(.caption)
+                        .foregroundColor(.gray)
+                }
+                
+                Text("Care Plans")
+                    .font(.headline)
+                    .foregroundColor(.primary)
+                
+                Text("AI-powered goals")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            }
+            .padding()
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(
+                LinearGradient(
+                    gradient: Gradient(colors: [Color.blue.opacity(0.15), Color.blue.opacity(0.05)]),
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                )
+            )
+            .cornerRadius(16)
+            .overlay(
+                RoundedRectangle(cornerRadius: 16)
+                    .stroke(Color.blue.opacity(0.2), lineWidth: 1)
+            )
+        }
+        .buttonStyle(PlainButtonStyle())
     }
 }
 
