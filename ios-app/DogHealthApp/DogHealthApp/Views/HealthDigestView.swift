@@ -297,6 +297,23 @@ struct HealthDigestView: View {
                     .padding()
                     .background(Color.petlyLightGreen.opacity(0.5))
                     .cornerRadius(12)
+                
+                VStack(spacing: 6) {
+                    HStack(spacing: 4) {
+                        Image(systemName: "info.circle.fill")
+                            .font(.system(size: 10))
+                            .foregroundColor(.petlyFormIcon)
+                        Text("Disclaimer")
+                            .font(.petlyBody(10))
+                            .foregroundColor(.petlyFormIcon)
+                    }
+                    
+                    Text("AI insights are for informational purposes only and do not constitute veterinary advice. Consult your vet for health concerns.")
+                        .font(.petlyBody(10))
+                        .foregroundColor(.petlyFormIcon)
+                        .multilineTextAlignment(.center)
+                }
+                .padding(.horizontal)
             } else if let error = errorMessage {
                 Text(error)
                     .font(.petlyBody(14))

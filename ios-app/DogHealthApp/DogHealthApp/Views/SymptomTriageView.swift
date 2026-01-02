@@ -416,20 +416,37 @@ struct SymptomTriageView: View {
                 .background(Color.white)
                 .cornerRadius(16)
                 
-                if result.urgency == .emergency || result.urgency == .urgent {
-                    Button(action: {}) {
-                        HStack {
-                            Image(systemName: "phone.fill")
-                            Text("Find Emergency Vet")
-                        }
-                        .font(.petlyBodyMedium(16))
-                        .foregroundColor(.white)
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(Color.red)
-                        .cornerRadius(12)
+                Button(action: openVetSearch) {
+                    HStack {
+                        Image(systemName: "phone.fill")
+                        Text(result.urgency == .emergency || result.urgency == .urgent ? "Find Emergency Vet Now" : "Contact Your Vet")
                     }
+                    .font(.petlyBodyMedium(16))
+                    .foregroundColor(.white)
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .background(result.urgency == .emergency || result.urgency == .urgent ? Color.red : Color.petlyDarkGreen)
+                    .cornerRadius(12)
                 }
+                
+                VStack(spacing: 8) {
+                    HStack(spacing: 6) {
+                        Image(systemName: "exclamationmark.triangle.fill")
+                            .font(.system(size: 12))
+                            .foregroundColor(.orange)
+                        Text("Important Disclaimer")
+                            .font(.petlyBodyMedium(12))
+                            .foregroundColor(.petlyDarkGreen)
+                    }
+                    
+                    Text("This assessment is for informational purposes only and is not a substitute for professional veterinary advice, diagnosis, or treatment. Always consult a qualified veterinarian for any health concerns about your pet.")
+                        .font(.petlyBody(11))
+                        .foregroundColor(.petlyFormIcon)
+                        .multilineTextAlignment(.center)
+                }
+                .padding()
+                .background(Color.orange.opacity(0.1))
+                .cornerRadius(12)
                 
                 HStack(spacing: 12) {
                     Button(action: saveAndDismiss) {
@@ -683,6 +700,12 @@ struct SymptomTriageView: View {
         }
         
         return TriageResult(urgency: urgency, assessment: assessment, recommendations: recommendations)
+    }
+    
+    private func openVetSearch() {
+        if let url = URL(string: "https://www.google.com/maps/search/emergency+veterinarian+near+me") {
+            UIApplication.shared.open(url)
+        }
     }
     
     private func saveAndDismiss() {

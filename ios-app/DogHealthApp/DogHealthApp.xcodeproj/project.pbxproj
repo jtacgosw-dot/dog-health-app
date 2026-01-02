@@ -10,10 +10,6 @@
 		C986E7777905418090EC1B8A /* SignUpView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83D1D15E596243A187B3D12E /* SignUpView.swift */; };
 		5F17587F06D24AB9AE7AE78D /* NewPetProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 25603DBD67304B5DBC50CDB7 /* NewPetProfileView.swift */; };
 		210226CBED1D4D819D693D46 /* NewPetAccountView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA96F9FDAE4244DB93CD29C6 /* NewPetAccountView.swift */; };
-		B51D2AE5EB48440CB2CF6B79 /* NewPaywallView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5CF08C1294A64E9E8BFAB6B9 /* NewPaywallView.swift */; };
-		8934856F7603453EAA304EB1 /* NewOnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5BF8E53A25440CD853EC25D /* NewOnboardingView.swift */; };
-		B00C686DB8E14827ADB78F3F /* NewMainTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3B9BB6CDD8E400F94D253E4 /* NewMainTabView.swift */; };
-		0437D52CB6B545449A102486 /* NewChatView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15AAB71C3ADA405BB6E9D340 /* NewChatView.swift */; };
 		BA245AD6B5B94807B145A150 /* DailyLogEntryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E6C5F0CB2D444B658A525515 /* DailyLogEntryView.swift */; };
 		LOGDETAIL0001000000000001 /* LogDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = LOGDETAIL0002000000000001 /* LogDetailView.swift */; };
 		NOTIFMGR0001000000000001 /* NotificationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = NOTIFMGR0002000000000001 /* NotificationManager.swift */; };
@@ -49,10 +45,7 @@
 		625AA4EFFCD84AF08CBFA15E /* Poppins-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 7ADBB396E3104B03AE31F1E7 /* Poppins-Regular.ttf */; };
 		20F91AFFDE384C0C9AAADEC9 /* Poppins-Medium.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 7780EAE97E794411A98F2973 /* Poppins-Medium.ttf */; };
 		B91D276A3DB64339AECD783D /* Stylish-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 1E7E305694624563A1C34020 /* Stylish-Regular.ttf */; };
-		A1000007000000000000001 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000008000000000000001 /* OnboardingView.swift */; };
 		A1000009000000000000001 /* SignInView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000010000000000000001 /* SignInView.swift */; };
-		A1000011000000000000001 /* PaywallView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000012000000000000001 /* PaywallView.swift */; };
-		A1000013000000000000001 /* ChatView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000014000000000000001 /* ChatView.swift */; };
 		A1000015000000000000001 /* APIConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000016000000000000001 /* APIConfig.swift */; };
 
 		A0A1000034000000000000002 /* PetlyColors.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0A1000034000000000000001 /* PetlyColors.swift */; };
@@ -61,7 +54,6 @@
 		A0A1000034000000000000008 /* User.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0A1000034000000000000007 /* User.swift */; };
 		A0A100003400000000000000A /* APIService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0A1000034000000000000009 /* APIService.swift */; };
 
-		A0A1000060000000000000002 /* MainTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0A1000060000000000000001 /* MainTabView.swift */; };
 		A0A1000060000000000000004 /* PetProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0A1000060000000000000003 /* PetProfileView.swift */; };
 		A0A1000060000000000000006 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0A1000060000000000000005 /* SettingsView.swift */; };
 		E1638163DC7D4DABBF89F109 /* Poppins-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 7ADBB396E3104B03AE31F1E7 /* Poppins-Regular.ttf */; };
@@ -73,10 +65,6 @@
 		83D1D15E596243A187B3D12E /* SignUpView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignUpView.swift; sourceTree = "<group>"; };
 		25603DBD67304B5DBC50CDB7 /* NewPetProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewPetProfileView.swift; sourceTree = "<group>"; };
 		CA96F9FDAE4244DB93CD29C6 /* NewPetAccountView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewPetAccountView.swift; sourceTree = "<group>"; };
-		5CF08C1294A64E9E8BFAB6B9 /* NewPaywallView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewPaywallView.swift; sourceTree = "<group>"; };
-		C5BF8E53A25440CD853EC25D /* NewOnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewOnboardingView.swift; sourceTree = "<group>"; };
-		D3B9BB6CDD8E400F94D253E4 /* NewMainTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewMainTabView.swift; sourceTree = "<group>"; };
-		15AAB71C3ADA405BB6E9D340 /* NewChatView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewChatView.swift; sourceTree = "<group>"; };
 		E6C5F0CB2D444B658A525515 /* DailyLogEntryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DailyLogEntryView.swift; sourceTree = "<group>"; };
 		LOGDETAIL0002000000000001 /* LogDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogDetailView.swift; sourceTree = "<group>"; };
 		NOTIFMGR0002000000000001 /* NotificationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationManager.swift; sourceTree = "<group>"; };
@@ -108,10 +96,7 @@
 		A1000002000000000000001 /* DogHealthAppApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DogHealthAppApp.swift; sourceTree = "<group>"; };
 		A1000004000000000000001 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		A1000006000000000000001 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
-		A1000008000000000000001 /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
 		A1000010000000000000001 /* SignInView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignInView.swift; sourceTree = "<group>"; };
-		A1000012000000000000001 /* PaywallView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaywallView.swift; sourceTree = "<group>"; };
-		A1000014000000000000001 /* ChatView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatView.swift; sourceTree = "<group>"; };
 		A1000016000000000000001 /* APIConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIConfig.swift; sourceTree = "<group>"; };
 
 		A0A1000034000000000000001 /* PetlyColors.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PetlyColors.swift; sourceTree = "<group>"; };
@@ -120,7 +105,6 @@
 		A0A1000034000000000000007 /* User.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = User.swift; sourceTree = "<group>"; };
 		A0A1000034000000000000009 /* APIService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIService.swift; sourceTree = "<group>"; };
 
-		A0A1000060000000000000001 /* MainTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainTabView.swift; sourceTree = "<group>"; };
 		A0A1000060000000000000003 /* PetProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PetProfileView.swift; sourceTree = "<group>"; };
 		A0A1000060000000000000005 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		7ADBB396E3104B03AE31F1E7 /* Poppins-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = DogHealthApp/Fonts/Poppins-Regular.ttf; sourceTree = SOURCE_ROOT; };
@@ -177,12 +161,8 @@
 		A1000022000000000000001 /* Views */ = {
 			isa = PBXGroup;
 			children = (
-				A1000008000000000000001 /* OnboardingView.swift */,
 				A1000010000000000000001 /* SignInView.swift */,
-				A1000012000000000000001 /* PaywallView.swift */,
-				A1000014000000000000001 /* ChatView.swift */,
 			
-				A0A1000060000000000000001 /* MainTabView.swift */,
 				A0A1000060000000000000003 /* PetProfileView.swift */,
 				A0A1000060000000000000005 /* SettingsView.swift */,
 				0E846120EE184CE98CF7FC84 /* HomeDashboardView.swift */,
@@ -197,10 +177,6 @@
 				PETSWITCHERVIEW0000002 /* PetSwitcherView.swift */,
 				HEALTHINSIGHTS00000002 /* HealthInsightsDashboardView.swift */,
 				PHOTOATTACHMENT0000002 /* PhotoAttachmentView.swift */,
-				15AAB71C3ADA405BB6E9D340 /* NewChatView.swift */,
-				D3B9BB6CDD8E400F94D253E4 /* NewMainTabView.swift */,
-				C5BF8E53A25440CD853EC25D /* NewOnboardingView.swift */,
-				5CF08C1294A64E9E8BFAB6B9 /* NewPaywallView.swift */,
 				CA96F9FDAE4244DB93CD29C6 /* NewPetAccountView.swift */,
 				25603DBD67304B5DBC50CDB7 /* NewPetProfileView.swift */,
 				83D1D15E596243A187B3D12E /* SignUpView.swift */,
@@ -323,10 +299,6 @@
 				B91D276A3DB64339AECD783D /* Stylish-Regular.ttf in Resources */,
 							2789FA520A6842ECA2DA30AB /* HomeDashboardView.swift in Sources */,
 				BA245AD6B5B94807B145A150 /* DailyLogEntryView.swift in Sources */,
-				0437D52CB6B545449A102486 /* NewChatView.swift in Sources */,
-				B00C686DB8E14827ADB78F3F /* NewMainTabView.swift in Sources */,
-				8934856F7603453EAA304EB1 /* NewOnboardingView.swift in Sources */,
-				B51D2AE5EB48440CB2CF6B79 /* NewPaywallView.swift in Sources */,
 				210226CBED1D4D819D693D46 /* NewPetAccountView.swift in Sources */,
 				5F17587F06D24AB9AE7AE78D /* NewPetProfileView.swift in Sources */,
 				C986E7777905418090EC1B8A /* SignUpView.swift in Sources */,
@@ -345,10 +317,7 @@
 			files = (
 				A1000003000000000000001 /* ContentView.swift in Sources */,
 				A1000001000000000000001 /* DogHealthAppApp.swift in Sources */,
-				A1000007000000000000001 /* OnboardingView.swift in Sources */,
 				A1000009000000000000001 /* SignInView.swift in Sources */,
-				A1000011000000000000001 /* PaywallView.swift in Sources */,
-				A1000013000000000000001 /* ChatView.swift in Sources */,
 				A1000015000000000000001 /* APIConfig.swift in Sources */,
 			
 				A0A1000034000000000000002 /* PetlyColors.swift in Sources */,
@@ -357,13 +326,8 @@
 				A0A1000034000000000000008 /* User.swift in Sources */,
 				A0A100003400000000000000A /* APIService.swift in Sources */,
 
-				A0A1000060000000000000002 /* MainTabView.swift in Sources */,
 				A0A1000060000000000000004 /* PetProfileView.swift in Sources */,
 				A0A1000060000000000000006 /* SettingsView.swift in Sources */,
-				B00C686DB8E14827ADB78F3F /* NewMainTabView.swift in Sources */,
-				8934856F7603453EAA304EB1 /* NewOnboardingView.swift in Sources */,
-				B51D2AE5EB48440CB2CF6B79 /* NewPaywallView.swift in Sources */,
-				0437D52CB6B545449A102486 /* NewChatView.swift in Sources */,
 				BA245AD6B5B94807B145A150 /* DailyLogEntryView.swift in Sources */,
 				LOGDETAIL0001000000000001 /* LogDetailView.swift in Sources */,
 				NOTIFMGR0001000000000001 /* NotificationManager.swift in Sources */,
