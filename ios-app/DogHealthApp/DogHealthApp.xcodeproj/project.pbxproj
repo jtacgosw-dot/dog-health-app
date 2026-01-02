@@ -36,6 +36,7 @@
 		SYMPTOMTRIAGEVIEW00001 /* SymptomTriageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = SYMPTOMTRIAGEVIEW00002 /* SymptomTriageView.swift */; };
 		CAREPLANVIEW000000001 /* CarePlanView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAREPLANVIEW000000002 /* CarePlanView.swift */; };
 		CAREPLANMODEL00000001 /* CarePlan.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAREPLANMODEL00000002 /* CarePlan.swift */; };
+		VETVISITPACK000000001 /* VetVisitPackView.swift in Sources */ = {isa = PBXBuildFile; fileRef = VETVISITPACK000000002 /* VetVisitPackView.swift */; };
 		A1000001000000000000001 /* DogHealthAppApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000002000000000000001 /* DogHealthAppApp.swift */; };
 		A1000003000000000000001 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000004000000000000001 /* ContentView.swift */; };
 		A1000005000000000000001 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A1000006000000000000001 /* Assets.xcassets */; };
@@ -94,6 +95,7 @@
 		SYMPTOMTRIAGEVIEW00002 /* SymptomTriageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SymptomTriageView.swift; sourceTree = "<group>"; };
 		CAREPLANVIEW000000002 /* CarePlanView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CarePlanView.swift; sourceTree = "<group>"; };
 		CAREPLANMODEL00000002 /* CarePlan.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CarePlan.swift; sourceTree = "<group>"; };
+		VETVISITPACK000000002 /* VetVisitPackView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VetVisitPackView.swift; sourceTree = "<group>"; };
 		A1000017000000000000001 /* DogHealthApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DogHealthApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A1000002000000000000001 /* DogHealthAppApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DogHealthAppApp.swift; sourceTree = "<group>"; };
 		A1000004000000000000001 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -198,6 +200,7 @@
 				HEALTHDIGESTVIEW000002 /* HealthDigestView.swift */,
 				SYMPTOMTRIAGEVIEW00002 /* SymptomTriageView.swift */,
 				CAREPLANVIEW000000002 /* CarePlanView.swift */,
+				VETVISITPACK000000002 /* VetVisitPackView.swift */,
 );
 			path = Views;
 			sourceTree = "<group>";
@@ -374,6 +377,7 @@
 				SYMPTOMTRIAGEVIEW00001 /* SymptomTriageView.swift in Sources */,
 				CAREPLANVIEW000000001 /* CarePlanView.swift in Sources */,
 				CAREPLANMODEL00000001 /* CarePlan.swift in Sources */,
+				VETVISITPACK000000001 /* VetVisitPackView.swift in Sources */,
 );
 			runOnlyForDeploymentPostprocessing = 0;
 		};
