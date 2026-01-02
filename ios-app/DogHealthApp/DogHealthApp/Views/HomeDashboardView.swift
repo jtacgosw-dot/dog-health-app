@@ -597,6 +597,7 @@ struct TodaysOverviewCard: View {
         .padding()
         .background(Color.petlyLightGreen)
         .cornerRadius(16)
+        .shadow(color: .black.opacity(0.06), radius: 8, x: 0, y: 2)
     }
 }
 
@@ -660,6 +661,7 @@ struct DailyActivityRingCard: View {
         .frame(maxWidth: .infinity, minHeight: 320)
         .background(Color.petlyLightGreen)
         .cornerRadius(16)
+        .shadow(color: .black.opacity(0.06), radius: 8, x: 0, y: 2)
     }
 }
 
@@ -733,6 +735,7 @@ struct WellnessTrackerCard: View {
         .frame(maxWidth: .infinity, minHeight: 320)
         .background(Color.petlyLightGreen)
         .cornerRadius(16)
+        .shadow(color: .black.opacity(0.06), radius: 8, x: 0, y: 2)
     }
 }
 
@@ -807,6 +810,7 @@ struct UpcomingCareCard: View {
         .padding()
         .background(Color.petlyLightGreen)
         .cornerRadius(16)
+        .shadow(color: .black.opacity(0.06), radius: 8, x: 0, y: 2)
     }
 }
 
@@ -870,6 +874,7 @@ struct MealsAndTreatsCard: View {
         .padding()
         .background(Color.petlyLightGreen)
         .cornerRadius(16)
+        .shadow(color: .black.opacity(0.06), radius: 8, x: 0, y: 2)
     }
 }
 
@@ -972,6 +977,7 @@ struct HealthTimelineCard: View {
             )
         )
         .cornerRadius(16)
+        .shadow(color: .black.opacity(0.06), radius: 8, x: 0, y: 2)
     }
 }
 
@@ -1003,12 +1009,13 @@ struct HealthDigestCard: View {
             .frame(maxWidth: .infinity, minHeight: 120, alignment: .leading)
             .background(
                 LinearGradient(
-                    gradient: Gradient(colors: [Color.petlyLightGreen.opacity(0.3), Color.petlyLightGreen.opacity(0.1)]),
+                    gradient: Gradient(colors: [Color.petlyLightGreen.opacity(0.5), Color.petlyLightGreen.opacity(0.3)]),
                     startPoint: .topLeading,
                     endPoint: .bottomTrailing
                 )
             )
             .cornerRadius(16)
+            .shadow(color: .black.opacity(0.06), radius: 8, x: 0, y: 2)
         }
         .buttonStyle(PlainButtonStyle())
     }
@@ -1042,12 +1049,13 @@ struct CarePlansCard: View {
             .frame(maxWidth: .infinity, minHeight: 120, alignment: .leading)
             .background(
                 LinearGradient(
-                    gradient: Gradient(colors: [Color.blue.opacity(0.15), Color.blue.opacity(0.05)]),
+                    gradient: Gradient(colors: [Color.blue.opacity(0.25), Color.blue.opacity(0.15)]),
                     startPoint: .topLeading,
                     endPoint: .bottomTrailing
                 )
             )
             .cornerRadius(16)
+            .shadow(color: .black.opacity(0.06), radius: 8, x: 0, y: 2)
         }
         .buttonStyle(PlainButtonStyle())
     }
@@ -1098,6 +1106,7 @@ struct VetVisitPackCard: View {
                 RoundedRectangle(cornerRadius: 16)
                     .stroke(Color.red.opacity(0.2), lineWidth: 1)
             )
+            .shadow(color: .black.opacity(0.06), radius: 8, x: 0, y: 2)
         }
         .buttonStyle(PlainButtonStyle())
     }
