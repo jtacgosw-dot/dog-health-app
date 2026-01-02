@@ -822,7 +822,7 @@ struct EmergencyCardView: View {
                     Divider()
                     
                     VStack(alignment: .leading, spacing: 8) {
-                        InfoRow(icon: "person.fill", label: "Owner", value: appState.currentUser?.name ?? "Not set")
+                        InfoRow(icon: "person.fill", label: "Owner", value: appState.currentUser?.fullName ?? "Not set")
                         InfoRow(icon: "phone.fill", label: "Phone", value: "Contact via Petly app")
                         InfoRow(icon: "cross.case.fill", label: "Vet", value: "See Petly app for details")
                     }
