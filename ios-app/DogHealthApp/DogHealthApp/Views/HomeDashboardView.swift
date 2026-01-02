@@ -231,7 +231,6 @@ struct HomeDashboardView: View {
                         .appearAnimation(delay: 0.35)
                     }
                 }
-            }
             .sheet(isPresented: $showDailyLog) {
                 DailyLogEntryView()
                     .presentationDetents([.medium, .large])
