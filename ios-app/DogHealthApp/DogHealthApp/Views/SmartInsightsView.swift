@@ -9,11 +9,11 @@ struct SmartInsightsView: View {
     @Query private var checkIns: [DailyCheckIn]
     
     private var dogId: String {
-        appState.selectedDog?.id ?? ""
+        appState.currentDog?.id ?? ""
     }
     
     private var dogName: String {
-        appState.selectedDog?.name ?? "your pet"
+        appState.currentDog?.name ?? "your pet"
     }
     
     private var dogLogs: [HealthLogEntry] {
@@ -112,7 +112,7 @@ struct SmartInsightsView: View {
                 .font(.headline)
             
             ForEach(insights) { insight in
-                InsightCard(insight: insight)
+                HealthInsightCard(insight: insight)
             }
         }
     }
@@ -331,7 +331,7 @@ struct DataStats {
     let symptomsLogged: Int
 }
 
-struct InsightCard: View {
+struct HealthInsightCard: View {
     let insight: HealthInsight
     
     var body: some View {
@@ -419,7 +419,7 @@ struct SmartInsightsCard: View {
     var onViewInsights: () -> Void
     
     private var dogId: String {
-        appState.selectedDog?.id ?? ""
+        appState.currentDog?.id ?? ""
     }
     
     private var dogLogs: [HealthLogEntry] {

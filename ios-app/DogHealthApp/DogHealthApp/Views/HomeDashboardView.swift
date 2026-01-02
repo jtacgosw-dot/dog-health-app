@@ -1145,7 +1145,7 @@ struct DailyHealthReviewCard: View {
     var onStartReview: () -> Void
     
     private var dogId: String {
-        appState.selectedDog?.id ?? ""
+        appState.currentDog?.id ?? ""
     }
     
     private var hasCompletedToday: Bool {
@@ -1228,7 +1228,7 @@ struct PreventativeCareCard: View {
     var onViewCare: () -> Void
     
     private var dogId: String {
-        appState.selectedDog?.id ?? ""
+        appState.currentDog?.id ?? ""
     }
     
     private var dueCount: Int {
