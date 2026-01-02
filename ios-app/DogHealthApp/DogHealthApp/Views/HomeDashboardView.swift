@@ -17,6 +17,7 @@ struct HomeDashboardView: View {
     @State private var showHealthDigest = false
     @State private var showSymptomTriage = false
     @State private var showCarePlans = false
+    @State private var showVetVisitPack = false
     
     private let activityGoal = 60
     private let mealsTotal = 3
@@ -200,6 +201,10 @@ struct HomeDashboardView: View {
                         .padding(.horizontal)
                         .appearAnimation(delay: 0.3)
                         
+                        VetVisitPackCard(onViewPack: { showVetVisitPack = true })
+                        .padding(.horizontal)
+                        .appearAnimation(delay: 0.32)
+                        
                         MealsAndTreatsCard(
                             meals: todayMeals,
                             onLogDinner: {
@@ -259,6 +264,10 @@ struct HomeDashboardView: View {
             }
             .fullScreenCover(isPresented: $showCarePlans) {
                 CarePlanView()
+                    .environmentObject(appState)
+            }
+            .fullScreenCover(isPresented: $showVetVisitPack) {
+                VetVisitPackView()
                     .environmentObject(appState)
             }
         }
@@ -1050,6 +1059,56 @@ struct CarePlansCard: View {
             .overlay(
                 RoundedRectangle(cornerRadius: 16)
                     .stroke(Color.blue.opacity(0.2), lineWidth: 1)
+            )
+        }
+        .buttonStyle(PlainButtonStyle())
+    }
+}
+
+struct VetVisitPackCard: View {
+    var onViewPack: () -> Void
+    
+    var body: some View {
+        Button(action: onViewPack) {
+            HStack(spacing: 16) {
+                ZStack {
+                    Circle()
+                        .fill(Color.red.opacity(0.15))
+                        .frame(width: 50, height: 50)
+                    
+                    Image(systemName: "suitcase.fill")
+                        .font(.system(size: 22))
+                        .foregroundColor(.red)
+                }
+                
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Vet Visit Pack")
+                        .font(.petlyBodyMedium(16))
+                        .foregroundColor(.primary)
+                    
+                    Text("Share health records with your vet")
+                        .font(.petlyBody(12))
+                        .foregroundColor(.secondary)
+                }
+                
+                Spacer()
+                
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundColor(.gray)
+            }
+            .padding()
+            .background(
+                LinearGradient(
+                    gradient: Gradient(colors: [Color.red.opacity(0.08), Color.orange.opacity(0.05)]),
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                )
+            )
+            .cornerRadius(16)
+            .overlay(
+                RoundedRectangle(cornerRadius: 16)
+                    .stroke(Color.red.opacity(0.2), lineWidth: 1)
             )
         }
         .buttonStyle(PlainButtonStyle())
