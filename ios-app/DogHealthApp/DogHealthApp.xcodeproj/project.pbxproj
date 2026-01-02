@@ -10,6 +10,10 @@
 		C986E7777905418090EC1B8A /* SignUpView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83D1D15E596243A187B3D12E /* SignUpView.swift */; };
 		5F17587F06D24AB9AE7AE78D /* NewPetProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 25603DBD67304B5DBC50CDB7 /* NewPetProfileView.swift */; };
 		210226CBED1D4D819D693D46 /* NewPetAccountView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA96F9FDAE4244DB93CD29C6 /* NewPetAccountView.swift */; };
+		B51D2AE5EB48440CB2CF6B79 /* NewPaywallView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5CF08C1294A64E9E8BFAB6B9 /* NewPaywallView.swift */; };
+		8934856F7603453EAA304EB1 /* NewOnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5BF8E53A25440CD853EC25D /* NewOnboardingView.swift */; };
+		B00C686DB8E14827ADB78F3F /* NewMainTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3B9BB6CDD8E400F94D253E4 /* NewMainTabView.swift */; };
+		0437D52CB6B545449A102486 /* NewChatView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15AAB71C3ADA405BB6E9D340 /* NewChatView.swift */; };
 		BA245AD6B5B94807B145A150 /* DailyLogEntryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E6C5F0CB2D444B658A525515 /* DailyLogEntryView.swift */; };
 		LOGDETAIL0001000000000001 /* LogDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = LOGDETAIL0002000000000001 /* LogDetailView.swift */; };
 		NOTIFMGR0001000000000001 /* NotificationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = NOTIFMGR0002000000000001 /* NotificationManager.swift */; };
@@ -65,6 +69,10 @@
 		83D1D15E596243A187B3D12E /* SignUpView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignUpView.swift; sourceTree = "<group>"; };
 		25603DBD67304B5DBC50CDB7 /* NewPetProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewPetProfileView.swift; sourceTree = "<group>"; };
 		CA96F9FDAE4244DB93CD29C6 /* NewPetAccountView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewPetAccountView.swift; sourceTree = "<group>"; };
+		5CF08C1294A64E9E8BFAB6B9 /* NewPaywallView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewPaywallView.swift; sourceTree = "<group>"; };
+		C5BF8E53A25440CD853EC25D /* NewOnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewOnboardingView.swift; sourceTree = "<group>"; };
+		D3B9BB6CDD8E400F94D253E4 /* NewMainTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewMainTabView.swift; sourceTree = "<group>"; };
+		15AAB71C3ADA405BB6E9D340 /* NewChatView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewChatView.swift; sourceTree = "<group>"; };
 		E6C5F0CB2D444B658A525515 /* DailyLogEntryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DailyLogEntryView.swift; sourceTree = "<group>"; };
 		LOGDETAIL0002000000000001 /* LogDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogDetailView.swift; sourceTree = "<group>"; };
 		NOTIFMGR0002000000000001 /* NotificationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationManager.swift; sourceTree = "<group>"; };
@@ -179,6 +187,10 @@
 				PHOTOATTACHMENT0000002 /* PhotoAttachmentView.swift */,
 				CA96F9FDAE4244DB93CD29C6 /* NewPetAccountView.swift */,
 				25603DBD67304B5DBC50CDB7 /* NewPetProfileView.swift */,
+				5CF08C1294A64E9E8BFAB6B9 /* NewPaywallView.swift */,
+				C5BF8E53A25440CD853EC25D /* NewOnboardingView.swift */,
+				D3B9BB6CDD8E400F94D253E4 /* NewMainTabView.swift */,
+				15AAB71C3ADA405BB6E9D340 /* NewChatView.swift */,
 				83D1D15E596243A187B3D12E /* SignUpView.swift */,
 				ANIMATIONSPOLISH000002 /* AnimationsAndPolish.swift */,
 				DAILYHEALTHREVIEW0002 /* DailyHealthReviewView.swift */,
@@ -348,6 +360,10 @@
 				PHOTOATTACHMENT0000001 /* PhotoAttachmentView.swift in Sources */,
 				5F17587F06D24AB9AE7AE78D /* NewPetProfileView.swift in Sources */,
 				210226CBED1D4D819D693D46 /* NewPetAccountView.swift in Sources */,
+				B51D2AE5EB48440CB2CF6B79 /* NewPaywallView.swift in Sources */,
+				8934856F7603453EAA304EB1 /* NewOnboardingView.swift in Sources */,
+				B00C686DB8E14827ADB78F3F /* NewMainTabView.swift in Sources */,
+				0437D52CB6B545449A102486 /* NewChatView.swift in Sources */,
 				C986E7777905418090EC1B8A /* SignUpView.swift in Sources */,
 				HEALTHDIGESTVIEW000001 /* HealthDigestView.swift in Sources */,
 				SYMPTOMTRIAGEVIEW00001 /* SymptomTriageView.swift in Sources */,
