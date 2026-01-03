@@ -1032,7 +1032,7 @@ struct HealthDigestCard: View {
             .frame(maxWidth: .infinity, minHeight: 120, alignment: .leading)
             .background(
                 LinearGradient(
-                    gradient: Gradient(colors: [Color.petlyLightGreen.opacity(0.5), Color.petlyLightGreen.opacity(0.3)]),
+                    gradient: Gradient(colors: [Color.petlyLightGreen.opacity(0.8), Color.petlyLightGreen.opacity(0.4)]),
                     startPoint: .topLeading,
                     endPoint: .bottomTrailing
                 )
@@ -1044,7 +1044,7 @@ struct HealthDigestCard: View {
     }
 }
 
-struct CarePlansCard: View {
+struct CarePlansCard:View {
     var onViewPlans: () -> Void
     
     var body: some View {
@@ -1206,7 +1206,13 @@ struct DailyHealthReviewCard:View {
                 }
             }
             .padding()
-            .background(Color(.systemBackground))
+            .background(
+                LinearGradient(
+                    gradient: Gradient(colors: [Color.petlyLightGreen.opacity(0.8), Color.petlyLightGreen.opacity(0.4)]),
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                )
+            )
             .cornerRadius(16)
             .shadow(color: .black.opacity(0.06), radius: 8, x: 0, y: 2)
         }
@@ -1214,7 +1220,7 @@ struct DailyHealthReviewCard:View {
     }
 }
 
-struct PreventativeCareCard: View {
+struct PreventativeCareCard:View {
     @EnvironmentObject var appState: AppState
     @Query(sort: \PetReminder.nextDueDate) private var reminders: [PetReminder]
     

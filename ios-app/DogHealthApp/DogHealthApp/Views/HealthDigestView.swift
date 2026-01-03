@@ -243,11 +243,18 @@ struct HealthDigestView: View {
             }
         }
         .padding()
-        .background(Color.white)
+        .background(
+            LinearGradient(
+                gradient: Gradient(colors: [Color.petlyLightGreen.opacity(0.8), Color.petlyLightGreen.opacity(0.4)]),
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+        )
         .cornerRadius(16)
+        .shadow(color: .black.opacity(0.06), radius: 8, x: 0, y: 2)
     }
     
-    private var patternsSection: some View {
+    private var patternsSection:some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Patterns & Trends")
                 .font(.petlyBodyMedium(16))
@@ -258,11 +265,18 @@ struct HealthDigestView: View {
             }
         }
         .padding()
-        .background(Color.white)
+        .background(
+            LinearGradient(
+                gradient: Gradient(colors: [Color.petlyLightGreen.opacity(0.8), Color.petlyLightGreen.opacity(0.4)]),
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+        )
         .cornerRadius(16)
+        .shadow(color: .black.opacity(0.06), radius: 8, x: 0, y: 2)
     }
     
-    private var aiInsightsSection: some View {
+    private var aiInsightsSection:some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
                 Image(systemName: "sparkles")
@@ -327,11 +341,18 @@ struct HealthDigestView: View {
             }
         }
         .padding()
-        .background(Color.white)
+        .background(
+            LinearGradient(
+                gradient: Gradient(colors: [Color.petlyLightGreen.opacity(0.8), Color.petlyLightGreen.opacity(0.4)]),
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+        )
         .cornerRadius(16)
+        .shadow(color: .black.opacity(0.06), radius: 8, x: 0, y: 2)
     }
     
-    private func generateAIDigest() {
+    private func generateAIDigest(){
         guard !weeklyLogs.isEmpty else { return }
         
         isGeneratingDigest = true
@@ -479,12 +500,12 @@ struct StatBox: View {
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, 12)
-        .background(Color.petlyLightGreen.opacity(0.3))
+        .background(Color.petlyLightGreen.opacity(0.6))
         .cornerRadius(12)
     }
 }
 
-struct PatternCard: View {
+struct PatternCard:View {
     let pattern: DigestPattern
     
     var body: some View {
