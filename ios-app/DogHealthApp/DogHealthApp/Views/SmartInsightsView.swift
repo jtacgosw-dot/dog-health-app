@@ -85,12 +85,18 @@ struct SmartInsightsView: View {
             }
         }
         .padding()
-        .background(Color.white)
+        .background(
+            LinearGradient(
+                gradient: Gradient(colors: [Color.petlyLightGreen.opacity(0.8), Color.petlyLightGreen.opacity(0.4)]),
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+        )
         .cornerRadius(16)
         .shadow(color: .black.opacity(0.06), radius: 8, x: 0, y: 2)
     }
     
-    private var emptyStateSection: some View {
+    private var emptyStateSection:some View {
         VStack(spacing: 16) {
             Image(systemName: "chart.line.uptrend.xyaxis")
                 .font(.system(size: 50))
@@ -166,8 +172,15 @@ struct SmartInsightsView: View {
                 )
             }
             .padding()
-            .background(Color.white)
+            .background(
+                LinearGradient(
+                    gradient: Gradient(colors: [Color.petlyLightGreen.opacity(0.8), Color.petlyLightGreen.opacity(0.4)]),
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                )
+            )
             .cornerRadius(12)
+            .shadow(color: .black.opacity(0.06), radius: 8, x: 0, y: 2)
         }
     }
     
@@ -383,13 +396,19 @@ struct HealthInsightCard: View {
             Spacer()
         }
         .padding()
-        .background(Color.white)
+        .background(
+            LinearGradient(
+                gradient: Gradient(colors: [Color.petlyLightGreen.opacity(0.8), Color.petlyLightGreen.opacity(0.4)]),
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+        )
         .cornerRadius(12)
         .shadow(color: .black.opacity(0.06), radius: 8, x: 0, y: 2)
     }
 }
 
-struct DataStatRow: View {
+struct DataStatRow:View {
     let icon: String
     let title: String
     let value: String
