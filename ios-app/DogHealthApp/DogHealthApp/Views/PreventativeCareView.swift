@@ -119,7 +119,13 @@ struct PreventativeCareView: View {
             }
         }
         .padding()
-        .background(Color.white)
+        .background(
+            LinearGradient(
+                gradient: Gradient(colors: [Color.petlyLightGreen.opacity(0.8), Color.petlyLightGreen.opacity(0.4)]),
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+        )
         .cornerRadius(16)
         .shadow(color: .black.opacity(0.06), radius: 8, x: 0, y: 2)
     }
