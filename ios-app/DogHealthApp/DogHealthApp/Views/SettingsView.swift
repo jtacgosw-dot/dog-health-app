@@ -31,7 +31,7 @@ struct SettingsView: View {
                     VStack(spacing: 25) {
                         VStack(spacing: 20) {
                             SettingsSection(title: "Account") {
-                                SettingsRow(icon: "person.fill", title: "Profile", subtitle: appState.user?.fullName ?? "Manage your account")
+                                SettingsRow(icon: "person.fill", title: "Profile", subtitle: appState.currentUser?.fullName ?? "Manage your account")
                                 Button(action: { showNotificationSettings = true }) {
                                     SettingsRow(icon: "bell.fill", title: "Notifications", subtitle: "Manage reminders", showChevron: true)
                                 }
