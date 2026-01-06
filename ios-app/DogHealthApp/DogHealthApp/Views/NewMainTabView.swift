@@ -78,6 +78,7 @@ struct CustomTabBar: View {
                         }
                         .offset(y: -20)
                     }
+                    .buttonStyle(.plain)
                     .scaleEffect(centerButtonPressed ? 0.9 : 1.0)
                     .frame(maxWidth: .infinity)
                 } else {
@@ -135,6 +136,7 @@ struct TabBarButton: View {
             }
             .frame(maxWidth: .infinity)
         }
+        .buttonStyle(.plain)
         .scaleEffect(isPressed ? 0.9 : 1.0)
         .onChange(of: isSelected) { _, newValue in
             if newValue {
@@ -257,7 +259,7 @@ struct ExploreView: View {
                         .foregroundColor(.petlyFormIcon)
                         .padding(.horizontal)
                 }
-                .padding(.bottom, 100)
+                .padding(.bottom, 20)
             }
             .background(Color.petlyBackground)
         }
@@ -297,6 +299,7 @@ struct QuickActionChip: View {
             .background(Color.petlyLightGreen)
             .cornerRadius(20)
         }
+        .buttonStyle(.plain)
         .scaleEffect(isPressed ? 0.95 : 1.0)
     }
 }
@@ -335,6 +338,7 @@ struct ArticleCard: View {
                     .lineLimit(2)
             }
         }
+        .buttonStyle(.plain)
         .scaleEffect(isPressed ? 0.98 : 1.0)
     }
 }
@@ -379,6 +383,7 @@ struct InsightCard: View {
             .background(Color.petlyLightGreen)
             .cornerRadius(12)
         }
+        .buttonStyle(.plain)
         .scaleEffect(isPressed ? 0.98 : 1.0)
     }
 }
