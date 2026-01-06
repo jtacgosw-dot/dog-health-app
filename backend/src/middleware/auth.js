@@ -26,6 +26,7 @@ const authenticateToken = async (req, res, next) => {
     }
 
     req.user = user;
+    req.auth = decoded; // Preserve JWT claims (includes isGuest flag)
     next();
   } catch (error) {
     if (error.name === 'JsonWebTokenError') {
@@ -65,7 +66,42 @@ const requireSubscription = async (req, res, next) => {
   }
 };
 
+/**
+ * Middleware to allow guest users OR users with active subscription
+ * Guest users (identified by isGuest claim in JWT) can access features for testing
+ */
+const requireSubscriptionOrGuest = async (req, res, next) => {
+  try {
+    // Allow guest users to bypass subscription check (for testing)
+    if (req.auth && req.auth.isGuest === true) {
+      return next();
+    }
+
+    // For non-guest users, check subscription
+    const user = req.user;
+
+    if (user.subscription_status === 'free') {
+      return res.status(403).json({ 
+        error: 'Subscription required',
+        message: 'This feature requires an active subscription'
+      });
+    }
+
+    if (user.subscription_expires_at && new Date(user.subscription_expires_at) < new Date()) {
+      return res.status(403).json({ 
+        error: 'Subscription expired',
+        message: 'Your subscription has expired. Please renew to continue.'
+      });
+    }
+
+    next();
+  } catch (error) {
+    return res.status(500).json({ error: 'Subscription check failed' });
+  }
+};
+
 module.exports = {
   authenticateToken,
-  requireSubscription
+  requireSubscription,
+  requireSubscriptionOrGuest
 };
