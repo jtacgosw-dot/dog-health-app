@@ -99,11 +99,13 @@ struct SignInView: View {
                 APIService.shared.setAuthToken(response.token)
                 
                 await MainActor.run {
+                    let statusString = response.user.subscriptionStatus ?? "free"
+                    let status = SubscriptionStatus(rawValue: statusString) ?? .free
                     appState.currentUser = User(
                         id: response.user.id,
                         email: response.user.email,
                         fullName: response.user.fullName ?? "Guest User",
-                        subscriptionStatus: response.user.subscriptionStatus ?? "free"
+                        subscriptionStatus: status
                     )
                     appState.isSignedIn = true
                     isLoading = false
