@@ -359,6 +359,8 @@ struct DataStats {
 
 struct HealthInsightCard: View {
     let insight: HealthInsight
+    @State private var showDailyReview = false
+    @State private var showTimeline = false
     
     var body: some View {
         HStack(alignment: .top, spacing: 12) {
@@ -384,6 +386,7 @@ struct HealthInsightCard: View {
                 
                 if let actionText = insight.actionText {
                     Button {
+                        handleAction(actionText)
                     } label: {
                         Text(actionText)
                             .font(.caption)
@@ -406,6 +409,25 @@ struct HealthInsightCard: View {
         )
         .cornerRadius(12)
         .shadow(color: .black.opacity(0.06), radius: 8, x: 0, y: 2)
+        .sheet(isPresented: $showDailyReview) {
+            DailyHealthReviewView()
+        }
+        .sheet(isPresented: $showTimeline) {
+            HealthTimelineView()
+        }
+    }
+    
+    private func handleAction(_ action: String) {
+        switch action {
+        case "Daily Review":
+            showDailyReview = true
+        case "View Timeline":
+            showTimeline = true
+        case "Log Activity", "Log Symptoms":
+            showDailyReview = true
+        default:
+            break
+        }
     }
 }
 
