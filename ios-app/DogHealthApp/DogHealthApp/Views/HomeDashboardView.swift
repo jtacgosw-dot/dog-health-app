@@ -1022,11 +1022,11 @@ struct HealthDigestCard: View {
                 
                 Text("Health Digest")
                     .font(.headline)
-                    .foregroundColor(.primary)
+                    .foregroundColor(.petlyDarkGreen)
                 
                 Text("Weekly AI summary")
                     .font(.caption)
-                    .foregroundColor(.secondary)
+                    .foregroundColor(.petlyFormIcon)
             }
             .padding()
             .frame(maxWidth: .infinity, minHeight: 120, alignment: .leading)
@@ -1062,11 +1062,11 @@ struct CarePlansCard:View {
                 
                 Text("Care Plans")
                     .font(.headline)
-                    .foregroundColor(.primary)
+                    .foregroundColor(.petlyDarkGreen)
                 
                 Text("AI-powered goals")
                     .font(.caption)
-                    .foregroundColor(.secondary)
+                    .foregroundColor(.petlyFormIcon)
             }
             .padding()
             .frame(maxWidth: .infinity, minHeight: 120, alignment: .leading)
@@ -1103,11 +1103,11 @@ struct VetVisitPackCard:View {
                 VStack(alignment: .leading, spacing: 4) {
                     Text("Vet Visit Pack")
                         .font(.petlyBodyMedium(16))
-                        .foregroundColor(.primary)
+                        .foregroundColor(.petlyDarkGreen)
                     
                     Text("Share health records with your vet")
                         .font(.petlyBody(12))
-                        .foregroundColor(.secondary)
+                        .foregroundColor(.petlyFormIcon)
                 }
                 
                 Spacer()
@@ -1176,7 +1176,7 @@ struct DailyHealthReviewCard:View {
                 VStack(alignment: .leading, spacing: 4) {
                     Text("Daily Health Review")
                         .font(.petlyBodyMedium(16))
-                        .foregroundColor(.primary)
+                        .foregroundColor(.petlyDarkGreen)
                     
                     if hasCompletedToday {
                         Text("Completed today")
@@ -1185,7 +1185,7 @@ struct DailyHealthReviewCard:View {
                     } else {
                         Text("\(checkInsThisWeek) of 7 days this week")
                             .font(.petlyBody(12))
-                            .foregroundColor(.secondary)
+                            .foregroundColor(.petlyFormIcon)
                     }
                 }
                 
@@ -1264,17 +1264,17 @@ struct PreventativeCareCard:View {
                 
                 Text("Preventative Care")
                     .font(.headline)
-                    .foregroundColor(.primary)
+                    .foregroundColor(.petlyDarkGreen)
                 
                 if let next = nextReminder {
                     Text("Next: \(next.title)")
                         .font(.caption)
-                        .foregroundColor(.secondary)
+                        .foregroundColor(.petlyFormIcon)
                         .lineLimit(1)
                 } else {
                     Text("Set up care schedule")
                         .font(.caption)
-                        .foregroundColor(.secondary)
+                        .foregroundColor(.petlyFormIcon)
                 }
             }
             .padding()

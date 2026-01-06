@@ -118,7 +118,7 @@ struct NewChatView: View {
                 }
                 .padding()
                 .background(Color.petlyBackground)
-                .padding(.bottom, 20)
+                .padding(.bottom, 80)
             }
         }
         .onChange(of: initialPrompt) { newValue in
