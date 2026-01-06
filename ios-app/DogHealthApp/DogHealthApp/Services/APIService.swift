@@ -195,11 +195,38 @@ class APIService {
     }
 }
 
-enum APIError: Error {
+enum APIError: LocalizedError {
     case invalidURL
     case invalidResponse
     case httpError(statusCode: Int)
     case decodingError
+    case networkError(underlying: Error)
+    
+    var errorDescription: String? {
+        switch self {
+        case .invalidURL:
+            return "Invalid URL. Please try again."
+        case .invalidResponse:
+            return "Invalid response from server. Please try again."
+        case .httpError(let statusCode):
+            switch statusCode {
+            case 401:
+                return "Authentication required. Please sign in again."
+            case 403:
+                return "Access denied. Please check your subscription."
+            case 404:
+                return "Service not found. Please try again later."
+            case 500...599:
+                return "Server error. Please try again later."
+            default:
+                return "Request failed (error \(statusCode)). Please try again."
+            }
+        case .decodingError:
+            return "Failed to process server response. Please try again."
+        case .networkError(let underlying):
+            return "Network error: \(underlying.localizedDescription)"
+        }
+    }
 }
 
 struct SignInRequest: Codable {

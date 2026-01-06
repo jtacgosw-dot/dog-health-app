@@ -32,6 +32,10 @@
 	</array>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Petly needs camera access to take photos of your pet's food, symptoms, or other health-related items for logging.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Petly needs photo library access to attach photos to your pet's health logs.</string>
 	<key>NSAppTransportSecurity</key>
 	<dict>
 		<key>NSExceptionDomains</key>
