@@ -120,12 +120,15 @@ struct HealthTimelineView: View {
             DailyLogEntryView()
                 .presentationDetents([.medium, .large])
                 .presentationDragIndicator(.visible)
+                .buttonStyle(.plain)
         }
         .sheet(item: $entryToEdit) { entry in
             EditLogEntryView(entry: entry)
                 .presentationDetents([.medium, .large])
                 .presentationDragIndicator(.visible)
+                .buttonStyle(.plain)
         }
+        .buttonStyle(.plain)
     }
     
     private var header: some View {

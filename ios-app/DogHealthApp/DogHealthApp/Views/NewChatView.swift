@@ -128,6 +128,7 @@ struct NewChatView: View {
                 sendMessage()
             }
         }
+        .buttonStyle(.plain)
     }
     
     private func handleQuickAction(_ action: String) {

@@ -147,29 +147,37 @@ struct NewPetAccountView: View {
             .sheet(isPresented: $showingNutrition) {
                 NutritionEditView()
                     .environmentObject(appState)
+                    .buttonStyle(.plain)
             }
             .sheet(isPresented: $showingPersonality) {
                 PersonalityEditView()
                     .environmentObject(appState)
+                    .buttonStyle(.plain)
             }
             .sheet(isPresented: $showingHealthConcerns) {
                 HealthConcernsEditView()
                     .environmentObject(appState)
+                    .buttonStyle(.plain)
             }
             .sheet(isPresented: $showingWeight) {
                 WeightTrackingView()
+                    .buttonStyle(.plain)
             }
             .sheet(isPresented: $showingGeneral) {
                 SettingsView()
+                    .buttonStyle(.plain)
             }
             .sheet(isPresented: $showingMembership) {
                 NewPaywallView()
+                    .buttonStyle(.plain)
             }
             .sheet(isPresented: $showingInviteFriends) {
                 InviteFriendsView()
+                    .buttonStyle(.plain)
             }
             .sheet(isPresented: $showingCustomerSupport) {
                 CustomerSupportView()
+                    .buttonStyle(.plain)
             }
             
             HStack {
@@ -213,6 +221,7 @@ struct NewPetAccountView: View {
             )
             .animation(.easeInOut(duration: 0.2), value: showMiniHeader)
         }
+        .buttonStyle(.plain)
     }
 }
 

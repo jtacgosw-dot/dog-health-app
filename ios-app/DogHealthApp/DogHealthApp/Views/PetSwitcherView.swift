@@ -46,8 +46,10 @@ struct PetSwitcherView: View {
             .sheet(isPresented: $showAddPet) {
                 AddPetView()
                     .environmentObject(appState)
+                    .buttonStyle(.plain)
             }
         }
+        .buttonStyle(.plain)
     }
     
     private var emptyState: some View {

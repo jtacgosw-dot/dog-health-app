@@ -100,6 +100,7 @@ struct DailyHealthReviewView: View {
                 }
             }
         }
+        .buttonStyle(.plain)
     }
     
     private var progressHeader: some View {

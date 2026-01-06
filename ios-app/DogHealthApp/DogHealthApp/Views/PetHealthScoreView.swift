@@ -114,6 +114,7 @@ struct PetHealthScoreView: View {
                 }
             }
         }
+        .buttonStyle(.plain)
         .onAppear {
             calculateScore()
         }

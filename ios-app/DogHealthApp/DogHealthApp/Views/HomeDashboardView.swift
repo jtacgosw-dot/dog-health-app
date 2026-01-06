@@ -514,9 +514,19 @@ struct ActivityLogRow: View {
 struct PetlyButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
+            .contentShape(Rectangle())
             .scaleEffect(configuration.isPressed ? 0.97 : 1.0)
+            .opacity(configuration.isPressed ? 0.9 : 1.0)
             .animation(.easeOut(duration: 0.15), value: configuration.isPressed)
             .sensoryFeedback(.selection, trigger: configuration.isPressed)
+    }
+}
+
+// Plain button style that removes all default highlighting
+struct PlainNoHighlightButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .contentShape(Rectangle())
     }
 }
 

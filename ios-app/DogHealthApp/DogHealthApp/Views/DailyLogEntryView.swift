@@ -64,7 +64,9 @@ struct DailyLogEntryView: View {
         .fullScreenCover(item: $selectedLogType) { logType in
             LogDetailView(logType: logType)
                 .environmentObject(appState)
+                .buttonStyle(.plain)
         }
+        .buttonStyle(.plain)
     }
 }
 

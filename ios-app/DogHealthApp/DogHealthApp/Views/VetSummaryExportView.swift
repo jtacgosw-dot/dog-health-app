@@ -94,6 +94,7 @@ struct VetSummaryExportView: View {
                 VetSummaryShareSheet(items: [url])
             }
         }
+        .buttonStyle(.plain)
     }
     
     private var headerSection: some View {

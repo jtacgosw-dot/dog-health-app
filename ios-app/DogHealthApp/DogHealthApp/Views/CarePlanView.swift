@@ -65,12 +65,15 @@ struct CarePlanView: View {
             .sheet(isPresented: $showCreatePlan) {
                 CreateCarePlanView()
                     .environmentObject(appState)
+                    .buttonStyle(.plain)
             }
             .sheet(item: $selectedPlan) { plan in
                 CarePlanDetailView(plan: plan)
                     .environmentObject(appState)
+                    .buttonStyle(.plain)
             }
         }
+        .buttonStyle(.plain)
     }
     
     private var emptyState: some View {
