@@ -61,12 +61,13 @@ struct SignInView: View {
                     .disabled(isLoading)
                     
                     Button(action: {
-                        appState.isSignedIn = true
+                        handleGuestSignIn()
                     }) {
                         Text("Continue as Guest")
                             .font(.subheadline)
                             .foregroundColor(.secondary)
                     }
+                    .disabled(isLoading)
                     .padding(.top, 8)
                 }
                 .padding(.horizontal, 32)
@@ -84,6 +85,36 @@ struct SignInView: View {
             }
         }
         .buttonStyle(.plain)
+    }
+    
+    private func handleGuestSignIn() {
+        isLoading = true
+        errorMessage = nil
+        
+        Task {
+            do {
+                let deviceId = UIDevice.current.identifierForVendor?.uuidString ?? UUID().uuidString
+                let response = try await APIService.shared.guestSignIn(deviceId: deviceId)
+                
+                APIService.shared.setAuthToken(response.token)
+                
+                await MainActor.run {
+                    appState.currentUser = User(
+                        id: response.user.id,
+                        email: response.user.email,
+                        fullName: response.user.fullName ?? "Guest User",
+                        subscriptionStatus: response.user.subscriptionStatus ?? "free"
+                    )
+                    appState.isSignedIn = true
+                    isLoading = false
+                }
+            } catch {
+                await MainActor.run {
+                    errorMessage = "Guest sign in failed: \(error.localizedDescription)"
+                    isLoading = false
+                }
+            }
+        }
     }
     
     private func handleSignInWithApple(_ result: Result<ASAuthorization, Error>) {
