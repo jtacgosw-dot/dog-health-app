@@ -39,6 +39,7 @@ struct DogHealthAppApp: App {
             ContentView()
                 .environmentObject(appState)
                 .modelContainer(sharedModelContainer)
+                .preferredColorScheme(.light) // Force light mode - app uses light backgrounds throughout
                 .onAppear {
                     // Initialize sync service with model context
                     let context = sharedModelContainer.mainContext
