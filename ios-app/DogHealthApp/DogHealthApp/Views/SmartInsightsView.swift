@@ -492,11 +492,11 @@ struct SmartInsightsCard: View {
                 
                 Text("Smart Insights")
                     .font(.headline)
-                    .foregroundColor(.primary)
+                    .foregroundColor(.petlyDarkGreen)
                 
                 Text(topInsight)
                     .font(.caption)
-                    .foregroundColor(.secondary)
+                    .foregroundColor(.petlyFormIcon)
                     .lineLimit(2)
             }
             .padding()
