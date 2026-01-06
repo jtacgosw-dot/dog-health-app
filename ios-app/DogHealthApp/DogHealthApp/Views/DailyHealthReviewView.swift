@@ -94,8 +94,12 @@ struct DailyHealthReviewView: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
-                    Button("Cancel") {
+                    Button {
                         dismiss()
+                    } label: {
+                        Image(systemName: "chevron.left")
+                            .font(.system(size: 17, weight: .medium))
+                            .foregroundColor(.petlyDarkGreen)
                     }
                 }
             }

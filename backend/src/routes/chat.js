@@ -39,7 +39,8 @@ router.post('/',
           .single();
 
         if (convError) {
-          throw new Error('Failed to create conversation');
+          console.error('Conversation creation error:', convError);
+          throw new Error(`Failed to create conversation: ${convError.message}`);
         }
 
         currentConversationId = newConversation.id;
@@ -65,7 +66,8 @@ router.post('/',
         }]);
 
       if (userMsgError) {
-        throw new Error('Failed to save user message');
+        console.error('User message save error:', userMsgError);
+        throw new Error(`Failed to save user message: ${userMsgError.message}`);
       }
 
             let dogProfile = null;
@@ -149,7 +151,8 @@ router.post('/',
         .single();
 
       if (aiMsgError) {
-        throw new Error('Failed to save AI response');
+        console.error('AI message save error:', aiMsgError);
+        throw new Error(`Failed to save AI response: ${aiMsgError.message}`);
       }
 
       await supabase
