@@ -40,6 +40,7 @@ struct DogHealthAppApp: App {
                 .environmentObject(appState)
                 .modelContainer(sharedModelContainer)
                 .preferredColorScheme(.light) // Force light mode - app uses light backgrounds throughout
+                .buttonStyle(.plain) // Remove default button highlighting that causes gray blobs
                 .onAppear {
                     // Initialize sync service with model context
                     let context = sharedModelContainer.mainContext
