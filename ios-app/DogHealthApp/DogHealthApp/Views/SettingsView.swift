@@ -9,18 +9,29 @@ struct SettingsView: View {
     @State private var showVetSummary = false
     @State private var showHealthInsights = false
     @State private var showFeedbackSheet = false
+    @State private var showDeleteDataAlert = false
+    @State private var showAboutSheet = false
+    @AppStorage("appearanceMode") private var appearanceMode: Int = 0
+    
+    private var appVersion: String {
+        Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0.0"
+    }
+    
+    private var buildNumber: String {
+        Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "1"
+    }
     
     var body: some View {
         NavigationView {
             ZStack {
-                Color.petlyCream
+                Color.petlyBackground
                     .ignoresSafeArea()
                 
                 ScrollView {
                     VStack(spacing: 25) {
                         VStack(spacing: 20) {
                             SettingsSection(title: "Account") {
-                                SettingsRow(icon: "person.fill", title: "Profile", subtitle: "Manage your account")
+                                SettingsRow(icon: "person.fill", title: "Profile", subtitle: appState.user?.fullName ?? "Manage your account")
                                 Button(action: { showNotificationSettings = true }) {
                                     SettingsRow(icon: "bell.fill", title: "Notifications", subtitle: "Manage reminders", showChevron: true)
                                 }
@@ -38,6 +49,21 @@ struct SettingsView: View {
                                 }
                                 Button(action: { showHealthInsights = true }) {
                                     SettingsRow(icon: "chart.bar.fill", title: "Health Insights", subtitle: "View trends and analytics", showChevron: true)
+                                }
+                            }
+                            
+                            SettingsSection(title: "Appearance") {
+                                VStack(spacing: 0) {
+                                    SettingsRow(icon: "paintbrush.fill", title: "Theme", subtitle: appearanceModeText)
+                                    
+                                    Picker("Appearance", selection: $appearanceMode) {
+                                        Text("System").tag(0)
+                                        Text("Light").tag(1)
+                                        Text("Dark").tag(2)
+                                    }
+                                    .pickerStyle(.segmented)
+                                    .padding(.horizontal)
+                                    .padding(.bottom, 12)
                                 }
                             }
                             
@@ -59,7 +85,18 @@ struct SettingsView: View {
                                         )
                                     }
                                 }
-                                SettingsRow(icon: "creditcard.fill", title: "Manage Subscription", subtitle: "View billing details")
+                                Button(action: openSubscriptionManagement) {
+                                    SettingsRow(icon: "creditcard.fill", title: "Manage Subscription", subtitle: "View billing details", showChevron: true)
+                                }
+                            }
+                            
+                            SettingsSection(title: "Data & Privacy") {
+                                Button(action: exportAllData) {
+                                    SettingsRow(icon: "square.and.arrow.up.fill", title: "Export Data", subtitle: "Download all your pet's data", showChevron: true)
+                                }
+                                Button(action: { showDeleteDataAlert = true }) {
+                                    SettingsRow(icon: "trash.fill", title: "Delete All Data", subtitle: "Remove all health logs", iconColor: .red)
+                                }
                             }
                             
                             SettingsSection(title: "Support") {
@@ -69,13 +106,27 @@ struct SettingsView: View {
                                 Button(action: { showFeedbackSheet = true }) {
                                     SettingsRow(icon: "envelope.fill", title: "Send Feedback", subtitle: "Report issues or suggestions", showChevron: true)
                                 }
-                                Button(action: openLegalInfo) {
-                                    SettingsRow(icon: "doc.text.fill", title: "Terms & Privacy", subtitle: "Legal information", showChevron: true)
+                                Button(action: rateApp) {
+                                    SettingsRow(icon: "star.fill", title: "Rate Petly", subtitle: "Love the app? Leave a review!", showChevron: true)
+                                }
+                                Button(action: shareApp) {
+                                    SettingsRow(icon: "square.and.arrow.up", title: "Share Petly", subtitle: "Tell your friends about us", showChevron: true)
                                 }
                             }
                             
-                            SettingsSection(title: "App") {
-                                SettingsRow(icon: "info.circle.fill", title: "About", subtitle: "Version 1.0.0")
+                            SettingsSection(title: "Legal") {
+                                Button(action: openPrivacyPolicy) {
+                                    SettingsRow(icon: "hand.raised.fill", title: "Privacy Policy", subtitle: "How we protect your data", showChevron: true)
+                                }
+                                Button(action: openTermsOfService) {
+                                    SettingsRow(icon: "doc.text.fill", title: "Terms of Service", subtitle: "Usage terms", showChevron: true)
+                                }
+                            }
+                            
+                            SettingsSection(title: "About") {
+                                Button(action: { showAboutSheet = true }) {
+                                    SettingsRow(icon: "info.circle.fill", title: "About Petly", subtitle: "Version \(appVersion) (\(buildNumber))", showChevron: true)
+                                }
                             }
                         }
                         .padding(.horizontal)
@@ -94,23 +145,16 @@ struct SettingsView: View {
                             .cornerRadius(12)
                         }
                         .padding(.horizontal)
-                        .padding(.bottom, 30)
+                        
+                        Text("Made with love for pet parents everywhere")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                            .padding(.bottom, 30)
                     }
                 }
             }
             .navigationTitle("Settings")
             .navigationBarTitleDisplayMode(.large)
-            .toolbar {
-                ToolbarItem(placement: .principal) {
-                    HStack(spacing: 8) {
-                        Image(systemName: "gearshape.fill")
-                            .foregroundColor(.petlyDarkGreen)
-                        Text("Settings")
-                            .font(.headline)
-                            .foregroundColor(.petlyDarkGreen)
-                    }
-                }
-            }
             .alert("Sign Out", isPresented: $showSignOutAlert) {
                 Button("Cancel", role: .cancel) { }
                 Button("Sign Out", role: .destructive) {
@@ -149,6 +193,25 @@ struct SettingsView: View {
             .sheet(isPresented: $showFeedbackSheet) {
                 FeedbackView()
             }
+            .sheet(isPresented: $showAboutSheet) {
+                AboutView()
+            }
+            .alert("Delete All Data", isPresented: $showDeleteDataAlert) {
+                Button("Cancel", role: .cancel) { }
+                Button("Delete", role: .destructive) {
+                    // TODO: Implement data deletion
+                }
+            } message: {
+                Text("This will permanently delete all health logs and data for your pets. This action cannot be undone.")
+            }
+        }
+    }
+    
+    private var appearanceModeText:String {
+        switch appearanceMode {
+        case 1: return "Light"
+        case 2: return "Dark"
+        default: return "System"
         }
     }
     
@@ -158,10 +221,45 @@ struct SettingsView: View {
         }
     }
     
-    private func openLegalInfo() {
-        if let url = URL(string: "https://petlyapp.com/legal") {
+    private func openPrivacyPolicy() {
+        if let url = URL(string: "https://petlyapp.com/privacy") {
             UIApplication.shared.open(url)
         }
+    }
+    
+    private func openTermsOfService() {
+        if let url = URL(string: "https://petlyapp.com/terms") {
+            UIApplication.shared.open(url)
+        }
+    }
+    
+    private func openSubscriptionManagement() {
+        if let url = URL(string: "https://apps.apple.com/account/subscriptions") {
+            UIApplication.shared.open(url)
+        }
+    }
+    
+    private func rateApp() {
+        if let url = URL(string: "https://apps.apple.com/app/idXXXXXXXXXX?action=write-review") {
+            UIApplication.shared.open(url)
+        }
+    }
+    
+    private func shareApp() {
+        let activityVC = UIActivityViewController(
+            activityItems: ["Check out Petly - the best app for tracking your pet's health!", URL(string: "https://apps.apple.com/app/idXXXXXXXXXX")!],
+            applicationActivities: nil
+        )
+        
+        if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+           let window = windowScene.windows.first,
+           let rootVC = window.rootViewController {
+            rootVC.present(activityVC, animated: true)
+        }
+    }
+    
+    private func exportAllData() {
+        // TODO: Implement data export functionality
     }
 }
 
@@ -196,12 +294,13 @@ struct SettingsRow: View {
     let subtitle: String
     var badge: String? = nil
     var showChevron: Bool = false
+    var iconColor: Color = .petlyDarkGreen
     
     var body: some View {
         HStack(spacing: 15) {
             Image(systemName: icon)
                 .font(.system(size: 20))
-                .foregroundColor(.petlyDarkGreen)
+                .foregroundColor(iconColor)
                 .frame(width: 30)
             
             VStack(alignment: .leading, spacing: 2) {
@@ -347,6 +446,143 @@ struct FeedbackView: View {
         // In a real app, this would send the feedback to a server
         // For now, we'll just show a success message
         showSuccessAlert = true
+    }
+}
+
+struct AboutView: View {
+    @Environment(\.dismiss) var dismiss
+    
+    private var appVersion: String {
+        Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0.0"
+    }
+    
+    private var buildNumber: String {
+        Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "1"
+    }
+    
+    var body: some View {
+        NavigationView {
+            ZStack {
+                Color.petlyBackground
+                    .ignoresSafeArea()
+                
+                ScrollView {
+                    VStack(spacing: 30) {
+                        VStack(spacing: 16) {
+                            ZStack {
+                                Circle()
+                                    .fill(
+                                        LinearGradient(
+                                            gradient: Gradient(colors: [Color.petlyLightGreen, Color.petlyDarkGreen.opacity(0.3)]),
+                                            startPoint: .topLeading,
+                                            endPoint: .bottomTrailing
+                                        )
+                                    )
+                                    .frame(width: 100, height: 100)
+                                
+                                Image(systemName: "pawprint.fill")
+                                    .font(.system(size: 40))
+                                    .foregroundColor(.petlyDarkGreen)
+                            }
+                            
+                            Text("Petly")
+                                .font(.largeTitle)
+                                .fontWeight(.bold)
+                                .foregroundColor(.petlyDarkGreen)
+                            
+                            Text("Your Pet's Health Companion")
+                                .font(.subheadline)
+                                .foregroundColor(.secondary)
+                            
+                            Text("Version \(appVersion) (\(buildNumber))")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
+                        .padding(.top, 20)
+                        
+                        VStack(alignment: .leading, spacing: 16) {
+                            Text("About Petly")
+                                .font(.headline)
+                                .foregroundColor(.petlyDarkGreen)
+                            
+                            Text("Petly helps you track and manage your pet's health with ease. Log meals, activities, symptoms, and more to keep your furry friend healthy and happy.")
+                                .font(.body)
+                                .foregroundColor(.secondary)
+                                .fixedSize(horizontal: false, vertical: true)
+                            
+                            Text("Our AI-powered insights help you understand patterns in your pet's health and provide personalized recommendations based on their unique needs.")
+                                .font(.body)
+                                .foregroundColor(.secondary)
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
+                        .padding()
+                        .background(Color.white)
+                        .cornerRadius(16)
+                        
+                        VStack(alignment: .leading, spacing: 12) {
+                            Text("Features")
+                                .font(.headline)
+                                .foregroundColor(.petlyDarkGreen)
+                            
+                            FeatureRow(icon: "heart.text.square", title: "Health Logging", description: "Track meals, activities, symptoms & mood")
+                            FeatureRow(icon: "chart.line.uptrend.xyaxis", title: "Smart Insights", description: "AI-powered health pattern detection")
+                            FeatureRow(icon: "calendar.badge.clock", title: "Reminders", description: "Never miss vaccinations or medications")
+                            FeatureRow(icon: "message.fill", title: "AI Chat", description: "Get instant answers about pet health")
+                            FeatureRow(icon: "doc.text.fill", title: "Vet Reports", description: "Share health records with your vet")
+                        }
+                        .padding()
+                        .background(Color.white)
+                        .cornerRadius(16)
+                        
+                        VStack(spacing: 8) {
+                            Text("Made with love for pet parents")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                            
+                            Text("2024 Petly. All rights reserved.")
+                                .font(.caption2)
+                                .foregroundColor(.secondary)
+                        }
+                        .padding(.bottom, 30)
+                    }
+                    .padding()
+                }
+            }
+            .navigationTitle("About")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button(action: { dismiss() }) {
+                        Image(systemName: "xmark")
+                            .foregroundColor(.petlyDarkGreen)
+                    }
+                }
+            }
+        }
+    }
+}
+
+struct FeatureRow: View {
+    let icon: String
+    let title: String
+    let description: String
+    
+    var body: some View {
+        HStack(spacing: 12) {
+            Image(systemName: icon)
+                .font(.system(size: 20))
+                .foregroundColor(.petlyDarkGreen)
+                .frame(width: 30)
+            
+            VStack(alignment: .leading, spacing: 2) {
+                Text(title)
+                    .font(.subheadline)
+                    .fontWeight(.medium)
+                Text(description)
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            }
+        }
     }
 }
 
