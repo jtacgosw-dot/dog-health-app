@@ -294,9 +294,10 @@ function formatHealthLogsSummary(logs) {
  * @param {string} conversationId - Conversation ID for context
  * @param {object} dogProfile - Dog's profile information
  * @param {Array} healthLogs - Recent health logs for the dog
+ * @param {Array} images - Array of base64 encoded images (optional)
  * @returns {Promise<object>} AI response with content and metadata
  */
-async function generateAIResponse(userMessage, conversationId, dogProfile = null, healthLogs = null) {
+async function generateAIResponse(userMessage, conversationId, dogProfile = null, healthLogs = null, images = null) {
   try {
     const { data: messages, error: messagesError } = await supabase
       .from('messages')
@@ -407,13 +408,31 @@ ${healthLogsSummary}`;
 NOTE: No health logs available yet. Encourage the owner to start logging meals, walks, and any symptoms to get personalized insights.`;
     }
 
+    let userContent;
+    if (images && images.length > 0) {
+      userContent = [
+        { type: 'text', text: userMessage }
+      ];
+      for (const imageBase64 of images) {
+        userContent.push({
+          type: 'image_url',
+          image_url: {
+            url: `data:image/jpeg;base64,${imageBase64}`,
+            detail: 'auto'
+          }
+        });
+      }
+    } else {
+      userContent = userMessage;
+    }
+
     const openaiMessages = [
       { role: 'system', content: systemPrompt },
       ...conversationHistory.map(msg => ({
         role: msg.role,
         content: msg.content
       })),
-      { role: 'user', content: userMessage }
+      { role: 'user', content: userContent }
     ];
 
     const completion = await openai.chat.completions.create({

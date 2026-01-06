@@ -96,8 +96,8 @@ class APIService {
             #endif
         }
     
-        func sendChatMessage(message: String, conversationId: String?, dogId: String?, dogProfile: ChatDogProfile?, healthLogs: [ChatHealthLog]?) async throws -> ChatResponse {
-            let body = ChatRequest(message: message, conversationId: conversationId, dogId: dogId, dogProfile: dogProfile, healthLogs: healthLogs)
+        func sendChatMessage(message: String, conversationId: String?, dogId: String?, dogProfile: ChatDogProfile?, healthLogs: [ChatHealthLog]?, images: [String]? = nil) async throws -> ChatResponse {
+            let body = ChatRequest(message: message, conversationId: conversationId, dogId: dogId, dogProfile: dogProfile, healthLogs: healthLogs, images: images)
             let data = try JSONEncoder().encode(body)
             return try await makeRequest(endpoint: "/chat", method: "POST", body: data)
         }
@@ -276,6 +276,7 @@ struct ChatRequest: Codable {
     let dogId: String?
     let dogProfile: ChatDogProfile?
     let healthLogs: [ChatHealthLog]?
+    let images: [String]?
 }
 
 struct ChatDogProfile: Codable {

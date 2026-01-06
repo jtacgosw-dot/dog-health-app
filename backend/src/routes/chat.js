@@ -23,7 +23,7 @@ router.post('/',
         return res.status(400).json({ errors: errors.array() });
       }
 
-            const { message, conversationId, dogId, dogProfile: clientDogProfile, healthLogs: clientHealthLogs } = req.body;
+            const { message, conversationId, dogId, dogProfile: clientDogProfile, healthLogs: clientHealthLogs, images } = req.body;
             const userId = req.user.id;
 
       let currentConversationId = conversationId;
@@ -136,7 +136,7 @@ router.post('/',
               healthLogs = logs;
             }
 
-      const aiResponse = await generateAIResponse(message, currentConversationId, dogProfile, healthLogs);
+      const aiResponse = await generateAIResponse(message, currentConversationId, dogProfile, healthLogs, images);
 
       const { data: assistantMessage, error: aiMsgError } = await supabase
         .from('messages')

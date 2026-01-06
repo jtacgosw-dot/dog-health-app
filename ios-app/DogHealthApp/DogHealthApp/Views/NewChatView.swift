@@ -1,5 +1,6 @@
 import SwiftUI
 import SwiftData
+import PhotosUI
 
 struct NewChatView: View {
     @EnvironmentObject var appState: AppState
@@ -12,6 +13,12 @@ struct NewChatView: View {
     @State private var conversationId: String?
     @State private var errorMessage: String?
     @State private var showCloseButton = false
+    @State private var attachedImages: [ChatImageAttachment] = []
+    @State private var showingImagePicker = false
+    @State private var showingCamera = false
+    @State private var showingAttachmentOptions = false
+    @State private var selectedPhotoItem: PhotosPickerItem?
+    @FocusState private var isTextFieldFocused: Bool
     
     init(initialPrompt: Binding<String> = .constant("")) {
         self._initialPrompt = initialPrompt
@@ -30,6 +37,7 @@ struct NewChatView: View {
                                 messages = []
                                 conversationId = nil
                                 showCloseButton = false
+                                attachedImages = []
                             }
                         }) {
                             Text("X Close Chat")
@@ -80,6 +88,7 @@ struct NewChatView: View {
                                 }
                             }
                             .padding()
+                            .padding(.bottom, 120)
                         }
                         .onChange(of: messages.count) { _ in
                             if let lastMessage = messages.last {
@@ -91,35 +100,11 @@ struct NewChatView: View {
                     }
                 }
                 
-                if let errorMessage = errorMessage {
-                    Text(errorMessage)
-                        .font(.petlyBody(12))
-                        .foregroundColor(.red)
-                        .padding(.horizontal)
-                        .padding(.vertical, 8)
-                        .background(Color.red.opacity(0.1))
-                }
-                
-                HStack(spacing: 12) {
-                    TextField("Start A Conversation...", text: $messageText, axis: .vertical)
-                        .font(.petlyBody(14))
-                        .textFieldStyle(.plain)
-                        .padding(12)
-                        .background(Color.petlyLightGreen)
-                        .cornerRadius(25)
-                        .lineLimit(1...5)
-                    
-                    Button(action: sendMessage) {
-                        Image(systemName: "paperplane.fill")
-                            .font(.system(size: 20))
-                            .foregroundColor(messageText.isEmpty ? .petlyFormIcon : .petlyDarkGreen)
-                    }
-                    .disabled(messageText.isEmpty || isLoading)
-                }
-                .padding()
-                .background(Color.petlyBackground)
-                .padding(.bottom, 80)
+                Spacer(minLength: 0)
             }
+        }
+        .safeAreaInset(edge: .bottom) {
+            chatInputBar
         }
         .onChange(of: initialPrompt) { newValue in
             if !newValue.isEmpty {
@@ -128,7 +113,129 @@ struct NewChatView: View {
                 sendMessage()
             }
         }
+        .onChange(of: selectedPhotoItem) { newValue in
+            Task {
+                if let data = try? await newValue?.loadTransferable(type: Data.self),
+                   let uiImage = UIImage(data: data) {
+                    let resizedData = resizeImage(uiImage, maxDimension: 1024)
+                    await MainActor.run {
+                        let attachment = ChatImageAttachment(id: UUID(), imageData: resizedData, previewImage: uiImage)
+                        attachedImages.append(attachment)
+                        selectedPhotoItem = nil
+                    }
+                }
+            }
+        }
+        .photosPicker(isPresented: $showingImagePicker, selection: $selectedPhotoItem, matching: .images)
+        .fullScreenCover(isPresented: $showingCamera) {
+            ChatCameraView(onImageCaptured: { imageData in
+                if let uiImage = UIImage(data: imageData) {
+                    let resizedData = resizeImage(uiImage, maxDimension: 1024)
+                    let attachment = ChatImageAttachment(id: UUID(), imageData: resizedData, previewImage: uiImage)
+                    attachedImages.append(attachment)
+                }
+            })
+        }
+        .confirmationDialog("Add Attachment", isPresented: $showingAttachmentOptions) {
+            Button("Take Photo") {
+                showingCamera = true
+            }
+            Button("Choose from Library") {
+                showingImagePicker = true
+            }
+            Button("Cancel", role: .cancel) { }
+        }
         .buttonStyle(.plain)
+    }
+    
+    private var chatInputBar: some View {
+        VStack(spacing: 0) {
+            if let errorMessage = errorMessage {
+                Text(errorMessage)
+                    .font(.petlyBody(12))
+                    .foregroundColor(.red)
+                    .padding(.horizontal)
+                    .padding(.vertical, 8)
+                    .background(Color.red.opacity(0.1))
+            }
+            
+            if !attachedImages.isEmpty {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 8) {
+                        ForEach(attachedImages) { attachment in
+                            ZStack(alignment: .topTrailing) {
+                                Image(uiImage: attachment.previewImage)
+                                    .resizable()
+                                    .scaledToFill()
+                                    .frame(width: 60, height: 60)
+                                    .clipped()
+                                    .cornerRadius(8)
+                                
+                                Button(action: {
+                                    withAnimation {
+                                        attachedImages.removeAll { $0.id == attachment.id }
+                                    }
+                                }) {
+                                    Image(systemName: "xmark.circle.fill")
+                                        .font(.system(size: 20))
+                                        .foregroundColor(.white)
+                                        .background(Circle().fill(Color.black.opacity(0.6)))
+                                }
+                                .offset(x: 6, y: -6)
+                            }
+                        }
+                    }
+                    .padding(.horizontal)
+                    .padding(.vertical, 8)
+                }
+                .background(Color.petlyBackground)
+            }
+            
+            HStack(spacing: 8) {
+                Button(action: { showingAttachmentOptions = true }) {
+                    Image(systemName: "plus.circle.fill")
+                        .font(.system(size: 28))
+                        .foregroundColor(.petlyDarkGreen)
+                }
+                
+                TextField("Start A Conversation...", text: $messageText, axis: .vertical)
+                    .font(.petlyBody(14))
+                    .textFieldStyle(.plain)
+                    .padding(12)
+                    .background(Color.petlyLightGreen)
+                    .cornerRadius(25)
+                    .lineLimit(1...5)
+                    .focused($isTextFieldFocused)
+                
+                Button(action: sendMessage) {
+                    Image(systemName: "paperplane.fill")
+                        .font(.system(size: 20))
+                        .foregroundColor((messageText.isEmpty && attachedImages.isEmpty) ? .petlyFormIcon : .petlyDarkGreen)
+                }
+                .disabled((messageText.isEmpty && attachedImages.isEmpty) || isLoading)
+            }
+            .padding(.horizontal)
+            .padding(.vertical, 12)
+            .background(Color.petlyBackground)
+            .padding(.bottom, isTextFieldFocused ? 0 : 80)
+        }
+    }
+    
+    private func resizeImage(_ image: UIImage, maxDimension: CGFloat) -> Data {
+        let size = image.size
+        let ratio = min(maxDimension / size.width, maxDimension / size.height)
+        
+        if ratio >= 1 {
+            return image.jpegData(compressionQuality: 0.7) ?? Data()
+        }
+        
+        let newSize = CGSize(width: size.width * ratio, height: size.height * ratio)
+        UIGraphicsBeginImageContextWithOptions(newSize, false, 1.0)
+        image.draw(in: CGRect(origin: .zero, size: newSize))
+        let resizedImage = UIGraphicsGetImageFromCurrentImageContext()
+        UIGraphicsEndImageContext()
+        
+        return resizedImage?.jpegData(compressionQuality: 0.7) ?? Data()
     }
     
     private func handleQuickAction(_ action: String) {
@@ -137,20 +244,27 @@ struct NewChatView: View {
     }
     
     private func sendMessage() {
-        guard !messageText.isEmpty else { return }
+        guard !messageText.isEmpty || !attachedImages.isEmpty else { return }
+        
+        let imageCount = attachedImages.count
+        let displayContent = messageText.isEmpty && imageCount > 0 
+            ? "[Sent \(imageCount) image\(imageCount > 1 ? "s" : "")]" 
+            : messageText
         
         let userMessage = Message(
             id: UUID().uuidString,
             conversationId: conversationId ?? "",
             role: .user,
-            content: messageText,
+            content: displayContent,
             timestamp: Date(),
             feedback: nil
         )
         
         messages.append(userMessage)
         let currentMessage = messageText
+        let currentImages = attachedImages.map { $0.base64String }
         messageText = ""
+        attachedImages = []
         isLoading = true
         errorMessage = nil
         showCloseButton = true
@@ -161,11 +275,12 @@ struct NewChatView: View {
                 let healthLogs = buildHealthLogs()
                 
                 let response = try await APIService.shared.sendChatMessage(
-                    message: currentMessage,
+                    message: currentMessage.isEmpty ? "What do you see in this image?" : currentMessage,
                     conversationId: conversationId,
                     dogId: appState.currentDog?.id,
                     dogProfile: dogProfile,
-                    healthLogs: healthLogs
+                    healthLogs: healthLogs,
+                    images: currentImages.isEmpty ? nil : currentImages
                 )
                 
                 await MainActor.run {
@@ -377,6 +492,54 @@ struct NewMessageBubble: View {
             withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
                 appeared = true
             }
+        }
+    }
+}
+
+struct ChatImageAttachment: Identifiable {
+    let id: UUID
+    let imageData: Data
+    let previewImage: UIImage
+    
+    var base64String: String {
+        imageData.base64EncodedString()
+    }
+}
+
+struct ChatCameraView: UIViewControllerRepresentable {
+    let onImageCaptured: (Data) -> Void
+    @Environment(\.dismiss) var dismiss
+    
+    func makeUIViewController(context: Context) -> UIImagePickerController {
+        let picker = UIImagePickerController()
+        picker.sourceType = .camera
+        picker.delegate = context.coordinator
+        return picker
+    }
+    
+    func updateUIViewController(_ uiViewController: UIImagePickerController, context: Context) {}
+    
+    func makeCoordinator() -> Coordinator {
+        Coordinator(self)
+    }
+    
+    class Coordinator: NSObject, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
+        let parent: ChatCameraView
+        
+        init(_ parent: ChatCameraView) {
+            self.parent = parent
+        }
+        
+        func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
+            if let image = info[.originalImage] as? UIImage,
+               let data = image.jpegData(compressionQuality: 0.8) {
+                parent.onImageCaptured(data)
+            }
+            parent.dismiss()
+        }
+        
+        func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
+            parent.dismiss()
         }
     }
 }
