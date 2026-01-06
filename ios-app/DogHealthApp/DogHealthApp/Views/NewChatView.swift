@@ -118,7 +118,7 @@ struct NewChatView: View {
                 }
                 .padding()
                 .background(Color.petlyBackground)
-                .padding(.bottom, 80)
+                .padding(.bottom, 20)
             }
         }
         .onChange(of: initialPrompt) { newValue in
@@ -338,6 +338,7 @@ struct ChatQuickActionChip: View {
         }
         .scaleEffect(isPressed ? 0.95 : 1.0)
         .animation(.spring(response: 0.3, dampingFraction: 0.6), value: isPressed)
+        .buttonStyle(.plain)
     }
 }
 

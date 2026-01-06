@@ -23,14 +23,15 @@ struct NewPaywallView: View {
             
             VStack(spacing: 0) {
                 HStack {
-                    Button(action: { dismiss() }) {
-                        Image(systemName: "chevron.left")
-                            .font(.system(size: 16, weight: .medium))
-                            .foregroundColor(.petlyDarkGreen)
-                            .padding(12)
-                            .background(Color.petlyLightGreen)
-                            .clipShape(Circle())
-                    }
+                                        Button(action: { dismiss() }) {
+                                            Image(systemName: "chevron.left")
+                                                .font(.system(size: 16, weight: .medium))
+                                                .foregroundColor(.petlyDarkGreen)
+                                                .padding(12)
+                                                .background(Color.petlyLightGreen)
+                                                .clipShape(Circle())
+                                        }
+                                        .buttonStyle(.plain)
                     
                     Spacer()
                 }
@@ -163,7 +164,7 @@ struct NewPaywallView: View {
                             }
                         }
                         .padding(.top, 20)
-                        .padding(.bottom, 100)
+                        .padding(.bottom, 20)
                     }
                 }
             }
@@ -274,6 +275,7 @@ struct PlanCard: View {
         }
         .scaleEffect(isPressed ? 0.95 : 1.0)
         .animation(.spring(response: 0.3, dampingFraction: 0.6), value: isPressed)
+        .buttonStyle(.plain)
     }
 }
 
