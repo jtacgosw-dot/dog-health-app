@@ -136,6 +136,11 @@ router.post('/',
               healthLogs = logs;
             }
 
+      // Log image info for debugging (without logging actual base64 data)
+      if (images && images.length > 0) {
+        console.log(`Chat request includes ${images.length} image(s), first image length: ${images[0]?.length || 0} chars`);
+      }
+      
       const aiResponse = await generateAIResponse(message, currentConversationId, dogProfile, healthLogs, images);
 
       const { data: assistantMessage, error: aiMsgError } = await supabase

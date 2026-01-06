@@ -16,7 +16,6 @@ struct NewChatView: View {
     @State private var attachedImages: [ChatImageAttachment] = []
     @State private var showingImagePicker = false
     @State private var showingCamera = false
-    @State private var showingAttachmentOptions = false
     @State private var selectedPhotoItem: PhotosPickerItem?
     @FocusState private var isTextFieldFocused: Bool
     
@@ -136,15 +135,6 @@ struct NewChatView: View {
                 }
             })
         }
-        .confirmationDialog("Add Attachment", isPresented: $showingAttachmentOptions) {
-            Button("Take Photo") {
-                showingCamera = true
-            }
-            Button("Choose from Library") {
-                showingImagePicker = true
-            }
-            Button("Cancel", role: .cancel) { }
-        }
         .buttonStyle(.plain)
     }
     
@@ -192,7 +182,14 @@ struct NewChatView: View {
             }
             
             HStack(spacing: 8) {
-                Button(action: { showingAttachmentOptions = true }) {
+                Menu {
+                    Button(action: { showingCamera = true }) {
+                        Label("Take Photo", systemImage: "camera")
+                    }
+                    Button(action: { showingImagePicker = true }) {
+                        Label("Choose from Library", systemImage: "photo.on.rectangle")
+                    }
+                } label: {
                     Image(systemName: "plus.circle.fill")
                         .font(.system(size: 28))
                         .foregroundColor(.petlyDarkGreen)

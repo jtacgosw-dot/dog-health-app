@@ -410,6 +410,18 @@ NOTE: No health logs available yet. Encourage the owner to start logging meals, 
 
     let userContent;
     if (images && images.length > 0) {
+      console.log(`Building vision request with ${images.length} image(s)`);
+      
+      // Add vision capability note to system prompt
+      systemPrompt += `
+
+IMAGE ANALYSIS CAPABILITY:
+The user has shared ${images.length} image(s) with you. You CAN see and analyze these images. Describe what you observe in the image(s) and provide relevant health advice based on what you see. Look for:
+- Physical appearance of the pet (coat condition, body condition, visible injuries)
+- Symptoms visible in photos (skin issues, eye discharge, swelling, etc.)
+- Food, treats, or products the owner is asking about
+- Environment or situations that might affect pet health`;
+      
       userContent = [
         { type: 'text', text: userMessage }
       ];
@@ -422,6 +434,7 @@ NOTE: No health logs available yet. Encourage the owner to start logging meals, 
           }
         });
       }
+      console.log(`User content array has ${userContent.length} parts (1 text + ${images.length} images)`);
     } else {
       userContent = userMessage;
     }
@@ -435,8 +448,11 @@ NOTE: No health logs available yet. Encourage the owner to start logging meals, 
       { role: 'user', content: userContent }
     ];
 
+    const modelToUse = process.env.OPENAI_MODEL || 'gpt-4o';
+    console.log(`Calling OpenAI with model: ${modelToUse}, messages count: ${openaiMessages.length}`);
+    
     const completion = await openai.chat.completions.create({
-      model: process.env.OPENAI_MODEL || 'gpt-4o',
+      model: modelToUse,
       messages: openaiMessages,
       temperature: 0.7,
       max_tokens: 1500
