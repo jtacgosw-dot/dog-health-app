@@ -76,6 +76,12 @@ class APIService {
             return try await makeRequest(endpoint: "/auth/dev", method: "POST", body: nil, requiresAuth: false)
         }
     
+        func guestSignIn(deviceId: String? = nil) async throws -> GuestAuthResponse {
+            let body = GuestSignInRequest(deviceId: deviceId ?? UUID().uuidString)
+            let data = try JSONEncoder().encode(body)
+            return try await makeRequest(endpoint: "/auth/guest", method: "POST", body: data, requiresAuth: false)
+        }
+    
         func ensureDevAuthenticated() async {
             #if DEBUG
             if getAuthToken() == nil {
@@ -214,6 +220,23 @@ struct DevAuthResponse: Codable {
 }
 
 struct DevUser: Codable {
+    let id: String
+    let email: String
+    let fullName: String?
+    let subscriptionStatus: String?
+}
+
+struct GuestSignInRequest: Codable {
+    let deviceId: String
+}
+
+struct GuestAuthResponse: Codable {
+    let success: Bool
+    let token: String
+    let user: GuestUser
+}
+
+struct GuestUser: Codable {
     let id: String
     let email: String
     let fullName: String?
