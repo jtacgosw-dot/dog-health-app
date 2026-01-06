@@ -103,8 +103,10 @@ struct VetVisitPackView: View {
             .sheet(isPresented: $showEmergencyCard) {
                 EmergencyCardView()
                     .environmentObject(appState)
+                    .buttonStyle(.plain)
             }
         }
+        .buttonStyle(.plain)
     }
     
     private var headerSection: some View {

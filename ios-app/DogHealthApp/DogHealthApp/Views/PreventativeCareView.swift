@@ -74,8 +74,10 @@ struct PreventativeCareView: View {
             }
             .sheet(isPresented: $showingAddReminder) {
                 AddPreventativeCareReminderView(selectedType: $selectedReminderType)
+                    .buttonStyle(.plain)
             }
         }
+        .buttonStyle(.plain)
     }
     
     private var headerSection: some View {

@@ -167,34 +167,41 @@ struct SettingsView: View {
                 NavigationView {
                     NotificationSettingsView()
                 }
+                .buttonStyle(.plain)
             }
             .sheet(isPresented: $showWeightTracking) {
                 NavigationView {
                     WeightTrackingView()
                         .environmentObject(appState)
                 }
+                .buttonStyle(.plain)
             }
             .sheet(isPresented: $showPetReminders) {
                 NavigationView {
                     PetRemindersView()
                         .environmentObject(appState)
                 }
+                .buttonStyle(.plain)
             }
             .sheet(isPresented: $showVetSummary) {
                 NavigationView {
                     VetSummaryExportView()
                         .environmentObject(appState)
                 }
+                .buttonStyle(.plain)
             }
             .sheet(isPresented: $showHealthInsights) {
                 HealthInsightsDashboardView()
                     .environmentObject(appState)
+                    .buttonStyle(.plain)
             }
             .sheet(isPresented: $showFeedbackSheet) {
                 FeedbackView()
+                    .buttonStyle(.plain)
             }
             .sheet(isPresented: $showAboutSheet) {
                 AboutView()
+                    .buttonStyle(.plain)
             }
             .alert("Delete All Data", isPresented: $showDeleteDataAlert) {
                 Button("Cancel", role: .cancel) { }

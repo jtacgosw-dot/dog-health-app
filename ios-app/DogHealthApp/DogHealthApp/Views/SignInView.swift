@@ -83,6 +83,7 @@ struct SignInView: View {
                     .tint(.white)
             }
         }
+        .buttonStyle(.plain)
     }
     
     private func handleSignInWithApple(_ result: Result<ASAuthorization, Error>) {

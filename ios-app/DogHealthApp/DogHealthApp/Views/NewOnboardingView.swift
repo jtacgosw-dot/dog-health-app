@@ -41,6 +41,7 @@ struct NewOnboardingView: View {
             }
             .padding()
         }
+        .buttonStyle(.plain)
     }
     
     var welcomePage: some View {

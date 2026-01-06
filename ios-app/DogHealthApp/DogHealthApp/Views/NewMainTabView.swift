@@ -35,7 +35,9 @@ struct NewMainTabView: View {
         .ignoresSafeArea(.keyboard)
         .sheet(isPresented: $showDailyLog) {
             DailyLogEntryView()
+                .buttonStyle(.plain)
         }
+        .buttonStyle(.plain)
     }
 }
 

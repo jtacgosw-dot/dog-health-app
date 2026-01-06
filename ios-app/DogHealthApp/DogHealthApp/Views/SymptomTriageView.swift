@@ -124,6 +124,7 @@ struct SymptomTriageView: View {
                 }
             }
         }
+        .buttonStyle(.plain)
     }
     
     private var progressBar: some View {

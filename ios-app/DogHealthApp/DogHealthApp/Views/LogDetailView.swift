@@ -120,6 +120,7 @@ struct LogDetailView: View {
                 dismiss()
             }
         }
+        .buttonStyle(.plain)
     }
     
     private var dateSection: some View {

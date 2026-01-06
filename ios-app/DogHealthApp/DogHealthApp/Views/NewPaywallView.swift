@@ -169,6 +169,7 @@ struct NewPaywallView: View {
                 }
             }
         }
+        .buttonStyle(.plain)
     }
     
     private func startFreeTrial() {

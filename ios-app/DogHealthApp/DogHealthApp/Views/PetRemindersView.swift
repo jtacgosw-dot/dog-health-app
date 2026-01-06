@@ -64,7 +64,9 @@ struct PetRemindersView: View {
         }
         .sheet(isPresented: $showingAddReminder) {
             AddReminderView()
+                .buttonStyle(.plain)
         }
+        .buttonStyle(.plain)
     }
     
     private var headerSection: some View {

@@ -117,7 +117,9 @@ struct WeightTrackingView: View {
         }
         .sheet(isPresented: $showAddEntry) {
             addEntrySheet
+                .buttonStyle(.plain)
         }
+        .buttonStyle(.plain)
     }
     
     private var headerSection: some View {
