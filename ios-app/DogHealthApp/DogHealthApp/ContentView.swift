@@ -34,6 +34,7 @@ struct ContentView: View {
         .animation(.spring(response: 0.5, dampingFraction: 0.7), value: appState.hasCompletedOnboarding)
         .animation(.spring(response: 0.5, dampingFraction: 0.7), value: appState.isSignedIn)
         .animation(.spring(response: 0.5, dampingFraction: 0.7), value: appState.hasActiveSubscription)
+        .buttonStyle(.plain)
     }
 }
 
