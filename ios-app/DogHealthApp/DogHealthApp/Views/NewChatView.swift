@@ -1,6 +1,43 @@
 import SwiftUI
 import SwiftData
 import PhotosUI
+import Combine
+
+class KeyboardObserver: ObservableObject {
+    @Published var keyboardHeight: CGFloat = 0
+    private var cancellables = Set<AnyCancellable>()
+    
+    init() {
+        NotificationCenter.default.publisher(for: UIResponder.keyboardWillShowNotification)
+            .merge(with: NotificationCenter.default.publisher(for: UIResponder.keyboardWillChangeFrameNotification))
+            .compactMap { notification -> (CGFloat, Double)? in
+                guard let frame = notification.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect,
+                      let duration = notification.userInfo?[UIResponder.keyboardAnimationDurationUserInfoKey] as? Double else {
+                    return nil
+                }
+                return (frame.height, duration)
+            }
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] height, duration in
+                withAnimation(.easeOut(duration: duration)) {
+                    self?.keyboardHeight = height
+                }
+            }
+            .store(in: &cancellables)
+        
+        NotificationCenter.default.publisher(for: UIResponder.keyboardWillHideNotification)
+            .compactMap { notification -> Double? in
+                notification.userInfo?[UIResponder.keyboardAnimationDurationUserInfoKey] as? Double
+            }
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] duration in
+                withAnimation(.easeOut(duration: duration)) {
+                    self?.keyboardHeight = 0
+                }
+            }
+            .store(in: &cancellables)
+    }
+}
 
 struct NewChatView: View {
     @EnvironmentObject var appState: AppState
@@ -18,6 +55,7 @@ struct NewChatView: View {
     @State private var showingCamera = false
     @State private var selectedPhotoItem: PhotosPickerItem?
     @FocusState private var isTextFieldFocused: Bool
+    @StateObject private var keyboardObserver = KeyboardObserver()
     
     init(initialPrompt: Binding<String> = .constant("")) {
         self._initialPrompt = initialPrompt
@@ -66,6 +104,9 @@ struct NewChatView: View {
                 
                 if messages.isEmpty {
                     EmptyStateChatView(onQuickAction: handleQuickAction)
+                        .onTapGesture {
+                            dismissKeyboard()
+                        }
                 } else {
                     ScrollViewReader { proxy in
                         ScrollView {
@@ -89,6 +130,7 @@ struct NewChatView: View {
                             .padding()
                             .padding(.bottom, 120)
                         }
+                        .scrollDismissesKeyboard(.interactively)
                         .onChange(of: messages.count) { _ in
                             if let lastMessage = messages.last {
                                 withAnimation {
@@ -214,8 +256,12 @@ struct NewChatView: View {
             .padding(.horizontal)
             .padding(.vertical, 12)
             .background(Color.petlyBackground)
-            .padding(.bottom, isTextFieldFocused ? 0 : 80)
+            .padding(.bottom, keyboardObserver.keyboardHeight > 0 ? keyboardObserver.keyboardHeight - 34 : 80)
         }
+    }
+    
+    private func dismissKeyboard() {
+        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
     }
     
     private func resizeImage(_ image: UIImage, maxDimension: CGFloat) -> Data {
