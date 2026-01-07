@@ -1222,8 +1222,8 @@ struct EditPetProfileView: View {
                     if let w = dog.weight {
                         weight = String(format: "%.1f", w)
                     }
-                    allergies = dog.allergies?.joined(separator: ", ") ?? ""
-                    healthConditions = dog.healthConcerns?.joined(separator: ", ") ?? ""
+                    allergies = dog.allergies.joined(separator: ", ")
+                    healthConditions = dog.healthConcerns.joined(separator: ", ")
                 }
             }
         }
