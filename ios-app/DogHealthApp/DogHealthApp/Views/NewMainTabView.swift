@@ -167,11 +167,11 @@ struct ExploreView: View {
     }
     
     let quickActions = [
-        ("stethoscope", "Check symptoms for my dog"),
-        ("fork.knife", "Picky eater help"),
-        ("brain.head.profile", "Anxious dog tips"),
-        ("pawprint", "Itchy paws"),
-        ("carrot", "New food intro")
+        ("stethoscope", "What symptoms should I watch for?"),
+        ("fork.knife", "Why won't my dog eat?"),
+        ("brain.head.profile", "How can I calm my anxious dog?"),
+        ("pawprint", "Why is my dog scratching so much?"),
+        ("carrot", "How do I introduce new food safely?")
     ]
     
     let articles = [

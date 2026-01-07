@@ -12,6 +12,7 @@ struct NewPetAccountView: View {
     @State private var showingMembership = false
     @State private var showingInviteFriends = false
     @State private var showingCustomerSupport = false
+    @State private var showingEditProfile = false
     
     private var showMiniHeader: Bool {
         scrollOffset > 180
@@ -67,6 +68,29 @@ struct NewPetAccountView: View {
                     }
                     .padding(.top, 60)
                     .padding(.bottom, 20)
+                    
+                    Button(action: { showingEditProfile = true }) {
+                        HStack(spacing: 16) {
+                            Image(systemName: "pencil.circle.fill")
+                                .font(.system(size: 20))
+                                .foregroundColor(.petlyDarkGreen)
+                                .frame(width: 24)
+                            
+                            Text("Manage Profile")
+                                .font(.petlyBody(16))
+                                .foregroundColor(.petlyDarkGreen)
+                            
+                            Spacer()
+                            
+                            Image(systemName: "chevron.right")
+                                .foregroundColor(.petlyFormIcon)
+                                .font(.system(size: 14))
+                        }
+                        .padding()
+                        .background(Color.petlyLightGreen)
+                        .cornerRadius(12)
+                    }
+                    .buttonStyle(PetlyButtonStyle())
                     
                     Button(action: { showingInviteFriends = true }) {
                         HStack(spacing: 16) {
@@ -168,7 +192,8 @@ struct NewPetAccountView: View {
                     .buttonStyle(.plain)
             }
             .sheet(isPresented: $showingMembership) {
-                NewPaywallView()
+                MembershipStatusView()
+                    .environmentObject(appState)
                     .buttonStyle(.plain)
             }
             .sheet(isPresented: $showingInviteFriends) {
@@ -177,6 +202,11 @@ struct NewPetAccountView: View {
             }
             .sheet(isPresented: $showingCustomerSupport) {
                 CustomerSupportView()
+                    .buttonStyle(.plain)
+            }
+            .sheet(isPresented: $showingEditProfile) {
+                EditPetProfileView()
+                    .environmentObject(appState)
                     .buttonStyle(.plain)
             }
             
@@ -884,6 +914,361 @@ struct CustomerSupportView: View {
                     .padding(40)
                     .background(Color.petlyLightGreen)
                     .cornerRadius(20)
+                }
+            }
+        }
+    }
+}
+
+struct MembershipStatusView: View {
+    @Environment(\.dismiss) var dismiss
+    @EnvironmentObject var appState: AppState
+    @State private var showPaywall = false
+    
+    var body: some View {
+        NavigationView {
+            ZStack {
+                Color.petlyBackground
+                    .ignoresSafeArea()
+                
+                ScrollView {
+                    VStack(spacing: 24) {
+                        if appState.hasActiveSubscription {
+                            VStack(spacing: 16) {
+                                ZStack {
+                                    Circle()
+                                        .fill(
+                                            LinearGradient(
+                                                gradient: Gradient(colors: [Color.petlyLightGreen, Color.petlyDarkGreen.opacity(0.3)]),
+                                                startPoint: .topLeading,
+                                                endPoint: .bottomTrailing
+                                            )
+                                        )
+                                        .frame(width: 100, height: 100)
+                                    
+                                    Image(systemName: "crown.fill")
+                                        .font(.system(size: 40))
+                                        .foregroundColor(.petlyDarkGreen)
+                                }
+                                
+                                Text("Petly Premium")
+                                    .font(.petlyTitle(28))
+                                    .foregroundColor(.petlyDarkGreen)
+                                
+                                Text("Active Subscription")
+                                    .font(.petlyBodyMedium(16))
+                                    .foregroundColor(.petlyDarkGreen)
+                                    .padding(.horizontal, 20)
+                                    .padding(.vertical, 8)
+                                    .background(Color.petlyLightGreen)
+                                    .cornerRadius(20)
+                            }
+                            .padding(.top, 40)
+                            
+                            VStack(alignment: .leading, spacing: 16) {
+                                Text("Your Benefits")
+                                    .font(.petlyBodyMedium(18))
+                                    .foregroundColor(.petlyDarkGreen)
+                                
+                                BenefitRow(icon: "message.fill", title: "Unlimited AI Chat", description: "Get instant answers about pet health")
+                                BenefitRow(icon: "chart.line.uptrend.xyaxis", title: "Advanced Insights", description: "AI-powered health pattern detection")
+                                BenefitRow(icon: "doc.text.fill", title: "Vet Reports", description: "Export detailed health summaries")
+                                BenefitRow(icon: "bell.fill", title: "Smart Reminders", description: "Never miss vaccinations or medications")
+                            }
+                            .padding()
+                            .background(Color.white)
+                            .cornerRadius(16)
+                            
+                            Button(action: {
+                                if let url = URL(string: "https://apps.apple.com/account/subscriptions") {
+                                    UIApplication.shared.open(url)
+                                }
+                            }) {
+                                Text("Manage Subscription")
+                                    .font(.petlyBodyMedium(16))
+                                    .foregroundColor(.petlyDarkGreen)
+                                    .frame(maxWidth: .infinity)
+                                    .padding()
+                                    .background(Color.petlyLightGreen)
+                                    .cornerRadius(12)
+                            }
+                        } else {
+                            VStack(spacing: 16) {
+                                Image(systemName: "sparkles")
+                                    .font(.system(size: 60))
+                                    .foregroundColor(.petlyDarkGreen)
+                                
+                                Text("Free Plan")
+                                    .font(.petlyTitle(28))
+                                    .foregroundColor(.petlyDarkGreen)
+                                
+                                Text("Upgrade to unlock all features")
+                                    .font(.petlyBody(16))
+                                    .foregroundColor(.petlyFormIcon)
+                            }
+                            .padding(.top, 40)
+                            
+                            VStack(alignment: .leading, spacing: 16) {
+                                Text("Upgrade to Premium")
+                                    .font(.petlyBodyMedium(18))
+                                    .foregroundColor(.petlyDarkGreen)
+                                
+                                BenefitRow(icon: "message.fill", title: "Unlimited AI Chat", description: "Currently limited")
+                                BenefitRow(icon: "chart.line.uptrend.xyaxis", title: "Advanced Insights", description: "Unlock AI analysis")
+                                BenefitRow(icon: "doc.text.fill", title: "Vet Reports", description: "Export health summaries")
+                                BenefitRow(icon: "bell.fill", title: "Smart Reminders", description: "Set unlimited reminders")
+                            }
+                            .padding()
+                            .background(Color.white)
+                            .cornerRadius(16)
+                            
+                            Button(action: { showPaywall = true }) {
+                                Text("Upgrade to Premium")
+                                    .font(.petlyBodyMedium(16))
+                                    .foregroundColor(.white)
+                                    .frame(maxWidth: .infinity)
+                                    .padding()
+                                    .background(Color.petlyDarkGreen)
+                                    .cornerRadius(12)
+                            }
+                        }
+                    }
+                    .padding()
+                }
+            }
+            .navigationTitle("Membership")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button(action: { dismiss() }) {
+                        Image(systemName: "xmark")
+                            .foregroundColor(.petlyDarkGreen)
+                    }
+                }
+            }
+            .sheet(isPresented: $showPaywall) {
+                NewPaywallView()
+                    .buttonStyle(.plain)
+            }
+        }
+    }
+}
+
+struct BenefitRow: View {
+    let icon: String
+    let title: String
+    let description: String
+    
+    var body: some View {
+        HStack(spacing: 12) {
+            Image(systemName: icon)
+                .font(.system(size: 20))
+                .foregroundColor(.petlyDarkGreen)
+                .frame(width: 30)
+            
+            VStack(alignment: .leading, spacing: 2) {
+                Text(title)
+                    .font(.petlyBodyMedium(14))
+                    .foregroundColor(.petlyDarkGreen)
+                Text(description)
+                    .font(.petlyBody(12))
+                    .foregroundColor(.petlyFormIcon)
+            }
+        }
+    }
+}
+
+struct EditPetProfileView: View {
+    @Environment(\.dismiss) var dismiss
+    @EnvironmentObject var appState: AppState
+    @State private var name = ""
+    @State private var age = ""
+    @State private var breed = ""
+    @State private var weight = ""
+    @State private var allergies = ""
+    @State private var healthConditions = ""
+    @State private var showSaved = false
+    @State private var errorMessage: String?
+    
+    var body: some View {
+        NavigationView {
+            ZStack {
+                Color.petlyBackground
+                    .ignoresSafeArea()
+                
+                ScrollView {
+                    VStack(spacing: 20) {
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Pet Name")
+                                .font(.petlyBodyMedium(14))
+                                .foregroundColor(.petlyDarkGreen)
+                            
+                            TextField("Name", text: $name)
+                                .padding()
+                                .background(Color.petlyLightGreen)
+                                .cornerRadius(12)
+                        }
+                        
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Age (years)")
+                                .font(.petlyBodyMedium(14))
+                                .foregroundColor(.petlyDarkGreen)
+                            
+                            TextField("Age", text: $age)
+                                .keyboardType(.numberPad)
+                                .padding()
+                                .background(Color.petlyLightGreen)
+                                .cornerRadius(12)
+                        }
+                        
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Breed")
+                                .font(.petlyBodyMedium(14))
+                                .foregroundColor(.petlyDarkGreen)
+                            
+                            TextField("Breed", text: $breed)
+                                .padding()
+                                .background(Color.petlyLightGreen)
+                                .cornerRadius(12)
+                        }
+                        
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Weight (lbs)")
+                                .font(.petlyBodyMedium(14))
+                                .foregroundColor(.petlyDarkGreen)
+                            
+                            TextField("Weight", text: $weight)
+                                .keyboardType(.decimalPad)
+                                .padding()
+                                .background(Color.petlyLightGreen)
+                                .cornerRadius(12)
+                        }
+                        
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Allergies (comma separated)")
+                                .font(.petlyBodyMedium(14))
+                                .foregroundColor(.petlyDarkGreen)
+                            
+                            TextField("e.g., chicken, grains", text: $allergies)
+                                .padding()
+                                .background(Color.petlyLightGreen)
+                                .cornerRadius(12)
+                        }
+                        
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Health Conditions (comma separated)")
+                                .font(.petlyBodyMedium(14))
+                                .foregroundColor(.petlyDarkGreen)
+                            
+                            TextField("e.g., arthritis, allergies", text: $healthConditions)
+                                .padding()
+                                .background(Color.petlyLightGreen)
+                                .cornerRadius(12)
+                        }
+                        
+                        if let errorMessage = errorMessage {
+                            Text(errorMessage)
+                                .font(.petlyBody(12))
+                                .foregroundColor(.red)
+                                .padding()
+                                .background(Color.red.opacity(0.1))
+                                .cornerRadius(8)
+                        }
+                        
+                        Button(action: saveProfile) {
+                            Text("Save Changes")
+                                .font(.petlyBodyMedium(16))
+                                .foregroundColor(.white)
+                                .frame(maxWidth: .infinity)
+                                .padding()
+                                .background(Color.petlyDarkGreen)
+                                .cornerRadius(12)
+                        }
+                        .padding(.top, 20)
+                    }
+                    .padding()
+                }
+            }
+            .navigationTitle("Edit Profile")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button(action: { dismiss() }) {
+                        Image(systemName: "xmark")
+                            .foregroundColor(.petlyDarkGreen)
+                    }
+                }
+            }
+            .overlay {
+                if showSaved {
+                    VStack {
+                        Image(systemName: "checkmark.circle.fill")
+                            .font(.system(size: 60))
+                            .foregroundColor(.petlyDarkGreen)
+                        Text("Saved!")
+                            .font(.petlyBodyMedium(18))
+                            .foregroundColor(.petlyDarkGreen)
+                    }
+                    .padding(40)
+                    .background(Color.petlyLightGreen)
+                    .cornerRadius(20)
+                }
+            }
+            .onAppear {
+                if let dog = appState.currentDog {
+                    name = dog.name
+                    age = "\(dog.age)"
+                    breed = dog.breed
+                    if let w = dog.weight {
+                        weight = String(format: "%.1f", w)
+                    }
+                    allergies = dog.allergies?.joined(separator: ", ") ?? ""
+                    healthConditions = dog.healthConcerns?.joined(separator: ", ") ?? ""
+                }
+            }
+        }
+    }
+    
+    private func saveProfile() {
+        guard !name.isEmpty, !breed.isEmpty else {
+            errorMessage = "Please fill in at least name and breed"
+            return
+        }
+        
+        Task {
+            do {
+                guard let existingDog = appState.currentDog else { return }
+                
+                let ageInt = Int(age) ?? existingDog.age
+                let weightDouble = Double(weight)
+                let allergiesArray = allergies.split(separator: ",").map { $0.trimmingCharacters(in: .whitespaces) }
+                let healthConcernsArray = healthConditions.split(separator: ",").map { $0.trimmingCharacters(in: .whitespaces) }
+                
+                let updatedDog = Dog(
+                    id: existingDog.id,
+                    name: name,
+                    breed: breed,
+                    age: ageInt,
+                    weight: weightDouble,
+                    imageUrl: existingDog.imageUrl,
+                    healthConcerns: healthConcernsArray,
+                    allergies: allergiesArray,
+                    createdAt: existingDog.createdAt,
+                    updatedAt: Date()
+                )
+                
+                let dog = try await APIService.shared.updateDog(dog: updatedDog)
+                
+                await MainActor.run {
+                    appState.currentDog = dog
+                    showSaved = true
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                        dismiss()
+                    }
+                }
+            } catch {
+                await MainActor.run {
+                    errorMessage = "Failed to save: \(error.localizedDescription)"
                 }
             }
         }
