@@ -15,6 +15,7 @@ struct DailyHealthReviewView: View {
     @State private var overallMood: Int = 3
     @State private var additionalNotes = ""
     @State private var showingCompletion = false
+    @State private var showLogMeals = false
     
     private let totalSteps = 4
     
@@ -102,6 +103,13 @@ struct DailyHealthReviewView: View {
                             .foregroundColor(.petlyDarkGreen)
                     }
                 }
+            }
+            .sheet(isPresented: $showLogMeals) {
+                NavigationView {
+                    DailyLogEntryView(selectedLogType: "meals")
+                        .environmentObject(appState)
+                }
+                .buttonStyle(.plain)
             }
         }
         .buttonStyle(.plain)
@@ -210,10 +218,12 @@ struct DailyHealthReviewView: View {
                 }
                 
                 if todaysMeals.isEmpty {
-                    emptyStateCard(
+                    emptyStateCardWithAction(
                         icon: "fork.knife",
                         title: "No meals logged yet",
-                        subtitle: "Log meals to track nutrition patterns"
+                        subtitle: "Log meals to track nutrition patterns",
+                        buttonTitle: "Log Meals",
+                        action: { showLogMeals = true }
                     )
                 } else {
                     VStack(spacing: 12) {
@@ -517,6 +527,37 @@ struct DailyHealthReviewView: View {
                 .font(.subheadline)
                 .foregroundColor(.secondary)
                 .multilineTextAlignment(.center)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 32)
+        .background(Color(.systemBackground))
+        .cornerRadius(16)
+    }
+    
+    private func emptyStateCardWithAction(icon: String, title: String, subtitle: String, buttonTitle: String, action: @escaping () -> Void) -> some View {
+        VStack(spacing: 12) {
+            Image(systemName: icon)
+                .font(.largeTitle)
+                .foregroundColor(.gray)
+            
+            Text(title)
+                .font(.headline)
+            
+            Text(subtitle)
+                .font(.subheadline)
+                .foregroundColor(.secondary)
+                .multilineTextAlignment(.center)
+            
+            Button(action: action) {
+                Text(buttonTitle)
+                    .font(.petlyBodyMedium(14))
+                    .foregroundColor(.white)
+                    .padding(.horizontal, 20)
+                    .padding(.vertical, 10)
+                    .background(Color.petlyDarkGreen)
+                    .cornerRadius(20)
+            }
+            .padding(.top, 8)
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, 32)

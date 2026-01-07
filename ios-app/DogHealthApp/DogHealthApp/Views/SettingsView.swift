@@ -1,7 +1,11 @@
 import SwiftUI
+import SwiftData
 
 struct SettingsView: View {
     @EnvironmentObject var appState: AppState
+    @Environment(\.modelContext) private var modelContext
+    @Query private var healthLogs: [HealthLogEntry]
+    @Query private var checkIns: [DailyCheckIn]
     @State private var showSignOutAlert = false
     @State private var showNotificationSettings = false
     @State private var showWeightTracking = false
@@ -11,6 +15,7 @@ struct SettingsView: View {
     @State private var showFeedbackSheet = false
     @State private var showDeleteDataAlert = false
     @State private var showAboutSheet = false
+    @State private var showExportSheet = false
     @AppStorage("appearanceMode") private var appearanceMode: Int = 0
     
     private var appVersion: String {
@@ -57,7 +62,6 @@ struct SettingsView: View {
                                     SettingsRow(icon: "paintbrush.fill", title: "Theme", subtitle: appearanceModeText)
                                     
                                     Picker("Appearance", selection: $appearanceMode) {
-                                        Text("System").tag(0)
                                         Text("Light").tag(1)
                                         Text("Dark").tag(2)
                                     }
@@ -214,11 +218,10 @@ struct SettingsView: View {
         }
     }
     
-    private var appearanceModeText:String {
+    private var appearanceModeText: String {
         switch appearanceMode {
-        case 1: return "Light"
         case 2: return "Dark"
-        default: return "System"
+        default: return "Light"
         }
     }
     
@@ -266,7 +269,68 @@ struct SettingsView: View {
     }
     
     private func exportAllData() {
-        // TODO: Implement data export functionality
+        let dogId = appState.currentDog?.id ?? ""
+        let dogName = appState.currentDog?.name ?? "Pet"
+        
+        let dogHealthLogs = healthLogs.filter { $0.dogId == dogId }
+        let dogCheckIns = checkIns.filter { $0.dogId == dogId }
+        
+        let dateFormatter = ISO8601DateFormatter()
+        
+        var exportData: [[String: Any]] = []
+        
+        for log in dogHealthLogs {
+            var logDict: [String: Any] = [
+                "type": log.logType,
+                "timestamp": dateFormatter.string(from: log.timestamp),
+                "title": log.displayTitle,
+                "subtitle": log.displaySubtitle
+            ]
+            if let duration = log.duration { logDict["duration"] = duration }
+            if let notes = log.notes { logDict["notes"] = notes }
+            if let mealType = log.mealType { logDict["mealType"] = mealType }
+            if let foodBrand = log.foodBrand { logDict["foodBrand"] = foodBrand }
+            if let portionSize = log.portionSize { logDict["portionSize"] = portionSize }
+            exportData.append(logDict)
+        }
+        
+        var checkInData: [[String: Any]] = []
+        for checkIn in dogCheckIns {
+            checkInData.append([
+                "date": dateFormatter.string(from: checkIn.date),
+                "hasSymptoms": checkIn.hasSymptoms,
+                "symptomsNotes": checkIn.symptomsNotes ?? "",
+                "mealsLogged": checkIn.mealsLogged,
+                "activityLogged": checkIn.activityLogged,
+                "waterLogged": checkIn.waterLogged,
+                "overallMood": checkIn.overallMood,
+                "additionalNotes": checkIn.additionalNotes ?? ""
+            ])
+        }
+        
+        let fullExport: [String: Any] = [
+            "petName": dogName,
+            "exportDate": dateFormatter.string(from: Date()),
+            "healthLogs": exportData,
+            "dailyCheckIns": checkInData
+        ]
+        
+        if let jsonData = try? JSONSerialization.data(withJSONObject: fullExport, options: .prettyPrinted),
+           let jsonString = String(data: jsonData, encoding: .utf8) {
+            let tempURL = FileManager.default.temporaryDirectory.appendingPathComponent("\(dogName)_health_data.json")
+            try? jsonString.write(to: tempURL, atomically: true, encoding: .utf8)
+            
+            let activityVC = UIActivityViewController(
+                activityItems: [tempURL],
+                applicationActivities: nil
+            )
+            
+            if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+               let window = windowScene.windows.first,
+               let rootVC = window.rootViewController {
+                rootVC.present(activityVC, animated: true)
+            }
+        }
     }
 }
 

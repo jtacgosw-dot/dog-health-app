@@ -5,6 +5,14 @@ import UIKit
 @main
 struct DogHealthAppApp: App {
     @StateObject private var appState = AppState()
+    @AppStorage("appearanceMode") private var appearanceMode: Int = 1 // Default to Light (1)
+    
+    private var colorScheme: ColorScheme? {
+        switch appearanceMode {
+        case 2: return .dark
+        default: return .light
+        }
+    }
     
     var sharedModelContainer: ModelContainer = {
         let schema = Schema([
@@ -39,7 +47,7 @@ struct DogHealthAppApp: App {
             ContentView()
                 .environmentObject(appState)
                 .modelContainer(sharedModelContainer)
-                .preferredColorScheme(.light) // Force light mode - app uses light backgrounds throughout
+                .preferredColorScheme(colorScheme) // Apply user's theme preference (Light default)
                 .buttonStyle(.plain) // Remove default button highlighting that causes gray blobs
                 .onAppear {
                     // Initialize sync service with model context
