@@ -378,13 +378,14 @@ struct StatCard: View {
                 .foregroundColor(.secondary)
             
             Text(title)
-                .font(.petlyBody(12))
+                .font(.petlyBody(PetlyTheme.Typography.cardSubtitle))
                 .foregroundColor(.secondary)
         }
         .frame(maxWidth: .infinity)
+        .frame(minHeight: PetlyTheme.CardSize.statCardHeight)
         .padding()
         .background(Color.petlyLightGreen)
-        .cornerRadius(12)
+        .cornerRadius(PetlyTheme.cornerRadius)
     }
 }
 

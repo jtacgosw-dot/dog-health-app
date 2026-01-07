@@ -49,6 +49,22 @@ struct PetlyTheme {
     static let buttonCornerRadius: CGFloat = 25
     static let cardPadding: CGFloat = 16
     static let spacing: CGFloat = 16
+    
+    struct CardSize {
+        static let smallCardHeight: CGFloat = 130
+        static let mediumCardHeight: CGFloat = 180
+        static let largeCardHeight: CGFloat = 320
+        static let statCardHeight: CGFloat = 100
+    }
+    
+    struct Typography {
+        static let cardTitle: CGFloat = 16
+        static let cardSubtitle: CGFloat = 12
+        static let sectionTitle: CGFloat = 18
+        static let bodyText: CGFloat = 14
+        static let caption: CGFloat = 11
+        static let buttonText: CGFloat = 14
+    }
 }
 
 extension Font {

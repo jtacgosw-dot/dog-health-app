@@ -560,7 +560,7 @@ struct TodaysOverviewCard: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Today's Overview")
-                .font(.petlyBodyMedium(18))
+                .font(.petlyBodyMedium(PetlyTheme.Typography.sectionTitle))
                 .foregroundColor(.petlyDarkGreen)
             
             HStack {
@@ -647,7 +647,7 @@ struct DailyActivityRingCard: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Daily Activity Ring")
-                .font(.petlyBodyMedium(16))
+                .font(.petlyBodyMedium(PetlyTheme.Typography.cardTitle))
                 .foregroundColor(.petlyDarkGreen)
             
             ZStack {
@@ -711,7 +711,7 @@ struct WellnessTrackerCard: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Wellness Tracker")
-                .font(.petlyBodyMedium(16))
+                .font(.petlyBodyMedium(PetlyTheme.Typography.cardTitle))
                 .foregroundColor(.petlyDarkGreen)
             
             Text("Today:")
@@ -795,7 +795,7 @@ struct UpcomingCareCard: View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
                 Text("Upcoming Care")
-                    .font(.petlyBodyMedium(18))
+                    .font(.petlyBodyMedium(PetlyTheme.Typography.sectionTitle))
                     .foregroundColor(.petlyDarkGreen)
                 
                 Spacer()
@@ -919,7 +919,7 @@ struct HealthTimelineCard: View {
             HStack {
                 VStack(alignment: .leading, spacing: 4) {
                     Text("Health Timeline")
-                        .font(.petlyBodyMedium(18))
+                        .font(.petlyBodyMedium(PetlyTheme.Typography.sectionTitle))
                         .foregroundColor(.petlyDarkGreen)
                     
                     Text("Track your pet's health journey")
@@ -1031,15 +1031,15 @@ struct HealthDigestCard: View {
                 }
                 
                 Text("Health Digest")
-                    .font(.headline)
+                    .font(.petlyBodyMedium(PetlyTheme.Typography.cardTitle))
                     .foregroundColor(.petlyDarkGreen)
                 
                 Text("Weekly AI summary")
-                    .font(.caption)
+                    .font(.petlyBody(PetlyTheme.Typography.cardSubtitle))
                     .foregroundColor(.petlyFormIcon)
             }
             .padding()
-            .frame(maxWidth: .infinity, minHeight: 120, alignment: .leading)
+            .frame(maxWidth: .infinity, minHeight: PetlyTheme.CardSize.smallCardHeight, alignment: .leading)
             .background(
                 LinearGradient(
                     gradient: Gradient(colors: [Color.petlyLightGreen.opacity(0.8), Color.petlyLightGreen.opacity(0.4)]),
@@ -1071,15 +1071,15 @@ struct CarePlansCard:View {
                 }
                 
                 Text("Care Plans")
-                    .font(.headline)
+                    .font(.petlyBodyMedium(PetlyTheme.Typography.cardTitle))
                     .foregroundColor(.petlyDarkGreen)
                 
                 Text("AI-powered goals")
-                    .font(.caption)
+                    .font(.petlyBody(PetlyTheme.Typography.cardSubtitle))
                     .foregroundColor(.petlyFormIcon)
             }
             .padding()
-            .frame(maxWidth: .infinity, minHeight: 120, alignment: .leading)
+            .frame(maxWidth: .infinity, minHeight: PetlyTheme.CardSize.smallCardHeight, alignment: .leading)
             .background(
                 LinearGradient(
                     gradient: Gradient(colors: [Color.petlyLightGreen.opacity(0.8), Color.petlyLightGreen.opacity(0.4)]),
@@ -1112,11 +1112,11 @@ struct VetVisitPackCard:View {
                 
                 VStack(alignment: .leading, spacing: 4) {
                     Text("Vet Visit Pack")
-                        .font(.petlyBodyMedium(16))
+                        .font(.petlyBodyMedium(PetlyTheme.Typography.cardTitle))
                         .foregroundColor(.petlyDarkGreen)
                     
                     Text("Share health records with your vet")
-                        .font(.petlyBody(12))
+                        .font(.petlyBody(PetlyTheme.Typography.cardSubtitle))
                         .foregroundColor(.petlyFormIcon)
                 }
                 
@@ -1185,16 +1185,16 @@ struct DailyHealthReviewCard:View {
                 
                 VStack(alignment: .leading, spacing: 4) {
                     Text("Daily Health Review")
-                        .font(.petlyBodyMedium(16))
+                        .font(.petlyBodyMedium(PetlyTheme.Typography.cardTitle))
                         .foregroundColor(.petlyDarkGreen)
                     
                     if hasCompletedToday {
                         Text("Completed today")
-                            .font(.petlyBody(12))
+                            .font(.petlyBody(PetlyTheme.Typography.cardSubtitle))
                             .foregroundColor(.green)
                     } else {
                         Text("\(checkInsThisWeek) of 7 days this week")
-                            .font(.petlyBody(12))
+                            .font(.petlyBody(PetlyTheme.Typography.cardSubtitle))
                             .foregroundColor(.petlyFormIcon)
                     }
                 }
@@ -1273,23 +1273,22 @@ struct PreventativeCareCard:View {
                 }
                 
                 Text("Preventative Care")
-                    .font(.headline)
+                    .font(.petlyBodyMedium(PetlyTheme.Typography.cardTitle))
                     .foregroundColor(.petlyDarkGreen)
                 
                 if let next = nextReminder {
                     Text("Next: \(next.title)")
-                        .font(.caption)
+                        .font(.petlyBody(PetlyTheme.Typography.cardSubtitle))
                         .foregroundColor(.petlyFormIcon)
                         .lineLimit(1)
                 } else {
                     Text("Set up care schedule")
-                        .font(.caption)
+                        .font(.petlyBody(PetlyTheme.Typography.cardSubtitle))
                         .foregroundColor(.petlyFormIcon)
                 }
             }
             .padding()
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .frame(height: 130)
+            .frame(maxWidth: .infinity, minHeight: PetlyTheme.CardSize.smallCardHeight, alignment: .leading)
             .background(
                 LinearGradient(
                     gradient: Gradient(colors: [Color.petlyLightGreen.opacity(0.8), Color.petlyLightGreen.opacity(0.4)]),
