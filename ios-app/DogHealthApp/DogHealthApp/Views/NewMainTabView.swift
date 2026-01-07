@@ -274,6 +274,7 @@ struct QuickActionChip: View {
     let title: String
     var action: () -> Void = {}
     @State private var isPressed = false
+    @ScaledMetric(relativeTo: .body) private var iconSize: CGFloat = 14
     
     var body: some View {
         Button(action: {
@@ -289,12 +290,14 @@ struct QuickActionChip: View {
         }) {
             HStack(spacing: 8) {
                 Image(systemName: icon)
-                    .font(.system(size: 14))
+                    .font(.system(size: iconSize))
                     .foregroundColor(.petlyDarkGreen)
                 
                 Text(title)
                     .font(.petlyBody(13))
                     .foregroundColor(.petlyDarkGreen)
+                    .minimumScaleFactor(0.8)
+                    .lineLimit(2)
             }
             .padding(.horizontal, 16)
             .padding(.vertical, 10)
@@ -310,6 +313,9 @@ struct ArticleCard: View {
     let icon: String
     let title: String
     @State private var isPressed = false
+    @ScaledMetric(relativeTo: .body) private var iconSize: CGFloat = 48
+    @ScaledMetric(relativeTo: .body) private var cardWidth: CGFloat = 240
+    @ScaledMetric(relativeTo: .body) private var cardHeight: CGFloat = 140
     
     var body: some View {
         Button(action: {
@@ -325,10 +331,10 @@ struct ArticleCard: View {
             VStack(alignment: .leading, spacing: 12) {
                 RoundedRectangle(cornerRadius: 12)
                     .fill(Color.petlyLightGreen)
-                    .frame(width: 240, height: 140)
+                    .frame(width: cardWidth, height: cardHeight)
                     .overlay(
                         Image(systemName: icon)
-                            .font(.system(size: 48))
+                            .font(.system(size: iconSize))
                             .foregroundColor(.petlyDarkGreen.opacity(0.3))
                     )
                 
@@ -336,8 +342,9 @@ struct ArticleCard: View {
                     .font(.petlyBodyMedium(14))
                     .foregroundColor(.petlyDarkGreen)
                     .multilineTextAlignment(.leading)
-                    .frame(width: 240, alignment: .leading)
-                    .lineLimit(2)
+                    .frame(width: cardWidth, alignment: .leading)
+                    .lineLimit(nil)
+                    .minimumScaleFactor(0.8)
             }
         }
         .buttonStyle(.plain)
@@ -350,6 +357,7 @@ struct InsightCard: View {
     let title: String
     let description: String
     @State private var isPressed = false
+    @ScaledMetric(relativeTo: .body) private var iconSize: CGFloat = 32
     
     var body: some View {
         Button(action: {
@@ -368,17 +376,19 @@ struct InsightCard: View {
                         .font(.petlyBodyMedium(16))
                         .foregroundColor(.petlyDarkGreen)
                         .multilineTextAlignment(.leading)
+                        .minimumScaleFactor(0.8)
                     
                     Text(description)
                         .font(.petlyBody(13))
                         .foregroundColor(.petlyFormIcon)
                         .multilineTextAlignment(.leading)
+                        .minimumScaleFactor(0.8)
                 }
                 
                 Spacer()
                 
                 Image(systemName: icon)
-                    .font(.system(size: 32))
+                    .font(.system(size: iconSize))
                     .foregroundColor(.petlyDarkGreen.opacity(0.3))
             }
             .padding()

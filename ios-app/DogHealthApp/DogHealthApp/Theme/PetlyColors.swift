@@ -53,14 +53,59 @@ struct PetlyTheme {
 
 extension Font {
     static func petlyTitle(_ size: CGFloat) -> Font {
-        return .custom("Stylish-Regular", size: size)
+        return .custom("Stylish-Regular", size: size, relativeTo: .title)
     }
     
     static func petlyBody(_ size: CGFloat = 16) -> Font {
-        return .custom("Poppins-Regular", size: size)
+        return .custom("Poppins-Regular", size: size, relativeTo: .body)
     }
     
     static func petlyBodyMedium(_ size: CGFloat = 16) -> Font {
-        return .custom("Poppins-Medium", size: size)
+        return .custom("Poppins-Medium", size: size, relativeTo: .body)
+    }
+    
+    static func petlyCaption(_ size: CGFloat = 12) -> Font {
+        return .custom("Poppins-Regular", size: size, relativeTo: .caption)
+    }
+    
+    static func petlyHeadline(_ size: CGFloat = 18) -> Font {
+        return .custom("Poppins-Medium", size: size, relativeTo: .headline)
+    }
+}
+
+struct ScaledSizes: View {
+    @ScaledMetric(relativeTo: .body) var iconSmall: CGFloat = 16
+    @ScaledMetric(relativeTo: .body) var iconMedium: CGFloat = 20
+    @ScaledMetric(relativeTo: .body) var iconLarge: CGFloat = 28
+    @ScaledMetric(relativeTo: .body) var iconXLarge: CGFloat = 40
+    
+    @ScaledMetric(relativeTo: .body) var paddingSmall: CGFloat = 8
+    @ScaledMetric(relativeTo: .body) var paddingMedium: CGFloat = 12
+    @ScaledMetric(relativeTo: .body) var paddingLarge: CGFloat = 16
+    @ScaledMetric(relativeTo: .body) var paddingXLarge: CGFloat = 20
+    
+    @ScaledMetric(relativeTo: .body) var spacingSmall: CGFloat = 8
+    @ScaledMetric(relativeTo: .body) var spacingMedium: CGFloat = 12
+    @ScaledMetric(relativeTo: .body) var spacingLarge: CGFloat = 16
+    
+    @ScaledMetric(relativeTo: .body) var cardMinHeight: CGFloat = 100
+    @ScaledMetric(relativeTo: .body) var buttonHeight: CGFloat = 44
+    
+    var body: some View { EmptyView() }
+}
+
+struct DynamicTypeModifier: ViewModifier {
+    @ScaledMetric(relativeTo: .body) private var scaleFactor: CGFloat = 1.0
+    
+    func body(content: Content) -> some View {
+        content
+            .minimumScaleFactor(0.8)
+            .lineLimit(nil)
+    }
+}
+
+extension View {
+    func dynamicTypeSupport() -> some View {
+        modifier(DynamicTypeModifier())
     }
 }
