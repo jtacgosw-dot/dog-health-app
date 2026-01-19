@@ -210,10 +210,10 @@ struct SignUpView: View {
     private func handleAppleSignIn(_ result: Result<ASAuthorization, Error>) {
         switch result {
         case .success(let authorization):
-            if let appleIDCredential = authorization.credential as? ASAuthorizationAppleIDCredential {
-                let userIdentifier = appleIDCredential.user
-                let email = appleIDCredential.email
-                let fullName = appleIDCredential.fullName
+                        if let appleIDCredential = authorization.credential as? ASAuthorizationAppleIDCredential {
+                            let _ = appleIDCredential.user
+                            let _ = appleIDCredential.email
+                            let fullName = appleIDCredential.fullName
                 
                 Task {
                     do {

@@ -94,16 +94,16 @@ struct NewChatView: View {
                     
                     Spacer()
                     
-                    if let dog = appState.currentDog {
-                        Circle()
-                            .fill(Color.petlyLightGreen)
-                            .frame(width: min(avatarSize, 70), height: min(avatarSize, 70))
-                            .overlay(
-                                Image(systemName: "dog.fill")
-                                    .font(.system(size: min(avatarIconSize, 32)))
-                                    .foregroundColor(.petlyDarkGreen)
-                            )
-                    }
+                                        if appState.currentDog != nil {
+                                            Circle()
+                                                .fill(Color.petlyLightGreen)
+                                                .frame(width: min(avatarSize, 70), height: min(avatarSize, 70))
+                                                .overlay(
+                                                    Image(systemName: "dog.fill")
+                                                        .font(.system(size: min(avatarIconSize, 32)))
+                                                        .foregroundColor(.petlyDarkGreen)
+                                                )
+                                        }
                 }
                 .padding()
                 
@@ -136,13 +136,13 @@ struct NewChatView: View {
                             .padding(.bottom, 120)
                         }
                         .scrollDismissesKeyboard(.interactively)
-                        .onChange(of: messages.count) { _ in
-                            if let lastMessage = messages.last {
-                                withAnimation {
-                                    proxy.scrollTo(lastMessage.id, anchor: .bottom)
-                                }
-                            }
-                        }
+                                                .onChange(of: messages.count) {
+                                                    if let lastMessage = messages.last {
+                                                        withAnimation {
+                                                            proxy.scrollTo(lastMessage.id, anchor: .bottom)
+                                                        }
+                                                    }
+                                                }
                     }
                 }
                 
@@ -152,17 +152,17 @@ struct NewChatView: View {
         .safeAreaInset(edge: .bottom) {
             chatInputBar
         }
-        .onChange(of: initialPrompt) { newValue in
-            if !newValue.isEmpty {
-                messageText = newValue
-                initialPrompt = ""
-                sendMessage()
-            }
-        }
-        .onChange(of: selectedPhotoItem) { newValue in
-            Task {
-                if let data = try? await newValue?.loadTransferable(type: Data.self),
-                   let uiImage = UIImage(data: data) {
+                .onChange(of: initialPrompt) { oldValue, newValue in
+                    if !newValue.isEmpty {
+                        messageText = newValue
+                        initialPrompt = ""
+                        sendMessage()
+                    }
+                }
+                .onChange(of: selectedPhotoItem) { oldValue, newValue in
+                    Task {
+                        if let data = try? await newValue?.loadTransferable(type: Data.self),
+                           let uiImage = UIImage(data: data) {
                     let resizedData = resizeImage(uiImage, maxDimension: 1024)
                     await MainActor.run {
                         let attachment = ChatImageAttachment(id: UUID(), imageData: resizedData, previewImage: uiImage)

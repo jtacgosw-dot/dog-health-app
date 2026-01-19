@@ -33,7 +33,7 @@ struct DailyLogEntryView: View {
                     
                     Spacer()
                     
-                    if let dog = appState.currentDog {
+                    if appState.currentDog != nil {
                         Circle()
                             .fill(Color.petlyLightGreen)
                             .frame(width: 50, height: 50)
