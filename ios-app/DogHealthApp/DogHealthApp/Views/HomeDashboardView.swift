@@ -703,7 +703,8 @@ struct DailyActivityRingCard: View {
             }
         }
         .padding()
-        .frame(maxWidth: .infinity, minHeight: min(cardMinHeight, 360))
+        .frame(maxWidth: .infinity)
+        .frame(minHeight: 320, maxHeight: 320)
         .background(Color.petlyLightGreen)
         .cornerRadius(16)
         .shadow(color: .black.opacity(0.06), radius: 8, x: 0, y: 2)
@@ -782,7 +783,8 @@ struct WellnessTrackerCard: View {
             .padding(.top, 8)
         }
         .padding()
-        .frame(maxWidth: .infinity, minHeight: min(cardMinHeight, 360))
+        .frame(maxWidth: .infinity)
+        .frame(minHeight: 320, maxHeight: 320)
         .background(Color.petlyLightGreen)
         .cornerRadius(16)
         .shadow(color: .black.opacity(0.06), radius: 8, x: 0, y: 2)
@@ -1056,14 +1058,8 @@ struct HealthDigestCard: View {
                     .foregroundColor(.petlyFormIcon)
             }
             .padding()
-            .frame(maxWidth: .infinity, minHeight: 120, alignment: .leading)
-            .background(
-                LinearGradient(
-                    gradient: Gradient(colors: [Color.petlyLightGreen.opacity(0.8), Color.petlyLightGreen.opacity(0.4)]),
-                    startPoint: .topLeading,
-                    endPoint: .bottomTrailing
-                )
-            )
+            .frame(maxWidth: .infinity, minHeight: 130, alignment: .leading)
+            .background(Color.petlyLightGreen)
             .cornerRadius(16)
             .shadow(color: .black.opacity(0.06), radius: 8, x: 0, y: 2)
         }
@@ -1096,14 +1092,8 @@ struct CarePlansCard:View {
                     .foregroundColor(.petlyFormIcon)
             }
             .padding()
-            .frame(maxWidth: .infinity, minHeight: 120, alignment: .leading)
-            .background(
-                LinearGradient(
-                    gradient: Gradient(colors: [Color.petlyLightGreen.opacity(0.8), Color.petlyLightGreen.opacity(0.4)]),
-                    startPoint: .topLeading,
-                    endPoint: .bottomTrailing
-                )
-            )
+            .frame(maxWidth: .infinity, minHeight: 130, alignment: .leading)
+            .background(Color.petlyLightGreen)
             .cornerRadius(16)
             .shadow(color: .black.opacity(0.06), radius: 8, x: 0, y: 2)
         }
@@ -1306,13 +1296,7 @@ struct PreventativeCareCard:View {
             }
             .padding()
             .frame(maxWidth: .infinity, minHeight: 130, alignment: .leading)
-            .background(
-                LinearGradient(
-                    gradient: Gradient(colors: [Color.petlyLightGreen.opacity(0.8), Color.petlyLightGreen.opacity(0.4)]),
-                    startPoint: .topLeading,
-                    endPoint: .bottomTrailing
-                )
-            )
+            .background(Color.petlyLightGreen)
             .cornerRadius(16)
             .shadow(color: .black.opacity(0.06), radius: 8, x: 0, y: 2)
         }
