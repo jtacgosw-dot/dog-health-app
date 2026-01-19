@@ -14,6 +14,11 @@ final class CarePlan {
     var isActive: Bool
     var createdAt: Date
     
+    // Sync tracking fields
+    var isSynced: Bool = false
+    var serverPlanId: String? = nil
+    var needsSync: Bool = true
+    
     @Relationship(deleteRule: .cascade) var tasks: [CarePlanTask]
     @Relationship(deleteRule: .cascade) var milestones: [CarePlanMilestone]
     

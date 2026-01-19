@@ -1,7 +1,13 @@
 import SwiftUI
+import SwiftData
+import StoreKit
 
 struct SettingsView: View {
     @EnvironmentObject var appState: AppState
+    @Environment(\.modelContext) private var modelContext
+    @Query private var healthLogs: [HealthLogEntry]
+    @Query private var reminders: [PetReminder]
+    @Query private var carePlans: [CarePlan]
     @State private var showSignOutAlert = false
     @State private var showNotificationSettings = false
     @State private var showWeightTracking = false
@@ -11,6 +17,10 @@ struct SettingsView: View {
     @State private var showFeedbackSheet = false
     @State private var showDeleteDataAlert = false
     @State private var showAboutSheet = false
+    @State private var showExportSheet = false
+    @State private var exportURL: URL?
+    @State private var isDeletingData = false
+    @State private var deleteSuccessMessage: String?
     @AppStorage("appearanceMode") private var appearanceMode: Int = 0
     
     private var appVersion: String {
@@ -206,10 +216,15 @@ struct SettingsView: View {
             .alert("Delete All Data", isPresented: $showDeleteDataAlert) {
                 Button("Cancel", role: .cancel) { }
                 Button("Delete", role: .destructive) {
-                    // TODO: Implement data deletion
+                    deleteAllData()
                 }
             } message: {
                 Text("This will permanently delete all health logs and data for your pets. This action cannot be undone.")
+            }
+            .sheet(isPresented: $showExportSheet) {
+                if let url = exportURL {
+                    ShareSheet(activityItems: [url])
+                }
             }
         }
     }
@@ -247,14 +262,15 @@ struct SettingsView: View {
     }
     
     private func rateApp() {
-        if let url = URL(string: "https://apps.apple.com/app/idXXXXXXXXXX?action=write-review") {
-            UIApplication.shared.open(url)
+        if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene {
+            SKStoreReviewController.requestReview(in: windowScene)
         }
     }
     
     private func shareApp() {
+        let appStoreURL = URL(string: "https://apps.apple.com/app/petly")!
         let activityVC = UIActivityViewController(
-            activityItems: ["Check out Petly - the best app for tracking your pet's health!", URL(string: "https://apps.apple.com/app/idXXXXXXXXXX")!],
+            activityItems: ["Check out Petly - the best app for tracking your pet's health!", appStoreURL],
             applicationActivities: nil
         )
         
@@ -266,8 +282,85 @@ struct SettingsView: View {
     }
     
     private func exportAllData() {
-        // TODO: Implement data export functionality
+        guard let dogId = appState.currentDog?.id else { return }
+        
+        let dogLogs = healthLogs.filter { $0.dogId == dogId }
+        let dogReminders = reminders.filter { $0.dogId == dogId }
+        
+        var exportData: [[String: Any]] = []
+        
+        let dateFormatter = ISO8601DateFormatter()
+        
+        for log in dogLogs {
+            var logDict: [String: Any] = [
+                "type": "health_log",
+                "logType": log.logType,
+                "timestamp": dateFormatter.string(from: log.timestamp),
+                "notes": log.notes
+            ]
+            if let mealType = log.mealType { logDict["mealType"] = mealType }
+            if let amount = log.amount { logDict["amount"] = amount }
+            if let duration = log.duration { logDict["duration"] = duration }
+            if let moodLevel = log.moodLevel { logDict["moodLevel"] = moodLevel }
+            if let symptomType = log.symptomType { logDict["symptomType"] = symptomType }
+            if let severityLevel = log.severityLevel { logDict["severityLevel"] = severityLevel }
+            exportData.append(logDict)
+        }
+        
+        for reminder in dogReminders {
+            exportData.append([
+                "type": "reminder",
+                "title": reminder.title,
+                "reminderType": reminder.reminderType,
+                "frequency": reminder.frequency,
+                "nextDueDate": dateFormatter.string(from: reminder.nextDueDate),
+                "notes": reminder.notes ?? ""
+            ])
+        }
+        
+        do {
+            let jsonData = try JSONSerialization.data(withJSONObject: exportData, options: .prettyPrinted)
+            let tempURL = FileManager.default.temporaryDirectory.appendingPathComponent("petly_export_\(Date().timeIntervalSince1970).json")
+            try jsonData.write(to: tempURL)
+            exportURL = tempURL
+            showExportSheet = true
+        } catch {
+            print("Export failed: \(error)")
+        }
     }
+    
+    private func deleteAllData() {
+        guard let dogId = appState.currentDog?.id else { return }
+        
+        let dogLogs = healthLogs.filter { $0.dogId == dogId }
+        let dogReminders = reminders.filter { $0.dogId == dogId }
+        let dogCarePlans = carePlans.filter { $0.dogId == dogId }
+        
+        for log in dogLogs {
+            modelContext.delete(log)
+        }
+        
+        for reminder in dogReminders {
+            NotificationManager.shared.cancelReminderNotification(for: reminder)
+            modelContext.delete(reminder)
+        }
+        
+        for plan in dogCarePlans {
+            modelContext.delete(plan)
+        }
+        
+        try? modelContext.save()
+    }
+}
+
+struct ShareSheet: UIViewControllerRepresentable {
+    let activityItems: [Any]
+    
+    func makeUIViewController(context: Context) -> UIActivityViewController {
+        UIActivityViewController(activityItems: activityItems, applicationActivities: nil)
+    }
+    
+    func updateUIViewController(_ uiViewController: UIActivityViewController, context: Context) {}
 }
 
 struct SettingsSection<Content: View>: View {
@@ -349,6 +442,8 @@ struct FeedbackView: View {
     @State private var feedbackText: String = ""
     @State private var email: String = ""
     @State private var showSuccessAlert = false
+    @State private var isSubmitting = false
+    @State private var showMailError = false
     
     enum FeedbackType: String, CaseIterable {
         case bug = "Bug Report"
@@ -450,9 +545,36 @@ struct FeedbackView: View {
     }
     
     private func submitFeedback() {
-        // In a real app, this would send the feedback to a server
-        // For now, we'll just show a success message
-        showSuccessAlert = true
+        let subject = "Petly Feedback: \(feedbackType.rawValue)"
+        let body = """
+        Feedback Type: \(feedbackType.rawValue)
+        
+        \(feedbackText)
+        
+        ---
+        Reply Email: \(email.isEmpty ? "Not provided" : email)
+        App Version: \(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "Unknown")
+        Device: \(UIDevice.current.model)
+        iOS Version: \(UIDevice.current.systemVersion)
+        """
+        
+        let encodedSubject = subject.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
+        let encodedBody = body.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
+        
+        if let url = URL(string: "mailto:feedback@petlyapp.com?subject=\(encodedSubject)&body=\(encodedBody)") {
+            if UIApplication.shared.canOpenURL(url) {
+                UIApplication.shared.open(url)
+                showSuccessAlert = true
+            } else {
+                UserDefaults.standard.set([
+                    "type": feedbackType.rawValue,
+                    "text": feedbackText,
+                    "email": email,
+                    "date": ISO8601DateFormatter().string(from: Date())
+                ], forKey: "pendingFeedback_\(Date().timeIntervalSince1970)")
+                showSuccessAlert = true
+            }
+        }
     }
 }
 

@@ -15,6 +15,8 @@ class HealthLogSyncService: ObservableObject {
     private var modelContext: ModelContext?
     
     private let lastSyncKey = "lastHealthLogSyncAt"
+    private let maxRetryAttempts = 3
+    private let baseRetryDelay: UInt64 = 1_000_000_000 // 1 second in nanoseconds
     
     private init() {
         setupNetworkMonitoring()
@@ -161,18 +163,35 @@ class HealthLogSyncService: ObservableObject {
         guard isOnline else { return }
         guard APIService.shared.getAuthToken() != nil else { return }
         
-        do {
-            let request = HealthLogRequest(from: entry)
-            let response = try await APIService.shared.createHealthLog(log: request)
-            
-            entry.serverLogId = response.log.id
-            entry.isSynced = true
-            entry.needsSync = false
-            entry.lastSyncedAt = Date()
-            
-            try modelContext?.save()
-        } catch {
-            print("Failed to sync single log: \(error)")
+        var lastError: Error?
+        
+        for attempt in 0..<maxRetryAttempts {
+            do {
+                let request = HealthLogRequest(from: entry)
+                let response = try await APIService.shared.createHealthLog(log: request)
+                
+                entry.serverLogId = response.log.id
+                entry.isSynced = true
+                entry.needsSync = false
+                entry.lastSyncedAt = Date()
+                
+                try modelContext?.save()
+                return // Success, exit the retry loop
+            } catch {
+                lastError = error
+                print("Sync attempt \(attempt + 1) failed: \(error)")
+                
+                if attempt < maxRetryAttempts - 1 {
+                    // Exponential backoff: 1s, 2s, 4s
+                    let delay = baseRetryDelay * UInt64(1 << attempt)
+                    try? await Task.sleep(nanoseconds: delay)
+                }
+            }
+        }
+        
+        if let error = lastError {
+            print("Failed to sync single log after \(maxRetryAttempts) attempts: \(error)")
+            lastSyncError = error.localizedDescription
             // Log will be synced later when syncPendingLogs runs
         }
     }

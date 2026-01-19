@@ -163,6 +163,7 @@ struct NewOnboardingView: View {
                     .padding(.bottom, -72)
                 
                 Button(action: {
+                    UserDefaults.standard.set(Array(selectedInterests), forKey: "userInterests")
                     withAnimation(.spring(response: 0.5, dampingFraction: 0.7)) {
                         appState.hasCompletedOnboarding = true
                     }

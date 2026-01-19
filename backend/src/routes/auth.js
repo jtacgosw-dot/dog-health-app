@@ -96,9 +96,14 @@ router.post('/dev',
       }
 
       // Generate JWT token
+      const jwtSecret = process.env.JWT_SECRET;
+      if (!jwtSecret) {
+        console.error('JWT_SECRET environment variable is not set');
+        return res.status(500).json({ error: 'Server configuration error' });
+      }
       const token = jwt.sign(
         { userId: user.id, email: user.email },
-        process.env.JWT_SECRET || 'dev-secret-key',
+        jwtSecret,
         { expiresIn: '30d' }
       );
 
@@ -176,9 +181,14 @@ router.post('/guest',
       }
 
       // Generate JWT token (valid for 7 days for guests)
+      const jwtSecret = process.env.JWT_SECRET;
+      if (!jwtSecret) {
+        console.error('JWT_SECRET environment variable is not set');
+        return res.status(500).json({ error: 'Server configuration error' });
+      }
       const token = jwt.sign(
         { userId: user.id, email: user.email, isGuest: true },
-        process.env.JWT_SECRET || 'dev-secret-key',
+        jwtSecret,
         { expiresIn: '7d' }
       );
 

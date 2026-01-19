@@ -70,7 +70,7 @@ struct NewPetProfileView: View {
                             }
                             .offset(x: 35, y: 35)
                         }
-                        .onChange(of: selectedPhoto) { newValue in
+                        .onChange(of: selectedPhoto) { oldValue, newValue in
                             Task {
                                 if let data = try? await newValue?.loadTransferable(type: Data.self),
                                    let uiImage = UIImage(data: data) {
@@ -169,10 +169,23 @@ struct NewPetProfileView: View {
             return
         }
         
+        let ageInt = Int(age) ?? 0
+        let weightDouble = Double(weight)
+        
+        if ageInt < 0 {
+            errorMessage = "Age cannot be negative"
+            return
+        }
+        
+        if let w = weightDouble, w < 0 {
+            errorMessage = "Weight cannot be negative"
+            return
+        }
+        
+        errorMessage = nil
+        
         Task {
             do {
-                let ageInt = Int(age) ?? 0
-                let weightDouble = Double(weight)
                 let allergiesArray = allergies.split(separator: ",").map { $0.trimmingCharacters(in: .whitespaces) }
                 let healthConcernsArray = healthConditions.split(separator: ",").map { $0.trimmingCharacters(in: .whitespaces) }
                 
