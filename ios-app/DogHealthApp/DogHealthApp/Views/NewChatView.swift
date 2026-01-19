@@ -57,6 +57,11 @@ struct NewChatView: View {
     @FocusState private var isTextFieldFocused: Bool
     @StateObject private var keyboardObserver = KeyboardObserver()
     
+    // Scaled sizes for Dynamic Type support
+    @ScaledMetric(relativeTo: .body) private var avatarSize: CGFloat = 50
+    @ScaledMetric(relativeTo: .body) private var avatarIconSize: CGFloat = 25
+    @ScaledMetric(relativeTo: .body) private var imagePreviewSize: CGFloat = 60
+    
     init(initialPrompt: Binding<String> = .constant("")) {
         self._initialPrompt = initialPrompt
     }
@@ -92,10 +97,10 @@ struct NewChatView: View {
                     if let dog = appState.currentDog {
                         Circle()
                             .fill(Color.petlyLightGreen)
-                            .frame(width: 50, height: 50)
+                            .frame(width: min(avatarSize, 70), height: min(avatarSize, 70))
                             .overlay(
                                 Image(systemName: "dog.fill")
-                                    .font(.system(size: 25))
+                                    .font(.system(size: min(avatarIconSize, 32)))
                                     .foregroundColor(.petlyDarkGreen)
                             )
                     }
@@ -199,7 +204,7 @@ struct NewChatView: View {
                                 Image(uiImage: attachment.previewImage)
                                     .resizable()
                                     .scaledToFill()
-                                    .frame(width: 60, height: 60)
+                                    .frame(width: min(imagePreviewSize, 80), height: min(imagePreviewSize, 80))
                                     .clipped()
                                     .cornerRadius(8)
                                 
@@ -505,6 +510,9 @@ struct NewMessageBubble: View {
     let message: Message
     @State private var appeared = false
     
+    // Scaled sizes for Dynamic Type support
+    @ScaledMetric(relativeTo: .body) private var bubbleMaxWidth: CGFloat = 280
+    
     var body: some View {
         HStack(alignment: .top, spacing: 10) {
             if message.role == .user {
@@ -523,7 +531,7 @@ struct NewMessageBubble: View {
                     .font(.petlyBody(10))
                     .foregroundColor(.petlyFormIcon)
             }
-            .frame(maxWidth: 280, alignment: message.role == .user ? .trailing : .leading)
+            .frame(maxWidth: min(bubbleMaxWidth, 360), alignment: message.role == .user ? .trailing : .leading)
             
             if message.role == .assistant {
                 Spacer()

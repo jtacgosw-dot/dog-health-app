@@ -46,6 +46,10 @@ struct CustomTabBar: View {
     @Binding var showDailyLog: Bool
     @State private var centerButtonPressed = false
     
+    // Scaled sizes for Dynamic Type support
+    @ScaledMetric(relativeTo: .body) private var centerButtonSize: CGFloat = 64
+    @ScaledMetric(relativeTo: .body) private var centerIconSize: CGFloat = 28
+    
     let tabs = [
         ("house.fill", "Home"),
         ("message.fill", "Chat"),
@@ -72,10 +76,10 @@ struct CustomTabBar: View {
                         ZStack {
                             Circle()
                                 .fill(Color.petlyLightGreen)
-                                .frame(width: 64, height: 64)
+                                .frame(width: min(centerButtonSize, 80), height: min(centerButtonSize, 80))
                             
                             Image(systemName: "plus")
-                                .font(.system(size: 28, weight: .medium))
+                                .font(.system(size: min(centerIconSize, 36), weight: .medium))
                                 .foregroundColor(.petlyDarkGreen)
                         }
                         .offset(y: -20)
@@ -114,6 +118,9 @@ struct TabBarButton: View {
     @State private var isPressed = false
     @State private var bounceScale: CGFloat = 1.0
     
+    // Scaled sizes for Dynamic Type support
+    @ScaledMetric(relativeTo: .body) private var tabIconSize: CGFloat = 20
+    
     var body: some View {
         Button(action: {
             withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) {
@@ -128,7 +135,7 @@ struct TabBarButton: View {
         }) {
             VStack(spacing: 4) {
                 Image(systemName: icon)
-                    .font(.system(size: 20))
+                    .font(.system(size: min(tabIconSize, 28)))
                     .foregroundColor(isSelected ? .petlyLightGreen : .petlyFormIcon)
                     .scaleEffect(bounceScale)
                 
@@ -161,6 +168,10 @@ struct ExploreView: View {
     @EnvironmentObject var appState: AppState
     @State private var selectedQuickAction: String?
     var onQuickAction: ((String) -> Void)?
+    
+    // Scaled sizes for Dynamic Type support
+    @ScaledMetric(relativeTo: .body) private var avatarSize: CGFloat = 60
+    @ScaledMetric(relativeTo: .body) private var avatarIconSize: CGFloat = 28
     
     private var dogName: String {
         appState.currentDog?.name ?? "your pet"
@@ -203,10 +214,10 @@ struct ExploreView: View {
                         
                         Circle()
                             .fill(Color.petlyLightGreen)
-                            .frame(width: 60, height: 60)
+                            .frame(width: min(avatarSize, 80), height: min(avatarSize, 80))
                             .overlay(
                                 Image(systemName: "dog.fill")
-                                    .font(.system(size: 28))
+                                    .font(.system(size: min(avatarIconSize, 36)))
                                     .foregroundColor(.petlyDarkGreen)
                             )
                     }
