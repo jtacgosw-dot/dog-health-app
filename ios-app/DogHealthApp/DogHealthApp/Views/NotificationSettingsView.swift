@@ -109,9 +109,9 @@ struct NotificationSettingsView: View {
                 }
                 .tint(.petlyDarkGreen)
                 .padding()
-                .onChange(of: notificationManager.mealRemindersEnabled) { _ in
-                    notificationManager.saveSettings()
-                }
+                                .onChange(of: notificationManager.mealRemindersEnabled) {
+                                    notificationManager.saveSettings()
+                                }
                 
                 if notificationManager.mealRemindersEnabled {
                     Divider()
@@ -126,9 +126,9 @@ struct NotificationSettingsView: View {
                         }
                     }
                     .padding()
-                    .onChange(of: notificationManager.breakfastTime) { _ in
-                        notificationManager.saveSettings()
-                    }
+                                        .onChange(of: notificationManager.breakfastTime) {
+                                            notificationManager.saveSettings()
+                                        }
                     
                     Divider()
                         .padding(.horizontal)
@@ -142,9 +142,9 @@ struct NotificationSettingsView: View {
                         }
                     }
                     .padding()
-                    .onChange(of: notificationManager.dinnerTime) { _ in
-                        notificationManager.saveSettings()
-                    }
+                                        .onChange(of: notificationManager.dinnerTime) {
+                                            notificationManager.saveSettings()
+                                        }
                 }
             }
             .background(Color.petlyLightGreen)
@@ -173,9 +173,9 @@ struct NotificationSettingsView: View {
                 }
                 .tint(.petlyDarkGreen)
                 .padding()
-                .onChange(of: notificationManager.walkRemindersEnabled) { _ in
-                    notificationManager.saveSettings()
-                }
+                                .onChange(of: notificationManager.walkRemindersEnabled) {
+                                    notificationManager.saveSettings()
+                                }
                 
                 if notificationManager.walkRemindersEnabled {
                     Divider()
@@ -190,9 +190,9 @@ struct NotificationSettingsView: View {
                         }
                     }
                     .padding()
-                    .onChange(of: notificationManager.morningWalkTime) { _ in
-                        notificationManager.saveSettings()
-                    }
+                                        .onChange(of: notificationManager.morningWalkTime) {
+                                            notificationManager.saveSettings()
+                                        }
                     
                     Divider()
                         .padding(.horizontal)
@@ -206,9 +206,9 @@ struct NotificationSettingsView: View {
                         }
                     }
                     .padding()
-                    .onChange(of: notificationManager.eveningWalkTime) { _ in
-                        notificationManager.saveSettings()
-                    }
+                                        .onChange(of: notificationManager.eveningWalkTime) {
+                                            notificationManager.saveSettings()
+                                        }
                 }
             }
             .background(Color.petlyLightGreen)

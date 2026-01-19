@@ -34,8 +34,8 @@ struct HealthDigestView: View {
         let thisWeekLogs = allLogs.filter { $0.dogId == dogId && $0.timestamp >= sevenDaysAgo }
         let lastWeekLogs = allLogs.filter { $0.dogId == dogId && $0.timestamp >= fourteenDaysAgo && $0.timestamp < sevenDaysAgo }
         
-        let thisWeekMeals = thisWeekLogs.filter { $0.logType == "Meals" }.count
-        let lastWeekMeals = lastWeekLogs.filter { $0.logType == "Meals" }.count
+                let thisWeekMeals = thisWeekLogs.filter { $0.logType == "Meals" }.count
+                let _ = lastWeekLogs.filter { $0.logType == "Meals" }.count
         
         let thisWeekActivity = thisWeekLogs
             .filter { $0.logType == "Walk" || $0.logType == "Playtime" }
@@ -46,8 +46,8 @@ struct HealthDigestView: View {
             .compactMap { Int($0.duration ?? "0") }
             .reduce(0, +)
         
-        let thisWeekSymptoms = thisWeekLogs.filter { $0.logType == "Symptom" }
-        let lastWeekSymptoms = lastWeekLogs.filter { $0.logType == "Symptom" }
+                let thisWeekSymptoms = thisWeekLogs.filter { $0.logType == "Symptom" }
+                let _ = lastWeekLogs.filter { $0.logType == "Symptom" }
         
         let thisWeekMoods = thisWeekLogs.filter { $0.logType == "Mood" }.compactMap { $0.moodLevel }
         let avgMood = thisWeekMoods.isEmpty ? nil : Double(thisWeekMoods.reduce(0, +)) / Double(thisWeekMoods.count)
