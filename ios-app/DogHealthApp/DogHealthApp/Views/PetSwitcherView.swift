@@ -165,6 +165,8 @@ struct AddPetView: View {
     @State private var age = ""
     @State private var weight = ""
     @State private var gender = "Male"
+    @State private var isLoading = false
+    @State private var errorMessage: String?
     
     let genders = ["Male", "Female"]
     
@@ -222,16 +224,34 @@ struct AddPetView: View {
                         .background(Color.white)
                         .cornerRadius(16)
                         
-                        Button(action: addPet) {
-                            Text("Add Pet")
-                                .font(.petlyBodyMedium(16))
-                                .foregroundColor(.white)
-                                .frame(maxWidth: .infinity)
+                        if let errorMessage = errorMessage {
+                            Text(errorMessage)
+                                .font(.petlyBody(14))
+                                .foregroundColor(.red)
                                 .padding()
-                                .background(name.isEmpty ? Color.gray : Color.petlyDarkGreen)
-                                .cornerRadius(12)
+                                .background(Color.red.opacity(0.1))
+                                .cornerRadius(8)
                         }
-                        .disabled(name.isEmpty)
+                        
+                        Button(action: addPet) {
+                            if isLoading {
+                                ProgressView()
+                                    .tint(.white)
+                                    .frame(maxWidth: .infinity)
+                                    .padding()
+                                    .background(Color.petlyDarkGreen)
+                                    .cornerRadius(12)
+                            } else {
+                                Text("Add Pet")
+                                    .font(.petlyBodyMedium(16))
+                                    .foregroundColor(.white)
+                                    .frame(maxWidth: .infinity)
+                                    .padding()
+                                    .background(name.isEmpty ? Color.gray : Color.petlyDarkGreen)
+                                    .cornerRadius(12)
+                            }
+                        }
+                        .disabled(name.isEmpty || isLoading)
                         .padding(.top)
                     }
                     .padding()
@@ -250,16 +270,47 @@ struct AddPetView: View {
     }
     
     private func addPet() {
-        let newDog = Dog(
-            id: UUID().uuidString,
-            name: name,
-            breed: breed.isEmpty ? "Unknown" : breed,
-            age: Int(age) ?? 0,
-            weight: Double(weight)
-        )
-        appState.dogs.append(newDog)
-        appState.currentDog = newDog
-        dismiss()
+        errorMessage = nil
+        
+        let ageInt = Int(age) ?? 0
+        let weightDouble = Double(weight)
+        
+        if ageInt < 0 {
+            errorMessage = "Age cannot be negative"
+            return
+        }
+        
+        if let w = weightDouble, w < 0 {
+            errorMessage = "Weight cannot be negative"
+            return
+        }
+        
+        isLoading = true
+        
+        Task {
+            do {
+                let newDog = Dog(
+                    name: name,
+                    breed: breed.isEmpty ? "Unknown" : breed,
+                    age: ageInt,
+                    weight: weightDouble
+                )
+                
+                let createdDog = try await APIService.shared.createDog(dog: newDog)
+                
+                await MainActor.run {
+                    appState.dogs.append(createdDog)
+                    appState.currentDog = createdDog
+                    isLoading = false
+                    dismiss()
+                }
+            } catch {
+                await MainActor.run {
+                    errorMessage = "Failed to add pet: \(error.localizedDescription)"
+                    isLoading = false
+                }
+            }
+        }
     }
 }
 

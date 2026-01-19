@@ -110,6 +110,8 @@ struct SignInView: View {
                     appState.isSignedIn = true
                     isLoading = false
                 }
+                
+                await appState.loadUserData()
             } catch {
                 await MainActor.run {
                     errorMessage = "Guest sign in failed: \(error.localizedDescription)"

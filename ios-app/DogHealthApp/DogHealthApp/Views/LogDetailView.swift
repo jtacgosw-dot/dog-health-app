@@ -52,6 +52,7 @@ struct LogDetailView: View {
     @State private var isSaved = false
     @State private var photoData: Data? = nil
     @State private var showSuccessAnimation = false
+    @State private var errorMessage: String?
     
     let mealTypes = ["Breakfast", "Lunch", "Dinner", "Snack"]
     
@@ -97,6 +98,15 @@ struct LogDetailView: View {
                 
                 ScrollView {
                     VStack(spacing: 20) {
+                        if let errorMessage = errorMessage {
+                            Text(errorMessage)
+                                .font(.petlyBody(12))
+                                .foregroundColor(.red)
+                                .padding()
+                                .background(Color.red.opacity(0.1))
+                                .cornerRadius(8)
+                        }
+                        
                         dateSection
                         
                         logTypeSpecificContent
@@ -423,7 +433,12 @@ struct LogDetailView: View {
     }
     
     private func saveEntry() {
-        let dogId = appState.currentDog?.id ?? "default"
+        guard let dogId = appState.currentDog?.id else {
+            errorMessage = "Please select a pet before logging entries"
+            return
+        }
+        
+        errorMessage = nil
         
         let entry = HealthLogEntry(
             dogId: dogId,
