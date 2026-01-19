@@ -1,12 +1,8 @@
 import SwiftUI
-import StoreKit
 
 struct NewPaywallView: View {
     @EnvironmentObject var appState: AppState
     @State private var selectedPlan: PlanType = .annual
-    @State private var isPurchasing = false
-    @State private var purchaseError: String?
-    @State private var showError = false
     @Environment(\.dismiss) var dismiss
     
     enum PlanType: String {
@@ -174,117 +170,22 @@ struct NewPaywallView: View {
                 }
             }
             
-            if isPurchasing {
-                Color.black.opacity(0.3)
-                    .ignoresSafeArea()
-                ProgressView()
-                    .scaleEffect(1.5)
-                    .tint(.white)
-            }
         }
         .buttonStyle(.plain)
-        .alert("Error", isPresented: $showError) {
-            Button("OK") { }
-        } message: {
-            Text(purchaseError ?? "An error occurred")
-        }
-        .disabled(isPurchasing)
     }
     
     private func startFreeTrial() {
-        isPurchasing = true
-        
-        Task {
-            do {
-                let productId = selectedPlan.rawValue
-                let products = try await Product.products(for: [productId])
-                
-                guard let product = products.first else {
-                    await MainActor.run {
-                        purchaseError = "Product not available"
-                        showError = true
-                        isPurchasing = false
-                    }
-                    return
-                }
-                
-                let result = try await product.purchase()
-                
-                switch result {
-                case .success(let verification):
-                    switch verification {
-                    case .verified(let transaction):
-                        await transaction.finish()
-                        await MainActor.run {
-                            appState.hasActiveSubscription = true
-                            isPurchasing = false
-                            dismiss()
-                        }
-                    case .unverified(_, let error):
-                        await MainActor.run {
-                            purchaseError = "Purchase verification failed: \(error.localizedDescription)"
-                            showError = true
-                            isPurchasing = false
-                        }
-                    }
-                case .userCancelled:
-                    await MainActor.run {
-                        isPurchasing = false
-                    }
-                case .pending:
-                    await MainActor.run {
-                        purchaseError = "Purchase is pending approval"
-                        showError = true
-                        isPurchasing = false
-                    }
-                @unknown default:
-                    await MainActor.run {
-                        isPurchasing = false
-                    }
-                }
-            } catch {
-                await MainActor.run {
-                    purchaseError = error.localizedDescription
-                    showError = true
-                    isPurchasing = false
-                }
-            }
-        }
+        // TODO: Implement real StoreKit purchase when App Store Connect is configured
+        // For now, just activate subscription for UI testing
+        appState.hasActiveSubscription = true
+        dismiss()
     }
     
     private func restorePurchases() {
-        isPurchasing = true
-        
-        Task {
-            do {
-                try await AppStore.sync()
-                
-                for await result in Transaction.currentEntitlements {
-                    if case .verified(let transaction) = result {
-                        if transaction.productID.contains("premium") {
-                            await MainActor.run {
-                                appState.hasActiveSubscription = true
-                                isPurchasing = false
-                                dismiss()
-                            }
-                            return
-                        }
-                    }
-                }
-                
-                await MainActor.run {
-                    purchaseError = "No active subscription found"
-                    showError = true
-                    isPurchasing = false
-                }
-            } catch {
-                await MainActor.run {
-                    purchaseError = error.localizedDescription
-                    showError = true
-                    isPurchasing = false
-                }
-            }
-        }
+        // TODO: Implement real StoreKit restore when App Store Connect is configured
+        // For now, just activate subscription for UI testing
+        appState.hasActiveSubscription = true
+        dismiss()
     }
     
     private func openPrivacyPolicy() {
