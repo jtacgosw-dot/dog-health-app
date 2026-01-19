@@ -135,18 +135,18 @@ struct PetProfileView: View {
         .onAppear {
             loadCurrentDog()
         }
-        .onChange(of: selectedPhoto) { newItem in
-            Task {
-                if let data = try? await newItem?.loadTransferable(type: Data.self),
-                   let uiImage = UIImage(data: data) {
-                    await MainActor.run {
-                        withAnimation {
-                            profileImage = Image(uiImage: uiImage)
+                .onChange(of: selectedPhoto) { oldValue, newValue in
+                    Task {
+                        if let data = try? await newValue?.loadTransferable(type: Data.self),
+                           let uiImage = UIImage(data: data) {
+                            await MainActor.run {
+                                withAnimation {
+                                    profileImage = Image(uiImage: uiImage)
+                                }
+                            }
                         }
                     }
                 }
-            }
-        }
     }
     
     private func loadCurrentDog() {
