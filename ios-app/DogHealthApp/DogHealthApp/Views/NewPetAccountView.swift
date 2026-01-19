@@ -14,6 +14,14 @@ struct NewPetAccountView: View {
     @State private var showingCustomerSupport = false
     @State private var showingEditProfile = false
     
+    // Scaled sizes for Dynamic Type support
+    @ScaledMetric(relativeTo: .body) private var profileAvatarSize: CGFloat = 120
+    @ScaledMetric(relativeTo: .body) private var profileIconSize: CGFloat = 60
+    @ScaledMetric(relativeTo: .body) private var editButtonSize: CGFloat = 36
+    @ScaledMetric(relativeTo: .body) private var editIconSize: CGFloat = 14
+    @ScaledMetric(relativeTo: .body) private var miniAvatarSize: CGFloat = 32
+    @ScaledMetric(relativeTo: .body) private var miniIconSize: CGFloat = 16
+    
     private var showMiniHeader: Bool {
         scrollOffset > 180
     }
@@ -40,22 +48,22 @@ struct NewPetAccountView: View {
                         
                         Circle()
                             .fill(Color.petlyLightGreen)
-                            .frame(width: 120, height: 120)
+                            .frame(width: min(profileAvatarSize, 160), height: min(profileAvatarSize, 160))
                             .overlay(
                                 Image(systemName: "dog.fill")
-                                    .font(.system(size: 60))
+                                    .font(.system(size: min(profileIconSize, 80)))
                                     .foregroundColor(.petlyDarkGreen)
                             )
                             .overlay(
                                 Circle()
                                     .fill(Color.petlyDarkGreen)
-                                    .frame(width: 36, height: 36)
+                                    .frame(width: min(editButtonSize, 48), height: min(editButtonSize, 48))
                                     .overlay(
                                         Image(systemName: "pencil")
-                                            .font(.system(size: 14))
+                                            .font(.system(size: min(editIconSize, 18)))
                                             .foregroundColor(.white)
                                     )
-                                    .offset(x: 40, y: 40)
+                                    .offset(x: min(profileAvatarSize, 160) / 3, y: min(profileAvatarSize, 160) / 3)
                             )
                         
                         Text("\(appState.currentDog?.name ?? "Arlo"), \(appState.currentDog?.age ?? 1) Year")
@@ -226,10 +234,10 @@ struct NewPetAccountView: View {
                     HStack(spacing: 8) {
                         Circle()
                             .fill(Color.petlyLightGreen)
-                            .frame(width: 32, height: 32)
+                            .frame(width: min(miniAvatarSize, 44), height: min(miniAvatarSize, 44))
                             .overlay(
                                 Image(systemName: "dog.fill")
-                                    .font(.system(size: 16))
+                                    .font(.system(size: min(miniIconSize, 22)))
                                     .foregroundColor(.petlyDarkGreen)
                             )
                         

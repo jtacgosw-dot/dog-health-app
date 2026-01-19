@@ -6,6 +6,11 @@ struct HomeDashboardView: View {
     @Environment(\.modelContext) private var modelContext
     @Query private var allLogs: [HealthLogEntry]
     
+    // Scaled sizes for Dynamic Type support
+    @ScaledMetric(relativeTo: .body) private var avatarSize: CGFloat = 60
+    @ScaledMetric(relativeTo: .body) private var avatarIconSize: CGFloat = 28
+    @ScaledMetric(relativeTo: .body) private var pawprintIconSize: CGFloat = 14
+    
     @State private var showDailyLog = false
     @State private var selectedLogType: LogType?
     @State private var initialMealType: Int?
@@ -125,7 +130,7 @@ struct HomeDashboardView: View {
                                             .font(.petlyBody(16))
                                             .foregroundColor(.petlyDarkGreen)
                                         Image(systemName: "pawprint.fill")
-                                            .font(.system(size: 14))
+                                            .font(.system(size: pawprintIconSize))
                                             .foregroundColor(.petlyDarkGreen)
                                     }
                                 }
@@ -136,10 +141,10 @@ struct HomeDashboardView: View {
                                     Button(action: { showPetSwitcher = true }) {
                                         Circle()
                                             .fill(Color.petlyLightGreen)
-                                            .frame(width: 60, height: 60)
+                                            .frame(width: min(avatarSize, 80), height: min(avatarSize, 80))
                                             .overlay(
                                                 Image(systemName: "dog.fill")
-                                                    .font(.system(size: 28))
+                                                    .font(.system(size: min(avatarIconSize, 36)))
                                                     .foregroundColor(.petlyDarkGreen)
                                             )
                                     }
@@ -640,6 +645,11 @@ struct DailyActivityRingCard: View {
     var onViewSchedule: () -> Void = {}
     @State private var animatedProgress: Double = 0
     
+    // Scaled sizes for Dynamic Type support
+    @ScaledMetric(relativeTo: .body) private var ringSize: CGFloat = 100
+    @ScaledMetric(relativeTo: .body) private var ringStroke: CGFloat = 12
+    @ScaledMetric(relativeTo: .body) private var cardMinHeight: CGFloat = 280
+    
     var progress: Double {
         Double(activityMinutes) / Double(activityGoal)
     }
@@ -652,13 +662,13 @@ struct DailyActivityRingCard: View {
             
             ZStack {
                 Circle()
-                    .stroke(Color.petlyDarkGreen.opacity(0.2), lineWidth: 12)
-                    .frame(width: 100, height: 100)
+                    .stroke(Color.petlyDarkGreen.opacity(0.2), lineWidth: min(ringStroke, 16))
+                    .frame(width: min(ringSize, 140), height: min(ringSize, 140))
                 
                 Circle()
                     .trim(from: 0, to: animatedProgress)
-                    .stroke(Color.petlyDarkGreen, style: StrokeStyle(lineWidth: 12, lineCap: .round))
-                    .frame(width: 100, height: 100)
+                    .stroke(Color.petlyDarkGreen, style: StrokeStyle(lineWidth: min(ringStroke, 16), lineCap: .round))
+                    .frame(width: min(ringSize, 140), height: min(ringSize, 140))
                     .rotationEffect(.degrees(-90))
                     .animation(.easeOut(duration: 0.8), value: animatedProgress)
                 
@@ -670,8 +680,10 @@ struct DailyActivityRingCard: View {
                         .font(.petlyBodyMedium(14))
                         .foregroundColor(.petlyDarkGreen)
                         .contentTransition(.numericText())
+                        .minimumScaleFactor(0.8)
                 }
             }
+            .frame(maxWidth: .infinity)
             .padding(.vertical, 8)
             .onAppear {
                 withAnimation(.easeOut(duration: 0.8).delay(0.2)) {
@@ -691,7 +703,7 @@ struct DailyActivityRingCard: View {
             }
         }
         .padding()
-        .frame(maxWidth: .infinity, minHeight: 320)
+        .frame(maxWidth: .infinity, minHeight: min(cardMinHeight, 360))
         .background(Color.petlyLightGreen)
         .cornerRadius(16)
         .shadow(color: .black.opacity(0.06), radius: 8, x: 0, y: 2)
@@ -702,6 +714,11 @@ struct WellnessTrackerCard: View {
     let hasSymptoms: Bool
     var onLogSymptom: () -> Void = {}
     var onAddNote: () -> Void = {}
+    
+    // Scaled sizes for Dynamic Type support
+    @ScaledMetric(relativeTo: .body) private var cardMinHeight: CGFloat = 280
+    @ScaledMetric(relativeTo: .body) private var barWidth: CGFloat = 8
+    @ScaledMetric(relativeTo: .body) private var wavyBarWidth: CGFloat = 16
     
     private let weekData: [(day: String, height: CGFloat)] = [
         ("S", 25), ("M", 35), ("T", 28), ("W", 40),
@@ -750,11 +767,11 @@ struct WellnessTrackerCard: View {
                         if index >= 5 {
                             WavyLine()
                                 .stroke(Color.petlyDarkGreen, lineWidth: 2)
-                                .frame(width: 16, height: data.height)
+                                .frame(width: min(wavyBarWidth, 24), height: data.height)
                         } else {
                             Rectangle()
                                 .fill(Color.petlyDarkGreen)
-                                .frame(width: 8, height: data.height)
+                                .frame(width: min(barWidth, 12), height: data.height)
                         }
                         Text(data.day)
                             .font(.petlyBody(10))
@@ -765,7 +782,7 @@ struct WellnessTrackerCard: View {
             .padding(.top, 8)
         }
         .padding()
-        .frame(maxWidth: .infinity, minHeight: 320)
+        .frame(maxWidth: .infinity, minHeight: min(cardMinHeight, 360))
         .background(Color.petlyLightGreen)
         .cornerRadius(16)
         .shadow(color: .black.opacity(0.06), radius: 8, x: 0, y: 2)

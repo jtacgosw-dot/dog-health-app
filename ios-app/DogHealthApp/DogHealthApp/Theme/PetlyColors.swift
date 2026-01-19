@@ -91,7 +91,57 @@ struct ScaledSizes: View {
     @ScaledMetric(relativeTo: .body) var cardMinHeight: CGFloat = 100
     @ScaledMetric(relativeTo: .body) var buttonHeight: CGFloat = 44
     
+    // Avatar sizes - scale with Dynamic Type but with limits
+    @ScaledMetric(relativeTo: .body) var avatarSmall: CGFloat = 32
+    @ScaledMetric(relativeTo: .body) var avatarMedium: CGFloat = 50
+    @ScaledMetric(relativeTo: .body) var avatarLarge: CGFloat = 60
+    @ScaledMetric(relativeTo: .body) var avatarXLarge: CGFloat = 120
+    
+    // Tab bar and navigation
+    @ScaledMetric(relativeTo: .body) var tabBarButtonSize: CGFloat = 64
+    @ScaledMetric(relativeTo: .body) var tabBarIconSize: CGFloat = 28
+    
+    // Activity ring
+    @ScaledMetric(relativeTo: .body) var activityRingSize: CGFloat = 100
+    @ScaledMetric(relativeTo: .body) var activityRingStroke: CGFloat = 12
+    
+    // Card heights - flexible minimums
+    @ScaledMetric(relativeTo: .body) var cardMinHeightLarge: CGFloat = 280
+    
+    // Chat bubble
+    @ScaledMetric(relativeTo: .body) var chatBubbleMaxWidth: CGFloat = 280
+    
+    // Image attachment preview
+    @ScaledMetric(relativeTo: .body) var imagePreviewSize: CGFloat = 60
+    
     var body: some View { EmptyView() }
+}
+
+// Environment key for accessing scaled sizes throughout the app
+struct ScaledSizesKey: EnvironmentKey {
+    static let defaultValue = ScaledSizesValues()
+}
+
+struct ScaledSizesValues {
+    // Default values - these will be overridden by actual @ScaledMetric values in views
+    var avatarSmall: CGFloat = 32
+    var avatarMedium: CGFloat = 50
+    var avatarLarge: CGFloat = 60
+    var avatarXLarge: CGFloat = 120
+    var tabBarButtonSize: CGFloat = 64
+    var tabBarIconSize: CGFloat = 28
+    var activityRingSize: CGFloat = 100
+    var activityRingStroke: CGFloat = 12
+    var cardMinHeightLarge: CGFloat = 280
+    var chatBubbleMaxWidth: CGFloat = 280
+    var imagePreviewSize: CGFloat = 60
+}
+
+extension EnvironmentValues {
+    var scaledSizes: ScaledSizesValues {
+        get { self[ScaledSizesKey.self] }
+        set { self[ScaledSizesKey.self] = newValue }
+    }
 }
 
 struct DynamicTypeModifier: ViewModifier {
