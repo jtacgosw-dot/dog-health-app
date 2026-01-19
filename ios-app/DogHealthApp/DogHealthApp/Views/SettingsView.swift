@@ -223,7 +223,7 @@ struct SettingsView: View {
             }
             .sheet(isPresented: $showExportSheet) {
                 if let url = exportURL {
-                    ShareSheet(activityItems: [url])
+                    ShareSheet(items: [url])
                 }
             }
         }
