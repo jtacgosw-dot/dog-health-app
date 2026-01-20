@@ -325,6 +325,8 @@ struct SymptomTriageView: View {
                 .foregroundColor(.petlyFormIcon)
             
             TextEditor(text: $additionalNotes)
+                .scrollContentBackground(.hidden)
+                .foregroundColor(.petlyDarkGreen)
                 .font(.petlyBody(14))
                 .frame(minHeight: 120)
                 .padding()

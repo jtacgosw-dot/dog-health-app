@@ -487,11 +487,12 @@ struct FeedbackView: View {
                                 .foregroundColor(.petlyDarkGreen)
                             
                             TextEditor(text: $feedbackText)
+                                .scrollContentBackground(.hidden)
+                                .foregroundColor(.petlyDarkGreen)
                                 .frame(minHeight: 150)
                                 .padding(12)
                                 .background(Color.petlyLightGreen)
                                 .cornerRadius(12)
-                                .scrollContentBackground(.hidden)
                         }
                         
                         Button(action: submitFeedback) {

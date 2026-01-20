@@ -253,6 +253,8 @@ struct ProfileTextField: View {
             
             if multiline {
                 TextEditor(text: $text)
+                    .scrollContentBackground(.hidden)
+                    .foregroundColor(.primary)
                     .frame(height: 80)
                     .padding(12)
                     .background(Color.white)
@@ -261,7 +263,7 @@ struct ProfileTextField: View {
                         RoundedRectangle(cornerRadius: 12)
                             .stroke(Color.petlySageGreen.opacity(0.3), lineWidth: 1)
                     )
-            } else {
+            }else {
                 TextField("Enter \(title.lowercased())", text: $text)
                     .keyboardType(keyboardType)
                     .padding(14)
