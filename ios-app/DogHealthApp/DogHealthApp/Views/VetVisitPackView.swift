@@ -107,6 +107,7 @@ struct VetVisitPackView: View {
             }
         }
         .buttonStyle(.plain)
+        .preferredColorScheme(.light)
     }
     
     private var headerSection: some View {
@@ -773,6 +774,7 @@ struct EmergencyCardView: View {
                 }
             }
         }
+        .preferredColorScheme(.light)
     }
     
     private var emergencyCardPreview: some View {

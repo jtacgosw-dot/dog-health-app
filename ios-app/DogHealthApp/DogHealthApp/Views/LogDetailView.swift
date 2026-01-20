@@ -131,6 +131,7 @@ struct LogDetailView: View {
             }
         }
         .buttonStyle(.plain)
+        .preferredColorScheme(.light)
     }
     
     private var dateSection: some View {

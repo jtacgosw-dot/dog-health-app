@@ -143,6 +143,7 @@ struct HealthInsightsDashboardView: View {
             }
         }
         .buttonStyle(.plain)
+        .preferredColorScheme(.light)
     }
     
     private var timeRangePicker: some View {
