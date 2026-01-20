@@ -118,8 +118,10 @@ struct WeightTrackingView: View {
         .sheet(isPresented: $showAddEntry) {
             addEntrySheet
                 .buttonStyle(.plain)
+                .preferredColorScheme(.light)
         }
         .buttonStyle(.plain)
+        .preferredColorScheme(.light)
     }
     
     private var headerSection: some View {

@@ -227,6 +227,7 @@ struct SettingsView: View {
                 }
             }
         }
+        .preferredColorScheme(.light)
     }
     
     private var appearanceModeText:String {
@@ -533,6 +534,7 @@ struct FeedbackView: View {
                 Text("Your feedback has been submitted. We appreciate you taking the time to help us improve Petly!")
             }
         }
+        .preferredColorScheme(.light)
     }
     
     private func submitFeedback() {
@@ -679,6 +681,7 @@ struct AboutView: View {
                 }
             }
         }
+        .preferredColorScheme(.light)
     }
 }
 
