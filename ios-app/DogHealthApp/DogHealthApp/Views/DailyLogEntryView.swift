@@ -67,6 +67,7 @@ struct DailyLogEntryView: View {
                 .buttonStyle(.plain)
         }
         .buttonStyle(.plain)
+        .preferredColorScheme(.light)
     }
 }
 

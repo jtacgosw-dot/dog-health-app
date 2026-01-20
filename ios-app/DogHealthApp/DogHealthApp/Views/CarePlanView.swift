@@ -74,6 +74,7 @@ struct CarePlanView: View {
             }
         }
         .buttonStyle(.plain)
+        .preferredColorScheme(.light)
     }
     
     private var emptyState: some View {
@@ -271,6 +272,7 @@ struct CreateCarePlanView: View {
                 }
             }
         }
+        .preferredColorScheme(.light)
     }
     
     private var goalSelectionSection: some View {
@@ -745,6 +747,7 @@ struct CarePlanDetailView: View {
                 }
             }
         }
+        .preferredColorScheme(.light)
     }
     
     private var headerSection: some View {

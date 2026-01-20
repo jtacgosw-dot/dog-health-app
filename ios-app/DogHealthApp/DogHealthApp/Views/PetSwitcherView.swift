@@ -50,6 +50,7 @@ struct PetSwitcherView: View {
             }
         }
         .buttonStyle(.plain)
+        .preferredColorScheme(.light)
     }
     
     private var emptyState: some View {
@@ -267,6 +268,7 @@ struct AddPetView: View {
                 }
             }
         }
+        .preferredColorScheme(.light)
     }
     
     private func addPet() {

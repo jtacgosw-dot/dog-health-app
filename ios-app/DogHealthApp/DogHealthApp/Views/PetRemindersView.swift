@@ -67,6 +67,7 @@ struct PetRemindersView: View {
                 .buttonStyle(.plain)
         }
         .buttonStyle(.plain)
+        .preferredColorScheme(.light)
     }
     
     private var headerSection: some View {
@@ -394,6 +395,7 @@ struct AddReminderView: View {
                 }
             }
         }
+        .preferredColorScheme(.light)
     }
     
     private func saveReminder() {

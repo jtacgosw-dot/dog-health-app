@@ -192,6 +192,7 @@ struct HealthDigestView: View {
             }
         }
         .buttonStyle(.plain)
+        .preferredColorScheme(.light)
     }
     
     private var headerSection: some View {

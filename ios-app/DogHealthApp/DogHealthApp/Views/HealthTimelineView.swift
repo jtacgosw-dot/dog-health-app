@@ -129,6 +129,7 @@ struct HealthTimelineView: View {
                 .buttonStyle(.plain)
         }
         .buttonStyle(.plain)
+        .preferredColorScheme(.light)
     }
     
     private var header: some View {
@@ -607,6 +608,7 @@ struct EditLogEntryView: View {
                 dismiss()
             }
         }
+        .preferredColorScheme(.light)
     }
     
     private func saveChanges() {
