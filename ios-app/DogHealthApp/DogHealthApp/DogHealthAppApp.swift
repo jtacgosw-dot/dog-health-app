@@ -11,7 +11,7 @@ struct DogHealthAppApp: App {
         switch appearanceMode {
         case 1: return .light
         case 2: return .dark
-        default: return nil
+        default: return .light // Default to light mode since app uses hardcoded light colors
         }
     }
     

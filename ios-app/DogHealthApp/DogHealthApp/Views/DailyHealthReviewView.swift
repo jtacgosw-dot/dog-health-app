@@ -155,6 +155,8 @@ struct DailyHealthReviewView: View {
                             .fontWeight(.medium)
                         
                         TextEditor(text: $symptomsNotes)
+                            .scrollContentBackground(.hidden)
+                            .foregroundColor(.primary)
                             .frame(minHeight: 100)
                             .padding(8)
                             .background(Color(.systemBackground))
@@ -331,6 +333,8 @@ struct DailyHealthReviewView: View {
                         .fontWeight(.medium)
                     
                     TextEditor(text: $additionalNotes)
+                        .scrollContentBackground(.hidden)
+                        .foregroundColor(.primary)
                         .frame(minHeight: 80)
                         .padding(8)
                         .background(Color(.systemBackground))

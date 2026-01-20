@@ -387,6 +387,8 @@ struct AddPreventativeCareReminderView:View {
                 
                 Section("Notes (Optional)") {
                     TextEditor(text: $notes)
+                        .scrollContentBackground(.hidden)
+                        .foregroundColor(.primary)
                         .frame(minHeight: 80)
                 }
                 

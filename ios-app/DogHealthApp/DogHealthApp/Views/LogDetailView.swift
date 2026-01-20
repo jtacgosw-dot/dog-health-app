@@ -411,11 +411,12 @@ struct LogDetailView: View {
                 .foregroundColor(.petlyDarkGreen)
             
             TextEditor(text: $notes)
+                .scrollContentBackground(.hidden)
+                .foregroundColor(.petlyDarkGreen)
                 .frame(minHeight: 100)
                 .padding(8)
                 .background(Color.petlyLightGreen)
                 .cornerRadius(12)
-                .scrollContentBackground(.hidden)
         }
     }
     

@@ -683,6 +683,8 @@ struct HealthConcernsEditView: View {
                                 .foregroundColor(.petlyDarkGreen)
                             
                             TextEditor(text: $vetNotes)
+                                .scrollContentBackground(.hidden)
+                                .foregroundColor(.petlyDarkGreen)
                                 .frame(minHeight: 100)
                                 .padding(8)
                                 .background(Color.petlyLightGreen)
@@ -861,6 +863,8 @@ struct CustomerSupportView: View {
                                 .foregroundColor(.petlyDarkGreen)
                             
                             TextEditor(text: $message)
+                                .scrollContentBackground(.hidden)
+                                .foregroundColor(.petlyDarkGreen)
                                 .frame(minHeight: 150)
                                 .padding(8)
                                 .background(Color.petlyLightGreen)
