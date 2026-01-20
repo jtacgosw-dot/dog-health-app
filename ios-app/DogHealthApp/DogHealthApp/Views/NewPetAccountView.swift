@@ -452,6 +452,7 @@ struct NutritionEditView: View {
                 }
             }
         }
+        .preferredColorScheme(.light)
     }
 }
 
@@ -606,6 +607,7 @@ struct PersonalityEditView: View {
                 }
             }
         }
+        .preferredColorScheme(.light)
     }
 }
 
@@ -736,6 +738,7 @@ struct HealthConcernsEditView: View {
                 }
             }
         }
+        .preferredColorScheme(.light)
     }
 }
 
@@ -802,6 +805,7 @@ struct InviteFriendsView: View {
                 ShareSheet(items: ["Check out Petly - the best app for tracking your pet's health! Download it now."])
             }
         }
+        .preferredColorScheme(.light)
     }
 }
 
@@ -929,6 +933,7 @@ struct CustomerSupportView: View {
                 }
             }
         }
+        .preferredColorScheme(.light)
     }
 }
 
@@ -1063,6 +1068,7 @@ struct MembershipStatusView: View {
                     .buttonStyle(.plain)
             }
         }
+        .preferredColorScheme(.light)
     }
 }
 
@@ -1239,6 +1245,7 @@ struct EditPetProfileView: View {
                 }
             }
         }
+        .preferredColorScheme(.light)
     }
     
     private func saveProfile() {
