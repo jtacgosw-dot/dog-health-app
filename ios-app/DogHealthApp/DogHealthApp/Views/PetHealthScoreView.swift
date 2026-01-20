@@ -115,6 +115,7 @@ struct PetHealthScoreView: View {
             }
         }
         .buttonStyle(.plain)
+        .preferredColorScheme(.light)
         .onAppear {
             calculateScore()
         }
