@@ -50,7 +50,7 @@ struct DogHealthAppApp: App {
                 .modelContainer(sharedModelContainer)
                 .preferredColorScheme(colorScheme) // Respects user's appearance mode setting (System/Light/Dark)
                 .buttonStyle(.plain) // Remove default button highlighting that causes gray blobs
-                .dynamicTypeSize(...DynamicTypeSize.xxxLarge) // Cap text scaling to prevent layout breaking at extreme accessibility sizes
+                .dynamicTypeSize(.large) // Force default text size to ensure consistent layout regardless of user's text size and display zoom settings
                 .onAppear {
                     // Initialize sync service with model context
                     let context = sharedModelContainer.mainContext
