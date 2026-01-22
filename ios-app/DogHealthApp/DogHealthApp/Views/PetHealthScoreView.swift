@@ -137,6 +137,12 @@ struct ScoreRingView: View {
     let animatedProgress: Double
     let label: String
     
+    @ScaledMetric(relativeTo: .body) private var ringSize: CGFloat = 200
+    @ScaledMetric(relativeTo: .body) private var ringStroke: CGFloat = 20
+    
+    private var cappedRingSize: CGFloat { min(ringSize, 280) }
+    private var cappedRingStroke: CGFloat { min(ringStroke, 28) }
+    
     private var ringColor: Color {
         switch score {
         case 80...100: return .green
@@ -148,8 +154,8 @@ struct ScoreRingView: View {
     var body: some View {
         ZStack {
             Circle()
-                .stroke(Color.petlyDarkGreen.opacity(0.15), lineWidth: 20)
-                .frame(width: 200, height: 200)
+                .stroke(Color.petlyDarkGreen.opacity(0.15), lineWidth: cappedRingStroke)
+                .frame(width: cappedRingSize, height: cappedRingSize)
             
             Circle()
                 .trim(from: 0, to: animatedProgress)
@@ -160,9 +166,9 @@ struct ScoreRingView: View {
                         startAngle: .degrees(-90),
                         endAngle: .degrees(270)
                     ),
-                    style: StrokeStyle(lineWidth: 20, lineCap: .round)
+                    style: StrokeStyle(lineWidth: cappedRingStroke, lineCap: .round)
                 )
-                .frame(width: 200, height: 200)
+                .frame(width: cappedRingSize, height: cappedRingSize)
                 .rotationEffect(.degrees(-90))
             
             VStack(spacing: 4) {
@@ -267,6 +273,9 @@ struct PetHealthScoreCard: View {
     @State private var animatedProgress: Double = 0
     var onViewDetails: () -> Void = {}
     
+    @ScaledMetric(relativeTo: .body) private var cardRingSize: CGFloat = 80
+    private var cappedCardRingSize: CGFloat { min(cardRingSize, 120) }
+    
     private var ringColor: Color {
         switch score.overallScore {
         case 80...100: return .green
@@ -281,6 +290,7 @@ struct PetHealthScoreCard: View {
                 Text("Pet Health Score")
                     .font(.petlyBodyMedium(18))
                     .foregroundColor(.petlyDarkGreen)
+                    .minimumScaleFactor(0.8)
                 
                 Spacer()
                 
@@ -300,12 +310,12 @@ struct PetHealthScoreCard: View {
                 ZStack {
                     Circle()
                         .stroke(Color.petlyDarkGreen.opacity(0.15), lineWidth: 8)
-                        .frame(width: 80, height: 80)
+                        .frame(width: cappedCardRingSize, height: cappedCardRingSize)
                     
                     Circle()
                         .trim(from: 0, to: animatedProgress)
                         .stroke(ringColor, style: StrokeStyle(lineWidth: 8, lineCap: .round))
-                        .frame(width: 80, height: 80)
+                        .frame(width: cappedCardRingSize, height: cappedCardRingSize)
                         .rotationEffect(.degrees(-90))
                     
                     VStack(spacing: 0) {
@@ -313,6 +323,7 @@ struct PetHealthScoreCard: View {
                             .font(.system(size: 24, weight: .bold, design: .rounded))
                             .foregroundColor(.petlyDarkGreen)
                             .contentTransition(.numericText())
+                            .minimumScaleFactor(0.7)
                     }
                 }
                 
@@ -320,10 +331,12 @@ struct PetHealthScoreCard: View {
                     Text(score.scoreLabel)
                         .font(.petlyTitle(20))
                         .foregroundColor(.petlyDarkGreen)
+                        .minimumScaleFactor(0.8)
                     
                     Text("Based on 7-day activity")
                         .font(.petlyBody(12))
                         .foregroundColor(.petlyFormIcon)
+                        .minimumScaleFactor(0.8)
                     
                     HStack(spacing: 12) {
                         MiniScoreIndicator(label: "Activity", score: score.activityScore)

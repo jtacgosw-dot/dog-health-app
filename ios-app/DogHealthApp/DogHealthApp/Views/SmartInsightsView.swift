@@ -469,6 +469,9 @@ struct SmartInsightsCard: View {
     
     var onViewInsights: () -> Void
     
+    @ScaledMetric(relativeTo: .body) private var cardMinHeight: CGFloat = 130
+    private var cappedCardMinHeight: CGFloat { min(cardMinHeight, 180) }
+    
     private var dogId: String {
         appState.currentDog?.id ?? ""
     }
@@ -517,14 +520,16 @@ struct SmartInsightsCard: View {
                 Text("Smart Insights")
                     .font(.headline)
                     .foregroundColor(.petlyDarkGreen)
+                    .minimumScaleFactor(0.8)
                 
                 Text(topInsight)
                     .font(.caption)
                     .foregroundColor(.petlyFormIcon)
                     .lineLimit(2)
+                    .minimumScaleFactor(0.8)
             }
             .padding()
-            .frame(maxWidth: .infinity, minHeight: 130, alignment: .leading)
+            .frame(maxWidth: .infinity, minHeight: cappedCardMinHeight, alignment: .leading)
             .background(Color.petlyLightGreen)
             .cornerRadius(16)
             .shadow(color: .black.opacity(0.06), radius: 8, x: 0, y: 2)
