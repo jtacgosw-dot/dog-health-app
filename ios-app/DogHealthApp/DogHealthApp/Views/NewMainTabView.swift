@@ -272,7 +272,7 @@ struct ExploreView: View {
                         .foregroundColor(.petlyFormIcon)
                         .padding(.horizontal)
                 }
-                .padding(.bottom, 20)
+                .padding(.bottom, 100)
             }
             .background(Color.petlyBackground)
         }
