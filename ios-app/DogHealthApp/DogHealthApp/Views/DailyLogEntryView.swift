@@ -5,6 +5,9 @@ struct DailyLogEntryView: View {
     @EnvironmentObject var appState: AppState
     @State private var selectedLogType: LogType?
     
+    @ScaledMetric(relativeTo: .body) private var avatarSize: CGFloat = 50
+    private var cappedAvatarSize: CGFloat { min(avatarSize, 70) }
+    
     let logItems: [(LogType, String, String)] = [
         (.meals, "fork.knife", "Meals"),
         (.walk, "figure.walk", "Walk"),
@@ -36,10 +39,10 @@ struct DailyLogEntryView: View {
                     if appState.currentDog != nil {
                         Circle()
                             .fill(Color.petlyLightGreen)
-                            .frame(width: 50, height: 50)
+                            .frame(width: cappedAvatarSize, height: cappedAvatarSize)
                             .overlay(
                                 Image(systemName: "dog.fill")
-                                    .font(.system(size: 25))
+                                    .font(.system(size: cappedAvatarSize * 0.5))
                                     .foregroundColor(.petlyDarkGreen)
                             )
                     }

@@ -4,12 +4,18 @@ import SwiftData
 struct HomeDashboardView: View {
     @EnvironmentObject var appState: AppState
     @Environment(\.modelContext) private var modelContext
+    @Environment(\.sizeCategory) private var sizeCategory
     @Query private var allLogs: [HealthLogEntry]
     
     // Scaled sizes for Dynamic Type support
     @ScaledMetric(relativeTo: .body) private var avatarSize: CGFloat = 60
     @ScaledMetric(relativeTo: .body) private var avatarIconSize: CGFloat = 28
     @ScaledMetric(relativeTo: .body) private var pawprintIconSize: CGFloat = 14
+    
+    // Check if we should use vertical layout for large text sizes
+    private var useVerticalLayout: Bool {
+        sizeCategory >= .accessibilityMedium
+    }
     
     @State private var showDailyLog = false
     @State private var selectedLogType: LogType?
@@ -181,21 +187,21 @@ struct HomeDashboardView: View {
                         .padding(.horizontal)
                         .appearAnimation(delay: 0.2)
                         
-                        HStack(spacing: 12) {
+                        AdaptiveHStack(useVertical: useVerticalLayout, spacing: 12) {
                             HealthDigestCard(onViewDigest: { showHealthDigest = true })
                             CarePlansCard(onViewPlans: { showCarePlans = true })
                         }
                         .padding(.horizontal)
                         .appearAnimation(delay: 0.22)
                         
-                        HStack(spacing: 12) {
+                        AdaptiveHStack(useVertical: useVerticalLayout, spacing: 12) {
                             SmartInsightsCard(onViewInsights: { showSmartInsights = true })
                             PreventativeCareCard(onViewCare: { showPreventativeCare = true })
                         }
                         .padding(.horizontal)
                         .appearAnimation(delay: 0.24)
                         
-                        HStack(spacing: 12) {
+                        AdaptiveHStack(useVertical: useVerticalLayout, spacing: 12) {
                             DailyActivityRingCard(
                                 activityMinutes: activityMinutes,
                                 activityGoal: activityGoal,
@@ -1035,6 +1041,8 @@ struct HealthTimelineCard: View {
 
 struct HealthDigestCard: View {
     var onViewDigest: () -> Void
+    @ScaledMetric(relativeTo: .body) private var cardMinHeight: CGFloat = 130
+    private var cappedCardMinHeight: CGFloat { min(cardMinHeight, 180) }
     
     var body: some View {
         Button(action: onViewDigest) {
@@ -1052,13 +1060,15 @@ struct HealthDigestCard: View {
                 Text("Health Digest")
                     .font(.headline)
                     .foregroundColor(.petlyDarkGreen)
+                    .minimumScaleFactor(0.8)
                 
                 Text("Weekly AI summary")
                     .font(.caption)
                     .foregroundColor(.petlyFormIcon)
+                    .minimumScaleFactor(0.8)
             }
             .padding()
-            .frame(maxWidth: .infinity, minHeight: 130, alignment: .leading)
+            .frame(maxWidth: .infinity, minHeight: cappedCardMinHeight, alignment: .leading)
             .background(Color.petlyLightGreen)
             .cornerRadius(16)
             .shadow(color: .black.opacity(0.06), radius: 8, x: 0, y: 2)
@@ -1069,6 +1079,8 @@ struct HealthDigestCard: View {
 
 struct CarePlansCard:View {
     var onViewPlans: () -> Void
+    @ScaledMetric(relativeTo: .body) private var cardMinHeight: CGFloat = 130
+    private var cappedCardMinHeight: CGFloat { min(cardMinHeight, 180) }
     
     var body: some View {
         Button(action: onViewPlans) {
@@ -1086,13 +1098,15 @@ struct CarePlansCard:View {
                 Text("Care Plans")
                     .font(.headline)
                     .foregroundColor(.petlyDarkGreen)
+                    .minimumScaleFactor(0.8)
                 
                 Text("AI-powered goals")
                     .font(.caption)
                     .foregroundColor(.petlyFormIcon)
+                    .minimumScaleFactor(0.8)
             }
             .padding()
-            .frame(maxWidth: .infinity, minHeight: 130, alignment: .leading)
+            .frame(maxWidth: .infinity, minHeight: cappedCardMinHeight, alignment: .leading)
             .background(Color.petlyLightGreen)
             .cornerRadius(16)
             .shadow(color: .black.opacity(0.06), radius: 8, x: 0, y: 2)
@@ -1103,6 +1117,8 @@ struct CarePlansCard:View {
 
 struct VetVisitPackCard:View {
     var onViewPack: () -> Void
+    @ScaledMetric(relativeTo: .body) private var iconCircleSize: CGFloat = 50
+    private var cappedIconCircleSize: CGFloat { min(iconCircleSize, 70) }
     
     var body: some View {
         Button(action: onViewPack) {
@@ -1110,7 +1126,7 @@ struct VetVisitPackCard:View {
                 ZStack {
                     Circle()
                         .fill(Color.petlyLightGreen)
-                        .frame(width: 50, height: 50)
+                        .frame(width: cappedIconCircleSize, height: cappedIconCircleSize)
                     
                     Image(systemName: "suitcase.fill")
                         .font(.system(size: 22))
@@ -1121,10 +1137,12 @@ struct VetVisitPackCard:View {
                     Text("Vet Visit Pack")
                         .font(.petlyBodyMedium(16))
                         .foregroundColor(.petlyDarkGreen)
+                        .minimumScaleFactor(0.8)
                     
                     Text("Share health records with your vet")
                         .font(.petlyBody(12))
                         .foregroundColor(.petlyFormIcon)
+                        .minimumScaleFactor(0.8)
                 }
                 
                 Spacer()
@@ -1153,6 +1171,9 @@ struct DailyHealthReviewCard:View {
     @Query private var checkIns: [DailyCheckIn]
     
     var onStartReview: () -> Void
+    
+    @ScaledMetric(relativeTo: .body) private var iconCircleSize: CGFloat = 50
+    private var cappedIconCircleSize: CGFloat { min(iconCircleSize, 70) }
     
     private var dogId: String {
         appState.currentDog?.id ?? ""
@@ -1183,7 +1204,7 @@ struct DailyHealthReviewCard:View {
                 ZStack {
                     Circle()
                         .fill(hasCompletedToday ? Color.green.opacity(0.15) : Color.petlyLightGreen)
-                        .frame(width: 50, height: 50)
+                        .frame(width: cappedIconCircleSize, height: cappedIconCircleSize)
                     
                     Image(systemName: hasCompletedToday ? "checkmark.circle.fill" : "heart.text.square")
                         .font(.system(size: 22))
@@ -1194,15 +1215,18 @@ struct DailyHealthReviewCard:View {
                     Text("Daily Health Review")
                         .font(.petlyBodyMedium(16))
                         .foregroundColor(.petlyDarkGreen)
+                        .minimumScaleFactor(0.8)
                     
                     if hasCompletedToday {
                         Text("Completed today")
                             .font(.petlyBody(12))
                             .foregroundColor(.green)
+                            .minimumScaleFactor(0.8)
                     } else {
                         Text("\(checkInsThisWeek) of 7 days this week")
                             .font(.petlyBody(12))
                             .foregroundColor(.petlyFormIcon)
+                            .minimumScaleFactor(0.8)
                     }
                 }
                 
@@ -1243,6 +1267,9 @@ struct PreventativeCareCard:View {
     
     var onViewCare: () -> Void
     
+    @ScaledMetric(relativeTo: .body) private var cardMinHeight: CGFloat = 130
+    private var cappedCardMinHeight: CGFloat { min(cardMinHeight, 180) }
+    
     private var dogId: String {
         appState.currentDog?.id ?? ""
     }
@@ -1282,25 +1309,52 @@ struct PreventativeCareCard:View {
                 Text("Preventative Care")
                     .font(.headline)
                     .foregroundColor(.petlyDarkGreen)
+                    .minimumScaleFactor(0.8)
                 
                 if let next = nextReminder {
                     Text("Next: \(next.title)")
                         .font(.caption)
                         .foregroundColor(.petlyFormIcon)
                         .lineLimit(1)
+                        .minimumScaleFactor(0.8)
                 } else {
                     Text("Set up care schedule")
                         .font(.caption)
                         .foregroundColor(.petlyFormIcon)
+                        .minimumScaleFactor(0.8)
                 }
             }
             .padding()
-            .frame(maxWidth: .infinity, minHeight: 130, alignment: .leading)
+            .frame(maxWidth: .infinity, minHeight: cappedCardMinHeight, alignment: .leading)
             .background(Color.petlyLightGreen)
             .cornerRadius(16)
             .shadow(color: .black.opacity(0.06), radius: 8, x: 0, y: 2)
         }
         .buttonStyle(PlainButtonStyle())
+    }
+}
+
+struct AdaptiveHStack<Content: View>: View {
+    let useVertical: Bool
+    let spacing: CGFloat
+    @ViewBuilder let content: () -> Content
+    
+    init(useVertical: Bool, spacing: CGFloat = 12, @ViewBuilder content: @escaping () -> Content) {
+        self.useVertical = useVertical
+        self.spacing = spacing
+        self.content = content
+    }
+    
+    var body: some View {
+        if useVertical {
+            VStack(spacing: spacing) {
+                content()
+            }
+        } else {
+            HStack(spacing: spacing) {
+                content()
+            }
+        }
     }
 }
 
