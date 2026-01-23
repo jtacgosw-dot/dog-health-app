@@ -1,4 +1,5 @@
 import SwiftUI
+import PhotosUI
 
 struct NewPetAccountView: View {
     @EnvironmentObject var appState: AppState
@@ -13,6 +14,11 @@ struct NewPetAccountView: View {
     @State private var showingInviteFriends = false
     @State private var showingCustomerSupport = false
     @State private var showingEditProfile = false
+    @State private var showingPhotoOptions = false
+    @State private var showingImagePicker = false
+    @State private var showingCamera = false
+    @State private var selectedPhotoItem: PhotosPickerItem?
+    @State private var petPhotoData: Data?
     
     // Scaled sizes for Dynamic Type support
     @ScaledMetric(relativeTo: .body) private var profileAvatarSize: CGFloat = 120
@@ -46,25 +52,71 @@ struct NewPetAccountView: View {
                             .font(.petlyTitle(28))
                             .foregroundColor(.petlyDarkGreen)
                         
-                        Circle()
-                            .fill(Color.petlyLightGreen)
-                            .frame(width: min(profileAvatarSize, 160), height: min(profileAvatarSize, 160))
-                            .overlay(
-                                Image(systemName: "dog.fill")
-                                    .font(.system(size: min(profileIconSize, 80)))
-                                    .foregroundColor(.petlyDarkGreen)
-                            )
-                            .overlay(
+                        Button(action: { showingPhotoOptions = true }) {
+                            ZStack {
+                                if let photoData = petPhotoData, let uiImage = UIImage(data: photoData) {
+                                    Image(uiImage: uiImage)
+                                        .resizable()
+                                        .scaledToFill()
+                                        .frame(width: min(profileAvatarSize, 160), height: min(profileAvatarSize, 160))
+                                        .clipShape(Circle())
+                                } else {
+                                    Circle()
+                                        .fill(Color.petlyLightGreen)
+                                        .frame(width: min(profileAvatarSize, 160), height: min(profileAvatarSize, 160))
+                                        .overlay(
+                                            Image(systemName: "dog.fill")
+                                                .font(.system(size: min(profileIconSize, 80)))
+                                                .foregroundColor(.petlyDarkGreen)
+                                        )
+                                }
+                                
                                 Circle()
                                     .fill(Color.petlyDarkGreen)
                                     .frame(width: min(editButtonSize, 48), height: min(editButtonSize, 48))
                                     .overlay(
-                                        Image(systemName: "pencil")
+                                        Image(systemName: "camera.fill")
                                             .font(.system(size: min(editIconSize, 18)))
                                             .foregroundColor(.white)
                                     )
                                     .offset(x: min(profileAvatarSize, 160) / 3, y: min(profileAvatarSize, 160) / 3)
-                            )
+                            }
+                        }
+                        .confirmationDialog("Change Pet Photo", isPresented: $showingPhotoOptions) {
+                            Button("Take Photo") {
+                                showingCamera = true
+                            }
+                            Button("Choose from Library") {
+                                showingImagePicker = true
+                            }
+                            if petPhotoData != nil {
+                                Button("Remove Photo", role: .destructive) {
+                                    petPhotoData = nil
+                                    savePetPhoto(nil)
+                                }
+                            }
+                            Button("Cancel", role: .cancel) { }
+                        }
+                        .photosPicker(isPresented: $showingImagePicker, selection: $selectedPhotoItem, matching: .images)
+                        .onChange(of: selectedPhotoItem) { oldValue, newValue in
+                            Task {
+                                if let data = try? await newValue?.loadTransferable(type: Data.self) {
+                                    await MainActor.run {
+                                        petPhotoData = data
+                                        savePetPhoto(data)
+                                    }
+                                }
+                            }
+                        }
+                        .fullScreenCover(isPresented: $showingCamera) {
+                            CameraView(photoData: Binding(
+                                get: { petPhotoData },
+                                set: { newValue in
+                                    petPhotoData = newValue
+                                    savePetPhoto(newValue)
+                                }
+                            ))
+                        }
                         
                         Text("\(appState.currentDog?.name ?? "Arlo"), \(appState.currentDog?.age ?? 1) Year")
                             .font(.petlyTitle(24))
@@ -76,6 +128,9 @@ struct NewPetAccountView: View {
                     }
                     .padding(.top, 60)
                     .padding(.bottom, 20)
+                    .onAppear {
+                        loadPetPhoto()
+                    }
                     
                     Button(action: { showingEditProfile = true }) {
                         HStack(spacing: 16) {
@@ -232,14 +287,22 @@ struct NewPetAccountView: View {
                 
                 if showMiniHeader {
                     HStack(spacing: 8) {
-                        Circle()
-                            .fill(Color.petlyLightGreen)
-                            .frame(width: min(miniAvatarSize, 44), height: min(miniAvatarSize, 44))
-                            .overlay(
-                                Image(systemName: "dog.fill")
-                                    .font(.system(size: min(miniIconSize, 22)))
-                                    .foregroundColor(.petlyDarkGreen)
-                            )
+                        if let photoData = petPhotoData, let uiImage = UIImage(data: photoData) {
+                            Image(uiImage: uiImage)
+                                .resizable()
+                                .scaledToFill()
+                                .frame(width: min(miniAvatarSize, 44), height: min(miniAvatarSize, 44))
+                                .clipShape(Circle())
+                        } else {
+                            Circle()
+                                .fill(Color.petlyLightGreen)
+                                .frame(width: min(miniAvatarSize, 44), height: min(miniAvatarSize, 44))
+                                .overlay(
+                                    Image(systemName: "dog.fill")
+                                        .font(.system(size: min(miniIconSize, 22)))
+                                        .foregroundColor(.petlyDarkGreen)
+                                )
+                        }
                         
                         Text("\(appState.currentDog?.name ?? "Arlo")")
                             .font(.petlyTitle(18))
@@ -260,6 +323,22 @@ struct NewPetAccountView: View {
             .animation(.easeInOut(duration: 0.2), value: showMiniHeader)
         }
         .buttonStyle(.plain)
+    }
+    
+    private func savePetPhoto(_ data: Data?) {
+        guard let dogId = appState.currentDog?.id else { return }
+        let key = "petPhoto_\(dogId)"
+        if let data = data {
+            UserDefaults.standard.set(data, forKey: key)
+        } else {
+            UserDefaults.standard.removeObject(forKey: key)
+        }
+    }
+    
+    private func loadPetPhoto() {
+        guard let dogId = appState.currentDog?.id else { return }
+        let key = "petPhoto_\(dogId)"
+        petPhotoData = UserDefaults.standard.data(forKey: key)
     }
 }
 
@@ -1107,6 +1186,11 @@ struct EditPetProfileView: View {
     @State private var healthConditions = ""
     @State private var showSaved = false
     @State private var errorMessage: String?
+    @State private var showingPhotoOptions = false
+    @State private var showingImagePicker = false
+    @State private var showingCamera = false
+    @State private var selectedPhotoItem: PhotosPickerItem?
+    @State private var petPhotoData: Data?
     
     var body: some View {
         NavigationView {
@@ -1116,6 +1200,78 @@ struct EditPetProfileView: View {
                 
                 ScrollView {
                     VStack(spacing: 20) {
+                        VStack(spacing: 12) {
+                            Button(action: { showingPhotoOptions = true }) {
+                                ZStack {
+                                    if let photoData = petPhotoData, let uiImage = UIImage(data: photoData) {
+                                        Image(uiImage: uiImage)
+                                            .resizable()
+                                            .scaledToFill()
+                                            .frame(width: 100, height: 100)
+                                            .clipShape(Circle())
+                                    } else {
+                                        Circle()
+                                            .fill(Color.petlyLightGreen)
+                                            .frame(width: 100, height: 100)
+                                            .overlay(
+                                                Image(systemName: "dog.fill")
+                                                    .font(.system(size: 40))
+                                                    .foregroundColor(.petlyDarkGreen)
+                                            )
+                                    }
+                                    
+                                    Circle()
+                                        .fill(Color.petlyDarkGreen)
+                                        .frame(width: 32, height: 32)
+                                        .overlay(
+                                            Image(systemName: "camera.fill")
+                                                .font(.system(size: 14))
+                                                .foregroundColor(.white)
+                                        )
+                                        .offset(x: 35, y: 35)
+                                }
+                            }
+                            
+                            Text("Tap to change photo")
+                                .font(.petlyBody(12))
+                                .foregroundColor(.petlyFormIcon)
+                        }
+                        .confirmationDialog("Change Pet Photo", isPresented: $showingPhotoOptions) {
+                            Button("Take Photo") {
+                                showingCamera = true
+                            }
+                            Button("Choose from Library") {
+                                showingImagePicker = true
+                            }
+                            if petPhotoData != nil {
+                                Button("Remove Photo", role: .destructive) {
+                                    petPhotoData = nil
+                                    savePetPhotoFromEdit(nil)
+                                }
+                            }
+                            Button("Cancel", role: .cancel) { }
+                        }
+                        .photosPicker(isPresented: $showingImagePicker, selection: $selectedPhotoItem, matching: .images)
+                        .onChange(of: selectedPhotoItem) { oldValue, newValue in
+                            Task {
+                                if let data = try? await newValue?.loadTransferable(type: Data.self) {
+                                    await MainActor.run {
+                                        petPhotoData = data
+                                        savePetPhotoFromEdit(data)
+                                    }
+                                }
+                            }
+                        }
+                        .fullScreenCover(isPresented: $showingCamera) {
+                            CameraView(photoData: Binding(
+                                get: { petPhotoData },
+                                set: { newValue in
+                                    petPhotoData = newValue
+                                    savePetPhotoFromEdit(newValue)
+                                }
+                            ))
+                        }
+                        
                         VStack(alignment: .leading, spacing: 8) {
                             Text("Pet Name")
                                 .font(.petlyBodyMedium(14))
@@ -1242,10 +1398,27 @@ struct EditPetProfileView: View {
                     }
                     allergies = dog.allergies.joined(separator: ", ")
                     healthConditions = dog.healthConcerns.joined(separator: ", ")
+                    loadPetPhotoForEdit()
                 }
             }
         }
         .preferredColorScheme(.light)
+    }
+    
+    private func savePetPhotoFromEdit(_ data: Data?) {
+        guard let dogId = appState.currentDog?.id else { return }
+        let key = "petPhoto_\(dogId)"
+        if let data = data {
+            UserDefaults.standard.set(data, forKey: key)
+        } else {
+            UserDefaults.standard.removeObject(forKey: key)
+        }
+    }
+    
+    private func loadPetPhotoForEdit() {
+        guard let dogId = appState.currentDog?.id else { return }
+        let key = "petPhoto_\(dogId)"
+        petPhotoData = UserDefaults.standard.data(forKey: key)
     }
     
     private func saveProfile() {
