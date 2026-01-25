@@ -4,6 +4,7 @@ struct DailyLogEntryView: View {
     @Environment(\.dismiss) var dismiss
     @EnvironmentObject var appState: AppState
     @State private var selectedLogType: LogType?
+    @State private var petPhotoData: Data?
     
     @ScaledMetric(relativeTo: .body) private var avatarSize: CGFloat = 50
     private var cappedAvatarSize: CGFloat { min(avatarSize, 70) }
@@ -37,14 +38,23 @@ struct DailyLogEntryView: View {
                     Spacer()
                     
                     if appState.currentDog != nil {
-                        Circle()
-                            .fill(Color.petlyLightGreen)
-                            .frame(width: cappedAvatarSize, height: cappedAvatarSize)
-                            .overlay(
-                                Image(systemName: "dog.fill")
-                                    .font(.system(size: cappedAvatarSize * 0.5))
-                                    .foregroundColor(.petlyDarkGreen)
-                            )
+                        if let photoData = petPhotoData,
+                           let uiImage = UIImage(data: photoData) {
+                            Image(uiImage: uiImage)
+                                .resizable()
+                                .scaledToFill()
+                                .frame(width: cappedAvatarSize, height: cappedAvatarSize)
+                                .clipShape(Circle())
+                        } else {
+                            Circle()
+                                .fill(Color.petlyLightGreen)
+                                .frame(width: cappedAvatarSize, height: cappedAvatarSize)
+                                .overlay(
+                                    Image(systemName: "dog.fill")
+                                        .font(.system(size: cappedAvatarSize * 0.5))
+                                        .foregroundColor(.petlyDarkGreen)
+                                )
+                        }
                     }
                 }
                 .padding()
@@ -71,6 +81,15 @@ struct DailyLogEntryView: View {
         }
         .buttonStyle(.plain)
         .preferredColorScheme(.light)
+        .onAppear {
+            loadPetPhoto()
+        }
+    }
+    
+    private func loadPetPhoto() {
+        guard let dogId = appState.currentDog?.id else { return }
+        let key = "petPhoto_\(dogId)"
+        petPhotoData = UserDefaults.standard.data(forKey: key)
     }
 }
 
