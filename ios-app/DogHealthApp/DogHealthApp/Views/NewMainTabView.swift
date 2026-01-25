@@ -296,6 +296,9 @@ struct ExploreView: View {
         .onChange(of: appState.currentDog?.id) { _, _ in
             loadPetPhoto()
         }
+        .onReceive(NotificationCenter.default.publisher(for: .petPhotoDidChange)) { _ in
+            loadPetPhoto()
+        }
     }
     
     private func loadPetPhoto() {
