@@ -1,6 +1,10 @@
 import SwiftUI
 import PhotosUI
 
+extension Notification.Name {
+    static let petPhotoDidChange = Notification.Name("petPhotoDidChange")
+}
+
 struct NewPetAccountView: View {
     @EnvironmentObject var appState: AppState
     @Environment(\.dismiss) var dismiss
@@ -333,6 +337,7 @@ struct NewPetAccountView: View {
         } else {
             UserDefaults.standard.removeObject(forKey: key)
         }
+        NotificationCenter.default.post(name: .petPhotoDidChange, object: nil)
     }
     
     private func loadPetPhoto() {
