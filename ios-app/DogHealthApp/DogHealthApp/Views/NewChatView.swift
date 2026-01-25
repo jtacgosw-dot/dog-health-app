@@ -56,6 +56,7 @@ struct NewChatView: View {
     @State private var selectedPhotoItem: PhotosPickerItem?
     @FocusState private var isTextFieldFocused: Bool
     @StateObject private var keyboardObserver = KeyboardObserver()
+    @State private var petPhotoData: Data?
     
     // Scaled sizes for Dynamic Type support
     @ScaledMetric(relativeTo: .body) private var avatarSize: CGFloat = 50
@@ -94,16 +95,25 @@ struct NewChatView: View {
                     
                     Spacer()
                     
-                                        if appState.currentDog != nil {
-                                            Circle()
-                                                .fill(Color.petlyLightGreen)
-                                                .frame(width: min(avatarSize, 70), height: min(avatarSize, 70))
-                                                .overlay(
-                                                    Image(systemName: "dog.fill")
-                                                        .font(.system(size: min(avatarIconSize, 32)))
-                                                        .foregroundColor(.petlyDarkGreen)
-                                                )
-                                        }
+                                            if appState.currentDog != nil {
+                                                if let photoData = petPhotoData,
+                                                   let uiImage = UIImage(data: photoData) {
+                                                    Image(uiImage: uiImage)
+                                                        .resizable()
+                                                        .scaledToFill()
+                                                        .frame(width: min(avatarSize, 70), height: min(avatarSize, 70))
+                                                        .clipShape(Circle())
+                                                } else {
+                                                    Circle()
+                                                        .fill(Color.petlyLightGreen)
+                                                        .frame(width: min(avatarSize, 70), height: min(avatarSize, 70))
+                                                        .overlay(
+                                                            Image(systemName: "dog.fill")
+                                                                .font(.system(size: min(avatarIconSize, 32)))
+                                                                .foregroundColor(.petlyDarkGreen)
+                                                        )
+                                                }
+                                            }
                 }
                 .padding()
                 
@@ -183,6 +193,15 @@ struct NewChatView: View {
             })
         }
         .buttonStyle(.plain)
+        .onAppear {
+            loadPetPhoto()
+        }
+    }
+    
+    private func loadPetPhoto() {
+        guard let dogId = appState.currentDog?.id else { return }
+        let key = "petPhoto_\(dogId)"
+        petPhotoData = UserDefaults.standard.data(forKey: key)
     }
     
     private var chatInputBar: some View {

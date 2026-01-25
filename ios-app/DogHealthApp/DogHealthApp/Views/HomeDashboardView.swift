@@ -32,6 +32,7 @@ struct HomeDashboardView: View {
     @State private var showDailyHealthReview = false
     @State private var showPreventativeCare = false
     @State private var showSmartInsights = false
+    @State private var petPhotoData: Data?
     
     private let activityGoal = 60
     private let mealsTotal = 3
@@ -145,14 +146,23 @@ struct HomeDashboardView: View {
                                 
                                 if appState.currentDog != nil {
                                     Button(action: { showPetSwitcher = true }) {
-                                        Circle()
-                                            .fill(Color.petlyLightGreen)
-                                            .frame(width: min(avatarSize, 80), height: min(avatarSize, 80))
-                                            .overlay(
-                                                Image(systemName: "dog.fill")
-                                                    .font(.system(size: min(avatarIconSize, 36)))
-                                                    .foregroundColor(.petlyDarkGreen)
-                                            )
+                                        if let photoData = petPhotoData,
+                                           let uiImage = UIImage(data: photoData) {
+                                            Image(uiImage: uiImage)
+                                                .resizable()
+                                                .scaledToFill()
+                                                .frame(width: min(avatarSize, 80), height: min(avatarSize, 80))
+                                                .clipShape(Circle())
+                                        } else {
+                                            Circle()
+                                                .fill(Color.petlyLightGreen)
+                                                .frame(width: min(avatarSize, 80), height: min(avatarSize, 80))
+                                                .overlay(
+                                                    Image(systemName: "dog.fill")
+                                                        .font(.system(size: min(avatarIconSize, 36)))
+                                                        .foregroundColor(.petlyDarkGreen)
+                                                )
+                                        }
                                     }
                                 }
                             }
@@ -304,7 +314,16 @@ struct HomeDashboardView: View {
                 SmartInsightsView()
                     .environmentObject(appState)
             }
+            .onAppear {
+                loadPetPhoto()
+            }
         }
+    }
+    
+    private func loadPetPhoto() {
+        guard let dogId = appState.currentDog?.id else { return }
+        let key = "petPhoto_\(dogId)"
+        petPhotoData = UserDefaults.standard.data(forKey: key)
     }
 }
 
