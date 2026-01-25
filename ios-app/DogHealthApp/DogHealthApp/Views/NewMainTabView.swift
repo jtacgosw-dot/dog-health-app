@@ -167,6 +167,7 @@ struct TabBarButton: View {
 struct ExploreView: View {
     @EnvironmentObject var appState: AppState
     @State private var selectedQuickAction: String?
+    @State private var petPhotoData: Data?
     var onQuickAction: ((String) -> Void)?
     
     // Scaled sizes for Dynamic Type support
@@ -185,10 +186,13 @@ struct ExploreView: View {
         ("carrot", "How do I introduce new food safely?")
     ]
     
-    let articles = [
-        ("dog.fill", "Dry vs. Fresh vs. Raw: Which Diet Is Right for Your Pet?"),
-        ("allergens", "The Truth About Hidden Pet Allergies"),
-        ("heart.text.square", "Understanding Your Pet's Emotional Needs")
+    let articles: [(icon: String, title: String, category: String, color: Color)] = [
+        ("fork.knife.circle.fill", "Dry vs. Fresh vs. Raw: Which Diet Is Right for Your Pet?", "Nutrition", Color.orange),
+        ("allergens", "The Truth About Hidden Pet Allergies", "Health", Color.red),
+        ("heart.text.square.fill", "Understanding Your Pet's Emotional Needs", "Wellness", Color.pink),
+        ("figure.walk", "Exercise Guidelines for Every Dog Breed", "Fitness", Color.green),
+        ("moon.stars.fill", "How Much Sleep Does Your Dog Really Need?", "Sleep", Color.indigo),
+        ("drop.fill", "Signs of Dehydration in Dogs", "Health", Color.blue)
     ]
     
     var body: some View {
@@ -212,14 +216,23 @@ struct ExploreView: View {
                         
                         Spacer()
                         
-                        Circle()
-                            .fill(Color.petlyLightGreen)
-                            .frame(width: min(avatarSize, 80), height: min(avatarSize, 80))
-                            .overlay(
-                                Image(systemName: "dog.fill")
-                                    .font(.system(size: min(avatarIconSize, 36)))
-                                    .foregroundColor(.petlyDarkGreen)
-                            )
+                        if let photoData = petPhotoData,
+                           let uiImage = UIImage(data: photoData) {
+                            Image(uiImage: uiImage)
+                                .resizable()
+                                .scaledToFill()
+                                .frame(width: min(avatarSize, 80), height: min(avatarSize, 80))
+                                .clipShape(Circle())
+                        } else {
+                            Circle()
+                                .fill(Color.petlyLightGreen)
+                                .frame(width: min(avatarSize, 80), height: min(avatarSize, 80))
+                                .overlay(
+                                    Image(systemName: "dog.fill")
+                                        .font(.system(size: min(avatarIconSize, 36)))
+                                        .foregroundColor(.petlyDarkGreen)
+                                )
+                        }
                     }
                     
                     ScrollView(.horizontal, showsIndicators: false) {
@@ -246,8 +259,8 @@ struct ExploreView: View {
                     
                     ScrollView(.horizontal, showsIndicators: false) {
                         HStack(spacing: 16) {
-                            ForEach(articles, id: \.1) { icon, title in
-                                ArticleCard(icon: icon, title: title)
+                            ForEach(articles, id: \.title) { article in
+                                ArticleCard(icon: article.icon, title: article.title, category: article.category, accentColor: article.color)
                             }
                         }
                         .padding(.horizontal)
@@ -277,6 +290,15 @@ struct ExploreView: View {
             .background(Color.petlyBackground)
         }
         .background(Color.petlyBackground.ignoresSafeArea())
+        .onAppear {
+            loadPetPhoto()
+        }
+    }
+    
+    private func loadPetPhoto() {
+        guard let dogId = appState.currentDog?.id else { return }
+        let key = "petPhoto_\(dogId)"
+        petPhotoData = UserDefaults.standard.data(forKey: key)
     }
 }
 
@@ -323,6 +345,8 @@ struct QuickActionChip: View {
 struct ArticleCard: View {
     let icon: String
     let title: String
+    var category: String = ""
+    var accentColor: Color = .petlyDarkGreen
     @State private var isPressed = false
     @ScaledMetric(relativeTo: .body) private var iconSize: CGFloat = 48
     @ScaledMetric(relativeTo: .body) private var cardWidth: CGFloat = 240
@@ -340,14 +364,33 @@ struct ArticleCard: View {
             }
         }) {
             VStack(alignment: .leading, spacing: 12) {
-                RoundedRectangle(cornerRadius: 12)
-                    .fill(Color.petlyLightGreen)
-                    .frame(width: cardWidth, height: cardHeight)
-                    .overlay(
-                        Image(systemName: icon)
-                            .font(.system(size: iconSize))
-                            .foregroundColor(.petlyDarkGreen.opacity(0.3))
-                    )
+                ZStack(alignment: .topLeading) {
+                    RoundedRectangle(cornerRadius: 12)
+                        .fill(
+                            LinearGradient(
+                                gradient: Gradient(colors: [accentColor.opacity(0.3), accentColor.opacity(0.1)]),
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
+                        .frame(width: cardWidth, height: cardHeight)
+                        .overlay(
+                            Image(systemName: icon)
+                                .font(.system(size: iconSize))
+                                .foregroundColor(accentColor.opacity(0.5))
+                        )
+                    
+                    if !category.isEmpty {
+                        Text(category)
+                            .font(.petlyBody(10))
+                            .foregroundColor(.white)
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 4)
+                            .background(accentColor.opacity(0.8))
+                            .cornerRadius(8)
+                            .padding(8)
+                    }
+                }
                 
                 Text(title)
                     .font(.petlyBodyMedium(14))
