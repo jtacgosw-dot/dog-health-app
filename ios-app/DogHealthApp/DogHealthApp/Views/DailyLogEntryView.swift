@@ -84,6 +84,9 @@ struct DailyLogEntryView: View {
         .onAppear {
             loadPetPhoto()
         }
+        .onChange(of: appState.currentDog?.id) { _, _ in
+            loadPetPhoto()
+        }
     }
     
     private func loadPetPhoto() {
