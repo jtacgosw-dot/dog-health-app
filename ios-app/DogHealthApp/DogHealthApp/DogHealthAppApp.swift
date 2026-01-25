@@ -56,9 +56,11 @@ struct DogHealthAppApp: App {
                     let context = sharedModelContainer.mainContext
                     HealthLogSyncService.shared.setModelContext(context)
                     
-                    // Trigger initial sync if signed in
+                    // Load user data and trigger sync if signed in
                     if appState.isSignedIn {
                         Task {
+                            // Load dogs so currentDog is available for pet photo display
+                            await appState.loadUserData()
                             await HealthLogSyncService.shared.syncPendingLogs()
                         }
                     }
