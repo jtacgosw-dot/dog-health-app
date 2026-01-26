@@ -121,6 +121,26 @@ struct HomeDashboardView: View {
             
             ScrollView {
                 VStack(alignment: .leading, spacing: 20) {
+                    // Error banner for API failures
+                    if let error = appState.lastError {
+                        HStack {
+                            Image(systemName: "wifi.exclamationmark")
+                                .foregroundColor(.orange)
+                            Text(error)
+                                .font(.petlyBody(14))
+                                .foregroundColor(.petlyDarkGreen)
+                            Spacer()
+                            Button(action: { appState.lastError = nil }) {
+                                Image(systemName: "xmark.circle.fill")
+                                    .foregroundColor(.petlyFormIcon)
+                            }
+                        }
+                        .padding()
+                        .background(Color.orange.opacity(0.15))
+                        .cornerRadius(12)
+                        .padding(.horizontal)
+                    }
+                    
                     VStack(alignment: .leading, spacing: 12) {
                         if appState.dogs.count > 1 {
                             PetSwitcherButton(showPetSwitcher: $showPetSwitcher)
@@ -328,8 +348,7 @@ struct HomeDashboardView: View {
     
     private func loadPetPhoto() {
         guard let dogId = appState.currentDog?.id else { return }
-        let key = "petPhoto_\(dogId)"
-        petPhotoData = UserDefaults.standard.data(forKey: key)
+        petPhotoData = PetPhotoService.shared.loadPhoto(for: dogId)
     }
 }
 

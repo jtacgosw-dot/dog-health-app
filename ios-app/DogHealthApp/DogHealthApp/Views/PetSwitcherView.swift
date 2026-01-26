@@ -4,6 +4,8 @@ struct PetSwitcherView: View {
     @EnvironmentObject var appState: AppState
     @Environment(\.dismiss) var dismiss
     @State private var showAddPet = false
+    @State private var isDeleting = false
+    @State private var deleteError: String?
     
     var body: some View {
         NavigationView {
@@ -13,6 +15,24 @@ struct PetSwitcherView: View {
                 
                 ScrollView {
                     VStack(spacing: 16) {
+                        if let error = deleteError {
+                            HStack {
+                                Image(systemName: "exclamationmark.triangle.fill")
+                                    .foregroundColor(.red)
+                                Text(error)
+                                    .font(.petlyBody(14))
+                                    .foregroundColor(.red)
+                                Spacer()
+                                Button(action: { deleteError = nil }) {
+                                    Image(systemName: "xmark")
+                                        .foregroundColor(.red)
+                                }
+                            }
+                            .padding()
+                            .background(Color.red.opacity(0.1))
+                            .cornerRadius(8)
+                        }
+                        
                         if appState.dogs.isEmpty {
                             emptyState
                         } else {
@@ -23,7 +43,10 @@ struct PetSwitcherView: View {
                                     onSelect: {
                                         appState.currentDog = dog
                                         dismiss()
-                                    }
+                                    },
+                                    onDelete: appState.dogs.count > 1 ? {
+                                        deleteDog(dog)
+                                    } : nil
                                 )
                             }
                         }
@@ -31,6 +54,15 @@ struct PetSwitcherView: View {
                         addPetButton
                     }
                     .padding()
+                }
+                
+                if isDeleting {
+                    Color.black.opacity(0.3)
+                        .ignoresSafeArea()
+                    ProgressView("Deleting...")
+                        .padding()
+                        .background(Color.white)
+                        .cornerRadius(12)
                 }
             }
             .navigationTitle("My Pets")
@@ -51,6 +83,25 @@ struct PetSwitcherView: View {
         }
         .buttonStyle(.plain)
         .preferredColorScheme(.light)
+    }
+    
+    private func deleteDog(_ dog: Dog) {
+        isDeleting = true
+        deleteError = nil
+        
+        Task {
+            do {
+                try await appState.deleteDog(dog)
+                await MainActor.run {
+                    isDeleting = false
+                }
+            } catch {
+                await MainActor.run {
+                    deleteError = "Failed to delete pet: \(error.localizedDescription)"
+                    isDeleting = false
+                }
+            }
+        }
     }
     
     private var emptyState: some View {
@@ -91,8 +142,10 @@ struct PetCard: View {
     let dog: Dog
     let isSelected: Bool
     var onSelect: () -> Void
+    var onDelete: (() -> Void)?
     @State private var isPressed = false
     @State private var checkmarkScale: CGFloat = 0
+    @State private var showDeleteConfirmation = false
     
     var body: some View {
         Button(action: {
@@ -128,6 +181,17 @@ struct PetCard: View {
                 
                 Spacer()
                 
+                if onDelete != nil {
+                    Button(action: {
+                        showDeleteConfirmation = true
+                    }) {
+                        Image(systemName: "trash")
+                            .font(.system(size: 16))
+                            .foregroundColor(.red.opacity(0.7))
+                            .padding(8)
+                    }
+                }
+                
                 if isSelected {
                     Image(systemName: "checkmark.circle.fill")
                         .font(.system(size: 24))
@@ -154,6 +218,14 @@ struct PetCard: View {
         .onLongPressGesture(minimumDuration: .infinity, pressing: { pressing in
             isPressed = pressing
         }, perform: {})
+        .alert("Delete Pet", isPresented: $showDeleteConfirmation) {
+            Button("Cancel", role: .cancel) { }
+            Button("Delete", role: .destructive) {
+                onDelete?()
+            }
+        } message: {
+            Text("Are you sure you want to delete \(dog.name)? This action cannot be undone.")
+        }
     }
 }
 

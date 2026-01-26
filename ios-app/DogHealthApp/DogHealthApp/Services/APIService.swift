@@ -1,28 +1,94 @@
 import Foundation
+import Security
 
 class APIService {
     static let shared = APIService()
     
     private let baseURL = APIConfig.baseURL
     private var authToken: String?
+    private let keychainService = "com.petly.doghealth"
+    private let keychainAccount = "authToken"
     
     private init() {}
     
     func setAuthToken(_ token: String) {
         self.authToken = token
-        UserDefaults.standard.set(token, forKey: "authToken")
+        saveTokenToKeychain(token)
     }
     
     func getAuthToken() -> String? {
         if let token = authToken {
             return token
         }
-        return UserDefaults.standard.string(forKey: "authToken")
+        // Try Keychain first, fall back to UserDefaults for migration
+        if let keychainToken = loadTokenFromKeychain() {
+            authToken = keychainToken
+            return keychainToken
+        }
+        // Migration: Check UserDefaults and move to Keychain
+        if let legacyToken = UserDefaults.standard.string(forKey: "authToken") {
+            saveTokenToKeychain(legacyToken)
+            UserDefaults.standard.removeObject(forKey: "authToken")
+            authToken = legacyToken
+            return legacyToken
+        }
+        return nil
     }
     
     func clearAuthToken() {
         authToken = nil
-        UserDefaults.standard.removeObject(forKey: "authToken")
+        deleteTokenFromKeychain()
+        UserDefaults.standard.removeObject(forKey: "authToken") // Clean up legacy storage
+    }
+    
+    // MARK: - Keychain Operations
+    
+    private func saveTokenToKeychain(_ token: String) {
+        let tokenData = token.data(using: .utf8)!
+        
+        // Delete existing item first
+        deleteTokenFromKeychain()
+        
+        let query: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: keychainService,
+            kSecAttrAccount as String: keychainAccount,
+            kSecValueData as String: tokenData,
+            kSecAttrAccessible as String: kSecAttrAccessibleAfterFirstUnlock
+        ]
+        
+        let status = SecItemAdd(query as CFDictionary, nil)
+        if status != errSecSuccess {
+            print("Keychain save failed: \(status)")
+        }
+    }
+    
+    private func loadTokenFromKeychain() -> String? {
+        let query: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: keychainService,
+            kSecAttrAccount as String: keychainAccount,
+            kSecReturnData as String: true,
+            kSecMatchLimit as String: kSecMatchLimitOne
+        ]
+        
+        var result: AnyObject?
+        let status = SecItemCopyMatching(query as CFDictionary, &result)
+        
+        if status == errSecSuccess, let data = result as? Data {
+            return String(data: data, encoding: .utf8)
+        }
+        return nil
+    }
+    
+    private func deleteTokenFromKeychain() {
+        let query: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: keychainService,
+            kSecAttrAccount as String: keychainAccount
+        ]
+        
+        SecItemDelete(query as CFDictionary)
     }
     
     private func makeRequest<T: Decodable>(
@@ -102,9 +168,23 @@ class APIService {
             return try await makeRequest(endpoint: "/chat", method: "POST", body: data)
         }
     
-    func getConversations() async throws -> [Conversation] {
-        let response: ConversationsResponse = try await makeRequest(endpoint: "/chat/conversations")
+    func getConversations(limit: Int = 20, offset: Int = 0) async throws -> [Conversation] {
+        let response: ConversationsResponse = try await makeRequest(endpoint: "/chat/conversations?limit=\(limit)&offset=\(offset)")
         return response.conversations
+    }
+    
+    func getConversationMessages(conversationId: String, limit: Int = 50, offset: Int = 0) async throws -> [ConversationMessage] {
+        let response: MessagesResponse = try await makeRequest(endpoint: "/chat/conversations/\(conversationId)/messages?limit=\(limit)&offset=\(offset)")
+        return response.messages
+    }
+    
+    func submitMessageFeedback(messageId: String, feedback: String, comment: String? = nil) async throws {
+        var body: [String: Any] = ["feedback": feedback]
+        if let comment = comment {
+            body["comment"] = comment
+        }
+        let data = try JSONSerialization.data(withJSONObject: body)
+        let _: FeedbackResponse = try await makeRequest(endpoint: "/chat/messages/\(messageId)/feedback", method: "POST", body: data)
     }
     
     func getDogs() async throws -> [Dog] {
@@ -122,6 +202,10 @@ class APIService {
         let data = try JSONEncoder().encode(dog)
         let response: DogResponse = try await makeRequest(endpoint: "/dogs/\(dog.id)", method: "PUT", body: data)
         return response.dog
+    }
+    
+    func deleteDog(dogId: String) async throws {
+        let _: DeleteResponse = try await makeRequest(endpoint: "/dogs/\(dogId)", method: "DELETE")
     }
     
     func checkEntitlements() async throws -> EntitlementsResponse {
@@ -324,6 +408,32 @@ struct ChatMessage: Codable {
 
 struct ConversationsResponse: Codable {
     let conversations: [Conversation]
+}
+
+struct MessagesResponse: Codable {
+    let success: Bool
+    let messages: [ConversationMessage]
+}
+
+struct ConversationMessage: Codable, Identifiable {
+    let id: String
+    let role: String
+    let content: String
+    let createdAt: String
+    let feedback: String?
+    
+    enum CodingKeys: String, CodingKey {
+        case id
+        case role
+        case content
+        case createdAt = "created_at"
+        case feedback
+    }
+}
+
+struct FeedbackResponse: Codable {
+    let success: Bool
+    let message: String?
 }
 
 struct DogsResponse: Codable {
