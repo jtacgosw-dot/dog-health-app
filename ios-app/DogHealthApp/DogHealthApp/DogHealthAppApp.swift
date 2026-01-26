@@ -1,6 +1,7 @@
 import SwiftUI
 import SwiftData
 import UIKit
+import Security
 
 @main
 struct DogHealthAppApp: App {
@@ -32,17 +33,6 @@ struct DogHealthAppApp: App {
         }
     }()
     
-    init() {
-        print("=== AVAILABLE FONTS ===")
-        for family in UIFont.familyNames.sorted() {
-            print("Family: \(family)")
-            for name in UIFont.fontNames(forFamilyName: family) {
-                print("  - \(name)")
-            }
-        }
-        print("======================")
-    }
-    
     var body: some Scene {
         WindowGroup {
             ContentView()
@@ -73,34 +63,60 @@ class AppState: ObservableObject {
     @Published var hasCompletedOnboarding: Bool = false
     @Published var isSignedIn: Bool = false
     @Published var hasActiveSubscription: Bool = false
+    @Published var isGuestUser: Bool = false
     @Published var currentUser: User?
     @Published var currentDog: Dog?
     @Published var dogs: [Dog] = []
+    @Published var lastError: String?
     
-        init() {
-            if APIService.shared.getAuthToken() != nil {
-                isSignedIn = true
-                hasCompletedOnboarding = true
-            }
+    private let localDogsKey = "localDogs"
+    private let isGuestKey = "isGuestUser"
+    
+    init() {
+        // Load guest status from UserDefaults
+        isGuestUser = UserDefaults.standard.bool(forKey: isGuestKey)
         
-            #if DEBUG
-            Task {
-                await APIService.shared.ensureDevAuthenticated()
-                await MainActor.run {
-                    if APIService.shared.getAuthToken() != nil {
-                        self.isSignedIn = true
-                        self.hasCompletedOnboarding = true
-                    }
+        // If guest user, automatically grant subscription access for testing
+        if isGuestUser {
+            hasActiveSubscription = true
+        }
+        
+        if APIService.shared.getAuthToken() != nil {
+            isSignedIn = true
+            hasCompletedOnboarding = true
+            
+            // Load local dogs as fallback (in case backend is unavailable)
+            loadLocalDogs()
+        }
+        
+        #if DEBUG
+        Task {
+            await APIService.shared.ensureDevAuthenticated()
+            await MainActor.run {
+                if APIService.shared.getAuthToken() != nil {
+                    self.isSignedIn = true
+                    self.hasCompletedOnboarding = true
                 }
             }
-            #endif
         }
+        #endif
+    }
     
     func loadUserData() async {
+        // First, load local dogs as immediate fallback
+        await MainActor.run {
+            loadLocalDogs()
+        }
+        
         do {
             let entitlements = try await APIService.shared.checkEntitlements()
             await MainActor.run {
-                hasActiveSubscription = entitlements.hasActiveSubscription
+                // Guest users always have subscription access for testing
+                if isGuestUser {
+                    hasActiveSubscription = true
+                } else {
+                    hasActiveSubscription = entitlements.hasActiveSubscription
+                }
             }
             
             let dogs = try await APIService.shared.getDogs()
@@ -109,9 +125,24 @@ class AppState: ObservableObject {
                 if let firstDog = dogs.first {
                     self.currentDog = firstDog
                 }
+                // Save dogs locally for offline access
+                saveLocalDogs(dogs)
+                lastError = nil
             }
         } catch {
             print("Failed to load user data: \(error)")
+            await MainActor.run {
+                lastError = "Unable to connect to server. Using offline data."
+                // Local dogs already loaded above as fallback
+            }
+        }
+    }
+    
+    func setGuestUser(_ isGuest: Bool) {
+        isGuestUser = isGuest
+        UserDefaults.standard.set(isGuest, forKey: isGuestKey)
+        if isGuest {
+            hasActiveSubscription = true
         }
     }
     
@@ -119,8 +150,60 @@ class AppState: ObservableObject {
         APIService.shared.clearAuthToken()
         isSignedIn = false
         hasActiveSubscription = false
+        isGuestUser = false
         currentUser = nil
         currentDog = nil
         dogs = []
+        lastError = nil
+        UserDefaults.standard.removeObject(forKey: isGuestKey)
+        UserDefaults.standard.removeObject(forKey: localDogsKey)
+    }
+    
+    // MARK: - Local Dog Storage (for offline access)
+    
+    private func saveLocalDogs(_ dogs: [Dog]) {
+        if let encoded = try? JSONEncoder().encode(dogs) {
+            UserDefaults.standard.set(encoded, forKey: localDogsKey)
+        }
+    }
+    
+    private func loadLocalDogs() {
+        if let data = UserDefaults.standard.data(forKey: localDogsKey),
+           let decoded = try? JSONDecoder().decode([Dog].self, from: data) {
+            if self.dogs.isEmpty {
+                self.dogs = decoded
+            }
+            if self.currentDog == nil, let firstDog = decoded.first {
+                self.currentDog = firstDog
+            }
+        }
+    }
+    
+    func saveDogLocally(_ dog: Dog) {
+        var localDogs = dogs
+        if let index = localDogs.firstIndex(where: { $0.id == dog.id }) {
+            localDogs[index] = dog
+        } else {
+            localDogs.append(dog)
+        }
+        saveLocalDogs(localDogs)
+        dogs = localDogs
+        currentDog = dog
+    }
+    
+    func deleteDog(_ dog: Dog) async throws {
+        // Delete from backend
+        try await APIService.shared.deleteDog(dogId: dog.id)
+        
+        await MainActor.run {
+            // Remove from local storage
+            dogs.removeAll { $0.id == dog.id }
+            saveLocalDogs(dogs)
+            
+            // Update current dog if needed
+            if currentDog?.id == dog.id {
+                currentDog = dogs.first
+            }
+        }
     }
 }

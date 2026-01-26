@@ -127,7 +127,7 @@ struct NewChatView: View {
                         ScrollView {
                             LazyVStack(spacing: 15) {
                                 ForEach(messages) { message in
-                                    NewMessageBubble(message: message)
+                                    NewMessageBubble(message: message, onFeedback: submitFeedback)
                                         .id(message.id)
                                 }
                                 
@@ -206,8 +206,7 @@ struct NewChatView: View {
     
     private func loadPetPhoto() {
         guard let dogId = appState.currentDog?.id else { return }
-        let key = "petPhoto_\(dogId)"
-        petPhotoData = UserDefaults.standard.data(forKey: key)
+        petPhotoData = PetPhotoService.shared.loadPhoto(for: dogId)
     }
     
     private var chatInputBar: some View {
@@ -423,6 +422,16 @@ struct NewChatView: View {
             )
         }
     }
+    
+    private func submitFeedback(messageId: String, feedback: String) {
+        Task {
+            do {
+                try await APIService.shared.submitMessageFeedback(messageId: messageId, feedback: feedback)
+            } catch {
+                print("Failed to submit feedback: \(error)")
+            }
+        }
+    }
 }
 
 struct EmptyStateChatView: View {
@@ -533,10 +542,19 @@ struct ChatQuickActionChip: View {
 
 struct NewMessageBubble: View {
     let message: Message
+    let onFeedback: ((String, String) -> Void)?
     @State private var appeared = false
+    @State private var currentFeedback: String?
+    @State private var showFeedbackSent = false
     
     // Scaled sizes for Dynamic Type support
     @ScaledMetric(relativeTo: .body) private var bubbleMaxWidth: CGFloat = 280
+    
+    init(message: Message, onFeedback: ((String, String) -> Void)? = nil) {
+        self.message = message
+        self.onFeedback = onFeedback
+        self._currentFeedback = State(initialValue: message.feedback?.rawValue)
+    }
     
     var body: some View {
         HStack(alignment: .top, spacing: 10) {
@@ -552,9 +570,38 @@ struct NewMessageBubble: View {
                     .foregroundColor(message.role == .user ? .white : .petlyDarkGreen)
                     .cornerRadius(18)
                 
-                Text(message.timestamp, style: .time)
-                    .font(.petlyBody(10))
-                    .foregroundColor(.petlyFormIcon)
+                HStack(spacing: 8) {
+                    Text(message.timestamp, style: .time)
+                        .font(.petlyBody(10))
+                        .foregroundColor(.petlyFormIcon)
+                    
+                    if message.role == .assistant && onFeedback != nil {
+                        Spacer().frame(width: 8)
+                        
+                        Button(action: {
+                            submitFeedback("positive")
+                        }) {
+                            Image(systemName: currentFeedback == "positive" ? "hand.thumbsup.fill" : "hand.thumbsup")
+                                .font(.system(size: 14))
+                                .foregroundColor(currentFeedback == "positive" ? .petlyDarkGreen : .petlyFormIcon)
+                        }
+                        
+                        Button(action: {
+                            submitFeedback("negative")
+                        }) {
+                            Image(systemName: currentFeedback == "negative" ? "hand.thumbsdown.fill" : "hand.thumbsdown")
+                                .font(.system(size: 14))
+                                .foregroundColor(currentFeedback == "negative" ? .red : .petlyFormIcon)
+                        }
+                        
+                        if showFeedbackSent {
+                            Text("Thanks!")
+                                .font(.petlyBody(10))
+                                .foregroundColor(.petlyDarkGreen)
+                                .transition(.opacity)
+                        }
+                    }
+                }
             }
             .frame(maxWidth: min(bubbleMaxWidth, 360), alignment: message.role == .user ? .trailing : .leading)
             
@@ -567,6 +614,21 @@ struct NewMessageBubble: View {
         .onAppear {
             withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
                 appeared = true
+            }
+        }
+    }
+    
+    private func submitFeedback(_ feedback: String) {
+        guard currentFeedback != feedback else { return }
+        currentFeedback = feedback
+        onFeedback?(message.id, feedback)
+        
+        withAnimation {
+            showFeedbackSent = true
+        }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+            withAnimation {
+                showFeedbackSent = false
             }
         }
     }

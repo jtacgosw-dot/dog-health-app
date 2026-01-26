@@ -331,19 +331,16 @@ struct NewPetAccountView: View {
     
     private func savePetPhoto(_ data: Data?) {
         guard let dogId = appState.currentDog?.id else { return }
-        let key = "petPhoto_\(dogId)"
         if let data = data {
-            UserDefaults.standard.set(data, forKey: key)
+            PetPhotoService.shared.savePhoto(data, for: dogId)
         } else {
-            UserDefaults.standard.removeObject(forKey: key)
+            PetPhotoService.shared.deletePhoto(for: dogId)
         }
-        NotificationCenter.default.post(name: .petPhotoDidChange, object: nil)
     }
     
     private func loadPetPhoto() {
         guard let dogId = appState.currentDog?.id else { return }
-        let key = "petPhoto_\(dogId)"
-        petPhotoData = UserDefaults.standard.data(forKey: key)
+        petPhotoData = PetPhotoService.shared.loadPhoto(for: dogId)
     }
 }
 
@@ -1412,18 +1409,16 @@ struct EditPetProfileView: View {
     
     private func savePetPhotoFromEdit(_ data: Data?) {
         guard let dogId = appState.currentDog?.id else { return }
-        let key = "petPhoto_\(dogId)"
         if let data = data {
-            UserDefaults.standard.set(data, forKey: key)
+            PetPhotoService.shared.savePhoto(data, for: dogId)
         } else {
-            UserDefaults.standard.removeObject(forKey: key)
+            PetPhotoService.shared.deletePhoto(for: dogId)
         }
     }
     
     private func loadPetPhotoForEdit() {
         guard let dogId = appState.currentDog?.id else { return }
-        let key = "petPhoto_\(dogId)"
-        petPhotoData = UserDefaults.standard.data(forKey: key)
+        petPhotoData = PetPhotoService.shared.loadPhoto(for: dogId)
     }
     
     private func saveProfile() {

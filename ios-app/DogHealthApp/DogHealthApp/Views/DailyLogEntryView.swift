@@ -94,8 +94,7 @@ struct DailyLogEntryView: View {
     
     private func loadPetPhoto() {
         guard let dogId = appState.currentDog?.id else { return }
-        let key = "petPhoto_\(dogId)"
-        petPhotoData = UserDefaults.standard.data(forKey: key)
+        petPhotoData = PetPhotoService.shared.loadPhoto(for: dogId)
     }
 }
 
