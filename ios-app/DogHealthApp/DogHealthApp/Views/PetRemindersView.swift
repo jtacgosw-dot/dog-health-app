@@ -390,8 +390,13 @@ struct AddReminderView: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
-                    Button("Cancel") { dismiss() }
-                        .foregroundColor(.petlyDarkGreen)
+                    Button {
+                        dismiss()
+                    } label: {
+                        Image(systemName: "xmark")
+                            .font(.body)
+                            .foregroundColor(.petlyDarkGreen)
+                    }
                 }
             }
         }

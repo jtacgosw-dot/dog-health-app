@@ -409,10 +409,16 @@ struct AddPreventativeCareReminderView:View {
             }
             .navigationTitle("Add Reminder")
             .navigationBarTitleDisplayMode(.inline)
+            .scrollContentBackground(.hidden)
+            .background(Color.petlyBackground)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
-                    Button("Cancel") {
+                    Button {
                         dismiss()
+                    } label: {
+                        Image(systemName: "xmark")
+                            .font(.body)
+                            .foregroundColor(.petlyDarkGreen)
                     }
                 }
             }
