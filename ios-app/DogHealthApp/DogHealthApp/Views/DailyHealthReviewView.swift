@@ -15,6 +15,7 @@ struct DailyHealthReviewView: View {
     @State private var overallMood: Int = 3
     @State private var additionalNotes = ""
     @State private var showingCompletion = false
+    @State private var showConfetti = false
     
     private let totalSteps = 4
     
@@ -70,41 +71,46 @@ struct DailyHealthReviewView: View {
     }
     
     var body: some View {
-        NavigationView {
-            VStack(spacing: 0) {
-                if showingCompletion {
-                    completionView
-                } else {
-                    progressHeader
-                    
-                    TabView(selection: $currentStep) {
-                        symptomsStep.tag(0)
-                        mealsStep.tag(1)
-                        activityStep.tag(2)
-                        moodStep.tag(3)
-                    }
-                    .tabViewStyle(.page(indexDisplayMode: .never))
-                    .animation(.easeInOut, value: currentStep)
-                    
-                    navigationButtons
-                }
-            }
-            .background(Color(.systemGroupedBackground))
-            .navigationTitle("Daily Health Review")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button {
-                        dismiss()
-                    } label: {
-                        Image(systemName: "chevron.left")
-                            .font(.system(size: 17, weight: .medium))
-                            .foregroundColor(.petlyDarkGreen)
+        ZStack {
+            NavigationView {
+                VStack(spacing: 0) {
+                    if showingCompletion {
+                        completionView
+                    } else {
+                        progressHeader
+                        
+                        TabView(selection: $currentStep) {
+                            symptomsStep.tag(0)
+                            mealsStep.tag(1)
+                            activityStep.tag(2)
+                            moodStep.tag(3)
+                        }
+                        .tabViewStyle(.page(indexDisplayMode: .never))
+                        .animation(.easeInOut, value: currentStep)
+                        
+                        navigationButtons
                     }
                 }
+                .background(Color(.systemGroupedBackground))
+                .navigationTitle("Daily Health Review")
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbar {
+                    ToolbarItem(placement: .navigationBarLeading) {
+                        Button {
+                            dismiss()
+                        } label: {
+                            Image(systemName: "chevron.left")
+                                .font(.system(size: 17, weight: .medium))
+                                .foregroundColor(.petlyDarkGreen)
+                        }
+                    }
+                }
             }
+            .buttonStyle(.plain)
+            
+            // Confetti overlay for completion celebration
+            ConfettiView(isShowing: $showConfetti)
         }
-        .buttonStyle(.plain)
         .preferredColorScheme(.light)
     }
     
@@ -575,8 +581,16 @@ struct DailyHealthReviewView: View {
         
         modelContext.insert(checkIn)
         
+        // Haptic feedback for completion
+        HapticFeedback.success()
+        
         withAnimation {
             showingCompletion = true
+        }
+        
+        // Trigger confetti celebration
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+            showConfetti = true
         }
     }
     
