@@ -64,6 +64,14 @@ struct DogHealthAppApp: App {
                             await HealthLogSyncService.shared.syncPendingLogs()
                         }
                     }
+                    
+                    // Check StoreKit subscription status
+                    Task {
+                        await StoreKitManager.shared.updatePurchasedProducts()
+                        await MainActor.run {
+                            appState.hasActiveSubscription = StoreKitManager.shared.hasActiveSubscription
+                        }
+                    }
                 }
         }
     }
