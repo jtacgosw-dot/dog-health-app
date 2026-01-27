@@ -1457,7 +1457,9 @@ struct EditPetProfileView: View {
                 let dog = try await APIService.shared.updateDog(dog: updatedDog)
                 
                 await MainActor.run {
-                    appState.currentDog = dog
+                    // Save dog locally so it persists across app restarts
+                    // This ensures pet photos can be loaded with the correct dog ID
+                    appState.saveDogLocally(dog)
                     showSaved = true
                     DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
                         dismiss()
