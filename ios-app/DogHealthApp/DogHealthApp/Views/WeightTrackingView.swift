@@ -326,10 +326,13 @@ struct WeightTrackingView: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
-                    Button("Cancel") {
+                    Button {
                         showAddEntry = false
+                    } label: {
+                        Image(systemName: "xmark")
+                            .font(.body)
+                            .foregroundColor(.petlyDarkGreen)
                     }
-                    .foregroundColor(.petlyDarkGreen)
                 }
             }
         }

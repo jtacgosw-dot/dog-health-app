@@ -764,8 +764,13 @@ struct EmergencyCardView: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
-                    Button("Done") { dismiss() }
-                        .foregroundColor(.petlyDarkGreen)
+                    Button {
+                        dismiss()
+                    } label: {
+                        Image(systemName: "xmark")
+                            .font(.body)
+                            .foregroundColor(.petlyDarkGreen)
+                    }
                 }
             }
             .sheet(isPresented: $showShareSheet) {
