@@ -561,6 +561,499 @@ extension View {
     }
 }
 
+// MARK: - Glow Effect for Pet Photo
+
+struct GlowModifier: ViewModifier {
+    let color: Color
+    let radius: CGFloat
+    @State private var isGlowing = false
+    
+    func body(content: Content) -> some View {
+        content
+            .shadow(color: color.opacity(isGlowing ? 0.6 : 0.2), radius: isGlowing ? radius : radius / 2)
+            .onAppear {
+                withAnimation(
+                    .easeInOut(duration: 1.5)
+                    .repeatForever(autoreverses: true)
+                ) {
+                    isGlowing = true
+                }
+            }
+    }
+}
+
+extension View {
+    func glow(color: Color = .petlyDarkGreen, radius: CGFloat = 10) -> some View {
+        modifier(GlowModifier(color: color, radius: radius))
+    }
+}
+
+// MARK: - Card Press Style with Shadow
+
+struct CardPressStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .scaleEffect(configuration.isPressed ? 0.97 : 1.0)
+            .shadow(
+                color: Color.black.opacity(configuration.isPressed ? 0.1 : 0.05),
+                radius: configuration.isPressed ? 2 : 4,
+                y: configuration.isPressed ? 1 : 2
+            )
+            .animation(.spring(response: 0.3, dampingFraction: 0.7), value: configuration.isPressed)
+            .onChange(of: configuration.isPressed) { _, isPressed in
+                if isPressed {
+                    let generator = UIImpactFeedbackGenerator(style: .light)
+                    generator.impactOccurred()
+                }
+            }
+    }
+}
+
+// MARK: - Confetti View
+
+struct ConfettiView: View {
+    @Binding var isShowing: Bool
+    let particleCount: Int
+    
+    init(isShowing: Binding<Bool>, particleCount: Int = 50) {
+        self._isShowing = isShowing
+        self.particleCount = particleCount
+    }
+    
+    var body: some View {
+        ZStack {
+            if isShowing {
+                ForEach(0..<particleCount, id: \.self) { index in
+                    ConfettiParticle(index: index)
+                }
+            }
+        }
+        .onChange(of: isShowing) { _, newValue in
+            if newValue {
+                // Auto-dismiss after animation
+                DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
+                    isShowing = false
+                }
+            }
+        }
+    }
+}
+
+struct ConfettiParticle: View {
+    let index: Int
+    @State private var position: CGPoint = .zero
+    @State private var rotation: Double = 0
+    @State private var opacity: Double = 1
+    
+    private let colors: [Color] = [.red, .orange, .yellow, .green, .blue, .purple, .pink]
+    private let shapes: [AnyShape] = [AnyShape(Circle()), AnyShape(Rectangle()), AnyShape(Capsule())]
+    
+    var body: some View {
+        shapes[index % shapes.count]
+            .fill(colors[index % colors.count])
+            .frame(width: CGFloat.random(in: 6...12), height: CGFloat.random(in: 6...12))
+            .position(position)
+            .rotationEffect(.degrees(rotation))
+            .opacity(opacity)
+            .onAppear {
+                let screenWidth = UIScreen.main.bounds.width
+                let screenHeight = UIScreen.main.bounds.height
+                
+                // Start from center top
+                position = CGPoint(x: screenWidth / 2, y: 0)
+                
+                // Animate to random position
+                withAnimation(.easeOut(duration: Double.random(in: 2.0...3.0))) {
+                    position = CGPoint(
+                        x: CGFloat.random(in: 0...screenWidth),
+                        y: screenHeight + 50
+                    )
+                    rotation = Double.random(in: 0...720)
+                    opacity = 0
+                }
+            }
+    }
+}
+
+struct AnyShape: Shape {
+    private let _path: (CGRect) -> Path
+    
+    init<S: Shape>(_ shape: S) {
+        _path = shape.path(in:)
+    }
+    
+    func path(in rect: CGRect) -> Path {
+        _path(rect)
+    }
+}
+
+// MARK: - Streak Counter View
+
+struct StreakCounterView: View {
+    let streakDays: Int
+    @State private var animatedCount: Int = 0
+    @State private var isFlaming = false
+    
+    var body: some View {
+        HStack(spacing: 8) {
+            Image(systemName: streakDays > 0 ? "flame.fill" : "flame")
+                .font(.system(size: 24))
+                .foregroundColor(streakDays > 0 ? .orange : .petlyFormIcon)
+                .scaleEffect(isFlaming ? 1.2 : 1.0)
+                .animation(
+                    streakDays > 0 ?
+                        .easeInOut(duration: 0.5).repeatForever(autoreverses: true) :
+                        .default,
+                    value: isFlaming
+                )
+            
+            VStack(alignment: .leading, spacing: 2) {
+                Text("\(animatedCount)")
+                    .font(.petlyTitle(24))
+                    .foregroundColor(.petlyDarkGreen)
+                    .contentTransition(.numericText())
+                
+                Text("day streak")
+                    .font(.petlyBody(12))
+                    .foregroundColor(.petlyFormIcon)
+            }
+        }
+        .onAppear {
+            if streakDays > 0 {
+                isFlaming = true
+            }
+            animateCount()
+        }
+        .onChange(of: streakDays) { _, _ in
+            animateCount()
+        }
+    }
+    
+    private func animateCount() {
+        let duration: Double = 0.5
+        let steps = min(streakDays, 20)
+        guard steps > 0 else {
+            animatedCount = 0
+            return
+        }
+        
+        let stepDuration = duration / Double(steps)
+        
+        for i in 0...steps {
+            DispatchQueue.main.asyncAfter(deadline: .now() + (stepDuration * Double(i))) {
+                withAnimation(.none) {
+                    animatedCount = Int(Double(streakDays) * Double(i) / Double(steps))
+                }
+            }
+        }
+    }
+}
+
+// MARK: - Gradient Card Background
+
+struct GradientCardBackground: View {
+    let colors: [Color]
+    
+    init(colors: [Color] = [Color.petlyLightGreen, Color.petlyLightGreen.opacity(0.8)]) {
+        self.colors = colors
+    }
+    
+    var body: some View {
+        LinearGradient(
+            gradient: Gradient(colors: colors),
+            startPoint: .topLeading,
+            endPoint: .bottomTrailing
+        )
+    }
+}
+
+// MARK: - Swipe Action Card Modifier
+
+struct SwipeActionModifier: ViewModifier {
+    let leadingActions: [SwipeAction]
+    let trailingActions: [SwipeAction]
+    @State private var offset: CGFloat = 0
+    @State private var showingLeading = false
+    @State private var showingTrailing = false
+    
+    struct SwipeAction: Identifiable {
+        let id = UUID()
+        let icon: String
+        let color: Color
+        let action: () -> Void
+    }
+    
+    func body(content: Content) -> some View {
+        ZStack {
+            // Leading actions
+            HStack(spacing: 0) {
+                ForEach(leadingActions) { action in
+                    Button(action: {
+                        withAnimation { offset = 0 }
+                        action.action()
+                    }) {
+                        Image(systemName: action.icon)
+                            .font(.system(size: 20))
+                            .foregroundColor(.white)
+                            .frame(width: 60, height: 60)
+                            .background(action.color)
+                    }
+                }
+                Spacer()
+            }
+            .opacity(showingLeading ? 1 : 0)
+            
+            // Trailing actions
+            HStack(spacing: 0) {
+                Spacer()
+                ForEach(trailingActions) { action in
+                    Button(action: {
+                        withAnimation { offset = 0 }
+                        action.action()
+                    }) {
+                        Image(systemName: action.icon)
+                            .font(.system(size: 20))
+                            .foregroundColor(.white)
+                            .frame(width: 60, height: 60)
+                            .background(action.color)
+                    }
+                }
+            }
+            .opacity(showingTrailing ? 1 : 0)
+            
+            // Main content
+            content
+                .offset(x: offset)
+                .gesture(
+                    DragGesture()
+                        .onChanged { value in
+                            offset = value.translation.width
+                            showingLeading = offset > 30
+                            showingTrailing = offset < -30
+                        }
+                        .onEnded { value in
+                            withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                                if offset > 100 && !leadingActions.isEmpty {
+                                    offset = CGFloat(leadingActions.count) * 60
+                                } else if offset < -100 && !trailingActions.isEmpty {
+                                    offset = -CGFloat(trailingActions.count) * 60
+                                } else {
+                                    offset = 0
+                                    showingLeading = false
+                                    showingTrailing = false
+                                }
+                            }
+                        }
+                )
+        }
+        .clipped()
+    }
+}
+
+extension View {
+    func swipeActions(
+        leading: [SwipeActionModifier.SwipeAction] = [],
+        trailing: [SwipeActionModifier.SwipeAction] = []
+    ) -> some View {
+        modifier(SwipeActionModifier(leadingActions: leading, trailingActions: trailing))
+    }
+}
+
+// MARK: - Share Health Summary Card
+
+struct ShareableHealthCard: View {
+    let petName: String
+    let healthScore: Int
+    let streakDays: Int
+    let activityMinutes: Int
+    let mealsLogged: Int
+    
+    var body: some View {
+        VStack(spacing: 16) {
+            // Header
+            HStack {
+                Image(systemName: "pawprint.fill")
+                    .font(.system(size: 24))
+                    .foregroundColor(.petlyDarkGreen)
+                Text("Petly")
+                    .font(.petlyTitle(24))
+                    .foregroundColor(.petlyDarkGreen)
+                Spacer()
+            }
+            
+            // Pet name and score
+            HStack {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(petName)
+                        .font(.petlyTitle(28))
+                        .foregroundColor(.petlyDarkGreen)
+                    Text("Health Summary")
+                        .font(.petlyBody(14))
+                        .foregroundColor(.petlyFormIcon)
+                }
+                Spacer()
+                
+                // Health score ring
+                ZStack {
+                    Circle()
+                        .stroke(Color.petlyDarkGreen.opacity(0.2), lineWidth: 8)
+                        .frame(width: 70, height: 70)
+                    
+                    Circle()
+                        .trim(from: 0, to: CGFloat(healthScore) / 100)
+                        .stroke(Color.petlyDarkGreen, style: StrokeStyle(lineWidth: 8, lineCap: .round))
+                        .frame(width: 70, height: 70)
+                        .rotationEffect(.degrees(-90))
+                    
+                    Text("\(healthScore)")
+                        .font(.petlyTitle(20))
+                        .foregroundColor(.petlyDarkGreen)
+                }
+            }
+            
+            Divider()
+            
+            // Stats
+            HStack(spacing: 20) {
+                StatItem(icon: "flame.fill", value: "\(streakDays)", label: "Day Streak", color: .orange)
+                StatItem(icon: "figure.walk", value: "\(activityMinutes)", label: "Minutes", color: .green)
+                StatItem(icon: "fork.knife", value: "\(mealsLogged)", label: "Meals", color: .blue)
+            }
+            
+            // Footer
+            Text("petlyapp.com")
+                .font(.petlyBody(12))
+                .foregroundColor(.petlyFormIcon)
+        }
+        .padding(20)
+        .background(
+            RoundedRectangle(cornerRadius: 20)
+                .fill(Color.petlyBackground)
+                .shadow(color: .black.opacity(0.1), radius: 10, y: 5)
+        )
+    }
+}
+
+struct StatItem: View {
+    let icon: String
+    let value: String
+    let label: String
+    let color: Color
+    
+    var body: some View {
+        VStack(spacing: 4) {
+            Image(systemName: icon)
+                .font(.system(size: 20))
+                .foregroundColor(color)
+            Text(value)
+                .font(.petlyBodyMedium(18))
+                .foregroundColor(.petlyDarkGreen)
+            Text(label)
+                .font(.petlyBody(10))
+                .foregroundColor(.petlyFormIcon)
+        }
+        .frame(maxWidth: .infinity)
+    }
+}
+
+// MARK: - Empty State with Animation
+
+struct AnimatedEmptyState: View {
+    let icon: String
+    let title: String
+    let message: String
+    let actionTitle: String?
+    let action: (() -> Void)?
+    
+    @State private var isAnimating = false
+    
+    init(icon: String, title: String, message: String, actionTitle: String? = nil, action: (() -> Void)? = nil) {
+        self.icon = icon
+        self.title = title
+        self.message = message
+        self.actionTitle = actionTitle
+        self.action = action
+    }
+    
+    var body: some View {
+        VStack(spacing: 20) {
+            Image(systemName: icon)
+                .font(.system(size: 60))
+                .foregroundColor(.petlyDarkGreen.opacity(0.5))
+                .scaleEffect(isAnimating ? 1.1 : 1.0)
+                .animation(
+                    .easeInOut(duration: 2.0).repeatForever(autoreverses: true),
+                    value: isAnimating
+                )
+            
+            Text(title)
+                .font(.petlyTitle(20))
+                .foregroundColor(.petlyDarkGreen)
+            
+            Text(message)
+                .font(.petlyBody(14))
+                .foregroundColor(.petlyFormIcon)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, 40)
+            
+            if let actionTitle = actionTitle, let action = action {
+                Button(action: action) {
+                    Text(actionTitle)
+                        .font(.petlyBodyMedium(14))
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 24)
+                        .padding(.vertical, 12)
+                        .background(Color.petlyDarkGreen)
+                        .cornerRadius(20)
+                }
+                .buttonStyle(PetlyPressButtonStyle())
+            }
+        }
+        .onAppear {
+            isAnimating = true
+        }
+    }
+}
+
+// MARK: - Haptic Feedback Helper
+
+struct HapticFeedback {
+    static func light() {
+        let generator = UIImpactFeedbackGenerator(style: .light)
+        generator.impactOccurred()
+    }
+    
+    static func medium() {
+        let generator = UIImpactFeedbackGenerator(style: .medium)
+        generator.impactOccurred()
+    }
+    
+    static func heavy() {
+        let generator = UIImpactFeedbackGenerator(style: .heavy)
+        generator.impactOccurred()
+    }
+    
+    static func success() {
+        let generator = UINotificationFeedbackGenerator()
+        generator.notificationOccurred(.success)
+    }
+    
+    static func warning() {
+        let generator = UINotificationFeedbackGenerator()
+        generator.notificationOccurred(.warning)
+    }
+    
+    static func error() {
+        let generator = UINotificationFeedbackGenerator()
+        generator.notificationOccurred(.error)
+    }
+    
+    static func selection() {
+        let generator = UISelectionFeedbackGenerator()
+        generator.selectionChanged()
+    }
+}
+
 #Preview {
     VStack(spacing: 20) {
         SkeletonCard()
@@ -568,6 +1061,17 @@ extension View {
         AnimatedScoreRing(score: 75, size: 100, lineWidth: 10)
         
         LoadingDotsView()
+        
+        StreakCounterView(streakDays: 7)
+        
+        ShareableHealthCard(
+            petName: "Buddy",
+            healthScore: 85,
+            streakDays: 7,
+            activityMinutes: 45,
+            mealsLogged: 3
+        )
+        .padding()
     }
     .padding()
     .background(Color.petlyBackground)

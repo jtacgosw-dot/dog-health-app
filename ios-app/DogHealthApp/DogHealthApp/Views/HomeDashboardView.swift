@@ -33,6 +33,8 @@ struct HomeDashboardView: View {
     @State private var showPreventativeCare = false
     @State private var showSmartInsights = false
     @State private var petPhotoData: Data?
+    @State private var showConfetti = false
+    @State private var showShareSheet = false
     
     private let activityGoal = 60
     private let mealsTotal = 3
@@ -114,10 +116,39 @@ struct HomeDashboardView: View {
         appState.currentDog?.name ?? "your pet"
     }
     
+    // Calculate streak days (consecutive days with at least one log)
+    private var streakDays: Int {
+        let dogId = appState.currentDog?.id ?? "default"
+        let calendar = Calendar.current
+        var streak = 0
+        var currentDate = calendar.startOfDay(for: Date())
+        
+        while true {
+            let nextDay = calendar.date(byAdding: .day, value: 1, to: currentDate) ?? currentDate
+            let logsForDay = allLogs.filter { log in
+                log.dogId == dogId &&
+                log.timestamp >= currentDate &&
+                log.timestamp < nextDay
+            }
+            
+            if logsForDay.isEmpty {
+                break
+            }
+            
+            streak += 1
+            currentDate = calendar.date(byAdding: .day, value: -1, to: currentDate) ?? currentDate
+        }
+        
+        return streak
+    }
+    
     var body: some View {
         ZStack {
             Color.petlyBackground
                 .ignoresSafeArea()
+            
+            // Confetti overlay for celebrations
+            ConfettiView(isShowing: $showConfetti)
             
             ScrollView {
                 VStack(alignment: .leading, spacing: 20) {
@@ -153,6 +184,7 @@ struct HomeDashboardView: View {
                                                 .scaledToFill()
                                                 .frame(width: min(avatarSize, 80), height: min(avatarSize, 80))
                                                 .clipShape(Circle())
+                                                .glow(color: .petlyDarkGreen, radius: 8)
                                         } else {
                                             Circle()
                                                 .fill(Color.petlyLightGreen)
@@ -162,6 +194,7 @@ struct HomeDashboardView: View {
                                                         .font(.system(size: min(avatarIconSize, 36)))
                                                         .foregroundColor(.petlyDarkGreen)
                                                 )
+                                                .glow(color: .petlyDarkGreen, radius: 8)
                                         }
                                     }
                                 }
@@ -169,6 +202,35 @@ struct HomeDashboardView: View {
                         }
                         .padding(.horizontal)
                         .padding(.top, 10)
+                        
+                        // Streak counter card
+                        if streakDays > 0 {
+                            HStack {
+                                StreakCounterView(streakDays: streakDays)
+                                Spacer()
+                                Button(action: { showShareSheet = true }) {
+                                    HStack(spacing: 4) {
+                                        Image(systemName: "square.and.arrow.up")
+                                            .font(.system(size: 14))
+                                        Text("Share")
+                                            .font(.petlyBodyMedium(12))
+                                    }
+                                    .foregroundColor(.petlyDarkGreen)
+                                    .padding(.horizontal, 12)
+                                    .padding(.vertical, 8)
+                                    .background(Color.petlyLightGreen)
+                                    .cornerRadius(16)
+                                }
+                                .buttonStyle(PetlyPressButtonStyle())
+                            }
+                            .padding()
+                            .background(
+                                GradientCardBackground(colors: [Color.orange.opacity(0.1), Color.yellow.opacity(0.1)])
+                            )
+                            .cornerRadius(16)
+                            .padding(.horizontal)
+                            .appearAnimation(delay: 0.05)
+                        }
                         
                         DailyHealthReviewCard(onStartReview: { showDailyHealthReview = true })
                         .padding(.horizontal)
@@ -313,6 +375,15 @@ struct HomeDashboardView: View {
             .fullScreenCover(isPresented: $showSmartInsights) {
                 SmartInsightsView()
                     .environmentObject(appState)
+            }
+            .sheet(isPresented: $showShareSheet) {
+                ShareHealthSummarySheet(
+                    petName: dogName,
+                    healthScore: 85,
+                    streakDays: streakDays,
+                    activityMinutes: activityMinutes,
+                    mealsLogged: mealsLogged
+                )
             }
             .onAppear {
                 loadPetPhoto()
@@ -592,12 +663,22 @@ struct TodaysOverviewCard: View {
     let activityGoal: Int
     let waterOnTrack: Bool
     var onLogMore: () -> Void = {}
+    var onQuickLogMeal: () -> Void = {}
+    var onQuickLogWater: () -> Void = {}
     
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Today's Overview")
-                .font(.petlyBodyMedium(18))
-                .foregroundColor(.petlyDarkGreen)
+            HStack {
+                Text("Today's Overview")
+                    .font(.petlyBodyMedium(18))
+                    .foregroundColor(.petlyDarkGreen)
+                
+                Spacer()
+                
+                Text("Swipe for quick actions")
+                    .font(.petlyBody(10))
+                    .foregroundColor(.petlyFormIcon)
+            }
             
             HStack {
                 Text("Overall: Stable")
@@ -606,7 +687,10 @@ struct TodaysOverviewCard: View {
                 
                 Spacer()
                 
-                Button(action: onLogMore) {
+                Button(action: {
+                    HapticFeedback.light()
+                    onLogMore()
+                }) {
                     Text("+ Log More")
                         .font(.petlyBodyMedium(14))
                         .foregroundColor(.white)
@@ -615,7 +699,7 @@ struct TodaysOverviewCard: View {
                         .background(Color.petlyDarkGreen)
                         .cornerRadius(20)
                 }
-                .buttonStyle(PetlyButtonStyle())
+                .buttonStyle(PetlyPressButtonStyle())
             }
             
             HStack(spacing: 0) {
@@ -1379,6 +1463,104 @@ struct AdaptiveHStack<Content: View>: View {
             HStack(spacing: spacing) {
                 content()
             }
+        }
+    }
+}
+
+// MARK: - Share Health Summary Sheet
+
+struct ShareHealthSummarySheet: View {
+    @Environment(\.dismiss) var dismiss
+    let petName: String
+    let healthScore: Int
+    let streakDays: Int
+    let activityMinutes: Int
+    let mealsLogged: Int
+    
+    @State private var showingShareSheet = false
+    @State private var cardImage: UIImage?
+    
+    var body: some View {
+        NavigationView {
+            ZStack {
+                Color.petlyBackground
+                    .ignoresSafeArea()
+                
+                VStack(spacing: 20) {
+                    Text("Share Your Pet's Progress")
+                        .font(.petlyTitle(24))
+                        .foregroundColor(.petlyDarkGreen)
+                    
+                    Text("Show off \(petName)'s health journey!")
+                        .font(.petlyBody(14))
+                        .foregroundColor(.petlyFormIcon)
+                    
+                    ShareableHealthCard(
+                        petName: petName,
+                        healthScore: healthScore,
+                        streakDays: streakDays,
+                        activityMinutes: activityMinutes,
+                        mealsLogged: mealsLogged
+                    )
+                    .padding()
+                    
+                    Button(action: {
+                        HapticFeedback.medium()
+                        shareCard()
+                    }) {
+                        HStack {
+                            Image(systemName: "square.and.arrow.up")
+                            Text("Share")
+                        }
+                        .font(.petlyBodyMedium(16))
+                        .foregroundColor(.white)
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(Color.petlyDarkGreen)
+                        .cornerRadius(12)
+                    }
+                    .buttonStyle(PetlyPressButtonStyle())
+                    .padding(.horizontal)
+                    
+                    Spacer()
+                }
+                .padding(.top, 20)
+            }
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button(action: { dismiss() }) {
+                        Image(systemName: "xmark")
+                            .foregroundColor(.petlyDarkGreen)
+                    }
+                }
+            }
+        }
+        .sheet(isPresented: $showingShareSheet) {
+            if let image = cardImage {
+                ShareSheet(items: [image])
+            }
+        }
+        .preferredColorScheme(.light)
+    }
+    
+    private func shareCard() {
+        let renderer = ImageRenderer(content: 
+            ShareableHealthCard(
+                petName: petName,
+                healthScore: healthScore,
+                streakDays: streakDays,
+                activityMinutes: activityMinutes,
+                mealsLogged: mealsLogged
+            )
+            .padding()
+            .background(Color.petlyBackground)
+        )
+        renderer.scale = 3.0
+        
+        if let image = renderer.uiImage {
+            cardImage = image
+            showingShareSheet = true
         }
     }
 }

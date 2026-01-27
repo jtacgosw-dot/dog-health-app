@@ -132,14 +132,14 @@ struct NewChatView: View {
                                 }
                                 
                                 if isLoading {
-                                    HStack {
-                                        ProgressView()
-                                            .tint(.petlyDarkGreen)
+                                    HStack(spacing: 12) {
+                                        LoadingDotsView()
                                         Text("Petly is thinking...")
                                             .font(.petlyBody(12))
                                             .foregroundColor(.petlyFormIcon)
                                     }
                                     .padding()
+                                    .transition(.opacity.combined(with: .scale))
                                 }
                             }
                             .padding()
