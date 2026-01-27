@@ -301,8 +301,9 @@ struct AddPetView: View {
                 let createdDog = try await APIService.shared.createDog(dog: newDog)
                 
                 await MainActor.run {
-                    appState.dogs.append(createdDog)
-                    appState.currentDog = createdDog
+                    // Save dog locally so it persists across app restarts
+                    // This ensures pet photos can be loaded with the correct dog ID
+                    appState.saveDogLocally(createdDog)
                     isLoading = false
                     dismiss()
                 }

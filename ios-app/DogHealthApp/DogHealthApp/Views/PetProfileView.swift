@@ -203,12 +203,9 @@ struct PetProfileView: View {
                 }
                 
                 await MainActor.run {
-                    appState.currentDog = dog
-                    if let index = appState.dogs.firstIndex(where: { $0.id == dog.id }) {
-                        appState.dogs[index] = dog
-                    } else {
-                        appState.dogs.append(dog)
-                    }
+                    // Save dog locally so it persists across app restarts
+                    // This ensures pet photos can be loaded with the correct dog ID
+                    appState.saveDogLocally(dog)
                     isLoading = false
                     withAnimation {
                         showSuccess = true
