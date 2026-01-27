@@ -77,26 +77,38 @@ class AppState: ObservableObject {
     @Published var currentDog: Dog?
     @Published var dogs: [Dog] = []
     
-        init() {
-            if APIService.shared.getAuthToken() != nil {
-                isSignedIn = true
-                hasCompletedOnboarding = true
-            }
+    private let localDogsKey = "localDogs"
+    
+    init() {
+        if APIService.shared.getAuthToken() != nil {
+            isSignedIn = true
+            hasCompletedOnboarding = true
+            
+            // Load local dogs immediately so currentDog is available for pet photo
+            loadLocalDogs()
+        }
         
-            #if DEBUG
-            Task {
-                await APIService.shared.ensureDevAuthenticated()
-                await MainActor.run {
-                    if APIService.shared.getAuthToken() != nil {
-                        self.isSignedIn = true
-                        self.hasCompletedOnboarding = true
-                    }
+        #if DEBUG
+        Task {
+            await APIService.shared.ensureDevAuthenticated()
+            await MainActor.run {
+                if APIService.shared.getAuthToken() != nil {
+                    self.isSignedIn = true
+                    self.hasCompletedOnboarding = true
+                    // Load local dogs for dev mode too
+                    self.loadLocalDogs()
                 }
             }
-            #endif
         }
+        #endif
+    }
     
     func loadUserData() async {
+        // First, load local dogs as immediate fallback
+        await MainActor.run {
+            loadLocalDogs()
+        }
+        
         do {
             let entitlements = try await APIService.shared.checkEntitlements()
             await MainActor.run {
@@ -109,9 +121,12 @@ class AppState: ObservableObject {
                 if let firstDog = dogs.first {
                     self.currentDog = firstDog
                 }
+                // Save dogs locally for offline access and photo persistence
+                saveLocalDogs(dogs)
             }
         } catch {
             print("Failed to load user data: \(error)")
+            // Local dogs already loaded above as fallback
         }
     }
     
@@ -122,5 +137,38 @@ class AppState: ObservableObject {
         currentUser = nil
         currentDog = nil
         dogs = []
+        UserDefaults.standard.removeObject(forKey: localDogsKey)
+    }
+    
+    // MARK: - Local Dog Storage (for offline access and photo persistence)
+    
+    private func saveLocalDogs(_ dogs: [Dog]) {
+        if let encoded = try? JSONEncoder().encode(dogs) {
+            UserDefaults.standard.set(encoded, forKey: localDogsKey)
+        }
+    }
+    
+    private func loadLocalDogs() {
+        if let data = UserDefaults.standard.data(forKey: localDogsKey),
+           let decoded = try? JSONDecoder().decode([Dog].self, from: data) {
+            if self.dogs.isEmpty {
+                self.dogs = decoded
+            }
+            if self.currentDog == nil, let firstDog = decoded.first {
+                self.currentDog = firstDog
+            }
+        }
+    }
+    
+    func saveDogLocally(_ dog: Dog) {
+        var localDogs = dogs
+        if let index = localDogs.firstIndex(where: { $0.id == dog.id }) {
+            localDogs[index] = dog
+        } else {
+            localDogs.append(dog)
+        }
+        saveLocalDogs(localDogs)
+        dogs = localDogs
+        currentDog = dog
     }
 }
