@@ -82,6 +82,307 @@ struct SkeletonCircle: View {
     }
 }
 
+// MARK: - Dashboard Skeleton Cards
+
+struct SkeletonDashboardCard: View {
+    let height: CGFloat
+    
+    init(height: CGFloat = 180) {
+        self.height = height
+    }
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                SkeletonCircle(size: 40)
+                VStack(alignment: .leading, spacing: 6) {
+                    SkeletonView()
+                        .frame(width: 120, height: 16)
+                    SkeletonView()
+                        .frame(width: 80, height: 12)
+                }
+                Spacer()
+            }
+            
+            Spacer()
+            
+            SkeletonView()
+                .frame(height: 40)
+            
+            HStack(spacing: 12) {
+                SkeletonView()
+                    .frame(width: 60, height: 14)
+                SkeletonView()
+                    .frame(width: 80, height: 14)
+            }
+        }
+        .padding()
+        .frame(height: height)
+        .background(Color.petlyLightGreen.opacity(0.3))
+        .cornerRadius(16)
+    }
+}
+
+struct SkeletonActivityRingCard: View {
+    var body: some View {
+        VStack(spacing: 16) {
+            HStack {
+                SkeletonView()
+                    .frame(width: 100, height: 18)
+                Spacer()
+            }
+            
+            SkeletonCircle(size: 120)
+            
+            HStack(spacing: 20) {
+                ForEach(0..<3, id: \.self) { _ in
+                    VStack(spacing: 4) {
+                        SkeletonView()
+                            .frame(width: 40, height: 14)
+                        SkeletonView()
+                            .frame(width: 30, height: 10)
+                    }
+                }
+            }
+        }
+        .padding()
+        .frame(height: 240)
+        .background(Color.petlyLightGreen.opacity(0.3))
+        .cornerRadius(16)
+    }
+}
+
+struct SkeletonListRow: View {
+    var body: some View {
+        HStack(spacing: 12) {
+            SkeletonCircle(size: 44)
+            
+            VStack(alignment: .leading, spacing: 6) {
+                SkeletonView()
+                    .frame(width: 140, height: 16)
+                SkeletonView()
+                    .frame(width: 100, height: 12)
+            }
+            
+            Spacer()
+            
+            SkeletonView()
+                .frame(width: 60, height: 24)
+                .cornerRadius(12)
+        }
+        .padding(.vertical, 8)
+    }
+}
+
+struct SkeletonChatBubble: View {
+    let isUser: Bool
+    
+    var body: some View {
+        HStack {
+            if isUser { Spacer() }
+            
+            VStack(alignment: isUser ? .trailing : .leading, spacing: 6) {
+                SkeletonView()
+                    .frame(width: CGFloat.random(in: 150...250), height: 14)
+                SkeletonView()
+                    .frame(width: CGFloat.random(in: 100...200), height: 14)
+                if !isUser {
+                    SkeletonView()
+                        .frame(width: CGFloat.random(in: 80...150), height: 14)
+                }
+            }
+            .padding()
+            .background(isUser ? Color.petlyDarkGreen.opacity(0.3) : Color.petlyLightGreen.opacity(0.5))
+            .cornerRadius(16)
+            
+            if !isUser { Spacer() }
+        }
+    }
+}
+
+struct SkeletonArticleCard: View {
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            SkeletonView(cornerRadius: 12)
+                .frame(height: 140)
+            
+            SkeletonView()
+                .frame(height: 18)
+                .frame(maxWidth: .infinity)
+            
+            SkeletonView()
+                .frame(width: 200, height: 14)
+            
+            HStack {
+                SkeletonView()
+                    .frame(width: 80, height: 12)
+                Spacer()
+                SkeletonView()
+                    .frame(width: 60, height: 12)
+            }
+        }
+        .padding()
+        .background(Color.white)
+        .cornerRadius(16)
+    }
+}
+
+struct SkeletonProfileHeader: View {
+    var body: some View {
+        VStack(spacing: 16) {
+            SkeletonCircle(size: 100)
+            
+            SkeletonView()
+                .frame(width: 150, height: 24)
+            
+            SkeletonView()
+                .frame(width: 100, height: 14)
+        }
+    }
+}
+
+struct SkeletonHealthInsightCard: View {
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                SkeletonCircle(size: 36)
+                SkeletonView()
+                    .frame(width: 120, height: 16)
+                Spacer()
+            }
+            
+            SkeletonView()
+                .frame(height: 14)
+            SkeletonView()
+                .frame(width: 200, height: 14)
+            
+            HStack(spacing: 8) {
+                SkeletonView()
+                    .frame(width: 70, height: 28)
+                    .cornerRadius(14)
+                SkeletonView()
+                    .frame(width: 90, height: 28)
+                    .cornerRadius(14)
+            }
+        }
+        .padding()
+        .background(Color.petlyLightGreen.opacity(0.3))
+        .cornerRadius(16)
+    }
+}
+
+// MARK: - Loading State Wrapper
+
+struct LoadingStateView<Content: View, LoadingContent: View>: View {
+    let isLoading: Bool
+    let content: Content
+    let loadingContent: LoadingContent
+    
+    init(
+        isLoading: Bool,
+        @ViewBuilder content: () -> Content,
+        @ViewBuilder loadingContent: () -> LoadingContent
+    ) {
+        self.isLoading = isLoading
+        self.content = content()
+        self.loadingContent = loadingContent()
+    }
+    
+    var body: some View {
+        if isLoading {
+            loadingContent
+                .transition(.opacity)
+        } else {
+            content
+                .transition(.opacity)
+        }
+    }
+}
+
+// MARK: - Skeleton Dashboard Grid (for Home screen)
+
+struct SkeletonDashboardGrid: View {
+    var body: some View {
+        VStack(spacing: 16) {
+            // Header skeleton
+            HStack {
+                VStack(alignment: .leading, spacing: 6) {
+                    SkeletonView()
+                        .frame(width: 180, height: 28)
+                    SkeletonView()
+                        .frame(width: 120, height: 16)
+                }
+                Spacer()
+                SkeletonCircle(size: 50)
+            }
+            .padding(.horizontal)
+            
+            // Cards grid
+            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 16) {
+                SkeletonDashboardCard(height: 160)
+                SkeletonDashboardCard(height: 160)
+                SkeletonDashboardCard(height: 160)
+                SkeletonDashboardCard(height: 160)
+            }
+            .padding(.horizontal)
+            
+            // Full width card
+            SkeletonActivityRingCard()
+                .padding(.horizontal)
+        }
+    }
+}
+
+// MARK: - Skeleton Chat View
+
+struct SkeletonChatView: View {
+    var body: some View {
+        VStack(spacing: 16) {
+            SkeletonChatBubble(isUser: false)
+            SkeletonChatBubble(isUser: true)
+            SkeletonChatBubble(isUser: false)
+            Spacer()
+        }
+        .padding()
+    }
+}
+
+// MARK: - Skeleton Explore View
+
+struct SkeletonExploreView: View {
+    var body: some View {
+        VStack(spacing: 16) {
+            // Search bar skeleton
+            SkeletonView()
+                .frame(height: 44)
+                .cornerRadius(22)
+                .padding(.horizontal)
+            
+            // Categories skeleton
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 12) {
+                    ForEach(0..<5, id: \.self) { _ in
+                        SkeletonView()
+                            .frame(width: 80, height: 32)
+                            .cornerRadius(16)
+                    }
+                }
+                .padding(.horizontal)
+            }
+            
+            // Articles skeleton
+            ScrollView {
+                VStack(spacing: 16) {
+                    ForEach(0..<3, id: \.self) { _ in
+                        SkeletonArticleCard()
+                    }
+                }
+                .padding(.horizontal)
+            }
+        }
+    }
+}
+
 // MARK: - Success Animation
 
 struct SuccessCheckmarkView: View {
