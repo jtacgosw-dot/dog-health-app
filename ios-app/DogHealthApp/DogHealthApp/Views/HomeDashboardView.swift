@@ -328,7 +328,7 @@ struct HomeDashboardView: View {
                         initialMealType = nil
                     }
             }
-            .fullScreenCover(isPresented: $showHealthTimeline) {
+            .sheet(isPresented: $showHealthTimeline) {
                 HealthTimelineView()
                     .environmentObject(appState)
             }
@@ -348,19 +348,19 @@ struct HomeDashboardView: View {
                 PetSwitcherView()
                     .environmentObject(appState)
             }
-            .fullScreenCover(isPresented: $showHealthDigest) {
+            .sheet(isPresented: $showHealthDigest) {
                 HealthDigestView()
                     .environmentObject(appState)
             }
-            .fullScreenCover(isPresented: $showSymptomTriage) {
+            .sheet(isPresented: $showSymptomTriage) {
                 SymptomTriageView()
                     .environmentObject(appState)
             }
-            .fullScreenCover(isPresented: $showCarePlans) {
+            .sheet(isPresented: $showCarePlans) {
                 CarePlanView()
                     .environmentObject(appState)
             }
-            .fullScreenCover(isPresented: $showVetVisitPack) {
+            .sheet(isPresented: $showVetVisitPack) {
                 VetVisitPackView()
                     .environmentObject(appState)
             }
@@ -368,11 +368,11 @@ struct HomeDashboardView: View {
                 DailyHealthReviewView()
                     .environmentObject(appState)
             }
-            .fullScreenCover(isPresented: $showPreventativeCare) {
+            .sheet(isPresented: $showPreventativeCare) {
                 PreventativeCareView()
                     .environmentObject(appState)
             }
-            .fullScreenCover(isPresented: $showSmartInsights) {
+            .sheet(isPresented: $showSmartInsights) {
                 SmartInsightsView()
                     .environmentObject(appState)
             }
