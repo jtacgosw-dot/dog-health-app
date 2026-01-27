@@ -363,54 +363,110 @@ struct AddPreventativeCareReminderView:View {
     
     var body: some View {
         NavigationView {
-            Form {
-                Section("Reminder Details") {
-                    TextField("Title (e.g., Rabies Vaccine)", text: $title)
-                    
-                    Picker("Type", selection: $selectedType) {
-                        ForEach(ReminderType.allCases, id: \.rawValue) { type in
-                            HStack {
-                                Image(systemName: type.icon)
-                                Text(type.rawValue)
+            ZStack {
+                Color.petlyBackground
+                    .ignoresSafeArea()
+                
+                ScrollView {
+                    VStack(spacing: 20) {
+                        // Reminder Details Section
+                        VStack(alignment: .leading, spacing: 16) {
+                            Text("Reminder Details")
+                                .font(.petlyBodyMedium(14))
+                                .foregroundColor(.petlyDarkGreen)
+                            
+                            VStack(spacing: 12) {
+                                TextField("Title (e.g., Rabies Vaccine)", text: $title)
+                                    .font(.petlyBody(14))
+                                    .padding()
+                                    .background(Color.petlyLightGreen)
+                                    .cornerRadius(12)
+                                
+                                HStack {
+                                    Text("Type")
+                                        .font(.petlyBody(14))
+                                        .foregroundColor(.primary)
+                                    Spacer()
+                                    Picker("Type", selection: $selectedType) {
+                                        ForEach(ReminderType.allCases, id: \.rawValue) { type in
+                                            HStack {
+                                                Image(systemName: type.icon)
+                                                Text(type.rawValue)
+                                            }
+                                            .tag(type)
+                                        }
+                                    }
+                                    .pickerStyle(.menu)
+                                }
+                                .padding()
+                                .background(Color.petlyLightGreen)
+                                .cornerRadius(12)
+                                
+                                HStack {
+                                    Text("Frequency")
+                                        .font(.petlyBody(14))
+                                        .foregroundColor(.primary)
+                                    Spacer()
+                                    Picker("Frequency", selection: $frequency) {
+                                        ForEach(ReminderFrequency.allCases, id: \.rawValue) { freq in
+                                            Text(freq.rawValue).tag(freq)
+                                        }
+                                    }
+                                    .pickerStyle(.menu)
+                                }
+                                .padding()
+                                .background(Color.petlyLightGreen)
+                                .cornerRadius(12)
+                                
+                                HStack {
+                                    Text("Next Due Date")
+                                        .font(.petlyBody(14))
+                                        .foregroundColor(.primary)
+                                    Spacer()
+                                    DatePicker("", selection: $nextDueDate, displayedComponents: .date)
+                                        .labelsHidden()
+                                }
+                                .padding()
+                                .background(Color.petlyLightGreen)
+                                .cornerRadius(12)
                             }
-                            .tag(type)
                         }
-                    }
-                    
-                    Picker("Frequency", selection: $frequency) {
-                        ForEach(ReminderFrequency.allCases, id: \.rawValue) { freq in
-                            Text(freq.rawValue).tag(freq)
+                        
+                        // Notes Section
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Notes (Optional)")
+                                .font(.petlyBodyMedium(14))
+                                .foregroundColor(.petlyDarkGreen)
+                            
+                            TextField("Add any additional notes...", text: $notes, axis: .vertical)
+                                .font(.petlyBody(14))
+                                .lineLimit(3...5)
+                                .padding()
+                                .background(Color.petlyLightGreen)
+                                .cornerRadius(12)
                         }
-                    }
-                    
-                    DatePicker("Next Due Date", selection: $nextDueDate, displayedComponents: .date)
-                }
-                
-                Section("Notes (Optional)") {
-                    TextEditor(text: $notes)
-                        .scrollContentBackground(.hidden)
-                        .foregroundColor(.primary)
-                        .frame(minHeight: 80)
-                }
-                
-                Section {
-                    Button {
-                        saveReminder()
-                    } label: {
-                        HStack {
-                            Spacer()
+                        
+                        // Add Button
+                        Button {
+                            saveReminder()
+                        } label: {
                             Text("Add Reminder")
-                                .fontWeight(.semibold)
-                            Spacer()
+                                .font(.petlyBodyMedium(16))
+                                .foregroundColor(.white)
+                                .frame(maxWidth: .infinity)
+                                .padding()
+                                .background(title.isEmpty ? Color.gray : Color.petlyDarkGreen)
+                                .cornerRadius(12)
                         }
+                        .disabled(title.isEmpty)
+                        
+                        Spacer(minLength: 50)
                     }
-                    .disabled(title.isEmpty)
+                    .padding()
                 }
             }
             .navigationTitle("Add Reminder")
             .navigationBarTitleDisplayMode(.inline)
-            .scrollContentBackground(.hidden)
-            .background(Color.petlyBackground)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
                     Button {
