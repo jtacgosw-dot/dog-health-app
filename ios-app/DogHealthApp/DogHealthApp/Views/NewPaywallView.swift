@@ -1,8 +1,13 @@
 import SwiftUI
+import StoreKit
 
 struct NewPaywallView: View {
     @EnvironmentObject var appState: AppState
+    @StateObject private var storeKit = StoreKitManager.shared
     @State private var selectedPlan: PlanType = .annual
+    @State private var isPurchasing = false
+    @State private var showError = false
+    @State private var errorMessage: String?
     @Environment(\.dismiss) var dismiss
     
     enum PlanType: String {
@@ -16,6 +21,15 @@ struct NewPaywallView: View {
         ("chart.line.uptrend.xyaxis", "Smart Care Tracking"),
         ("crown.fill", "Exclusive Member Perks")
     ]
+    
+    private var selectedProduct: Product? {
+        switch selectedPlan {
+        case .annual:
+            return storeKit.annualProduct
+        case .monthly:
+            return storeKit.monthlyProduct
+        }
+    }
     
     var body: some View {
         ZStack {
@@ -170,22 +184,80 @@ struct NewPaywallView: View {
                 }
             }
             
+            if isPurchasing || storeKit.isLoading {
+                Color.black.opacity(0.3)
+                    .ignoresSafeArea()
+                ProgressView()
+                    .scaleEffect(1.5)
+                    .tint(.white)
+            }
         }
         .buttonStyle(.plain)
+        .alert("Error", isPresented: $showError) {
+            Button("OK") { }
+        } message: {
+            Text(errorMessage ?? storeKit.errorMessage ?? "An error occurred")
+        }
+        .disabled(isPurchasing)
+        .onChange(of: storeKit.hasActiveSubscription) { _, hasSubscription in
+            if hasSubscription {
+                appState.hasActiveSubscription = true
+                dismiss()
+            }
+        }
+        .onAppear {
+            Task {
+                await storeKit.loadProducts()
+            }
+        }
     }
     
     private func startFreeTrial() {
-        // TODO: Implement real StoreKit purchase when App Store Connect is configured
-        // For now, just activate subscription for UI testing
-        appState.hasActiveSubscription = true
-        dismiss()
+        guard let product = selectedProduct else {
+            // Fallback for testing when products aren't loaded (no StoreKit config)
+            appState.hasActiveSubscription = true
+            dismiss()
+            return
+        }
+        
+        isPurchasing = true
+        
+        Task {
+            do {
+                let success = try await storeKit.purchase(product)
+                await MainActor.run {
+                    isPurchasing = false
+                    if success {
+                        appState.hasActiveSubscription = true
+                        dismiss()
+                    }
+                }
+            } catch {
+                await MainActor.run {
+                    isPurchasing = false
+                    errorMessage = error.localizedDescription
+                    showError = true
+                }
+            }
+        }
     }
     
     private func restorePurchases() {
-        // TODO: Implement real StoreKit restore when App Store Connect is configured
-        // For now, just activate subscription for UI testing
-        appState.hasActiveSubscription = true
-        dismiss()
+        isPurchasing = true
+        
+        Task {
+            await storeKit.restorePurchases()
+            await MainActor.run {
+                isPurchasing = false
+                if storeKit.hasActiveSubscription {
+                    appState.hasActiveSubscription = true
+                    dismiss()
+                } else if let error = storeKit.errorMessage {
+                    errorMessage = error
+                    showError = true
+                }
+            }
+        }
     }
     
     private func openPrivacyPolicy() {
