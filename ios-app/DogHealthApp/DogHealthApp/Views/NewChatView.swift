@@ -18,8 +18,8 @@ class KeyboardObserver: ObservableObject {
                 return (frame.height, duration)
             }
             .receive(on: DispatchQueue.main)
-            .sink { [weak self] height, duration in
-                withAnimation(.easeOut(duration: duration)) {
+            .sink { [weak self] height, _ in
+                withAnimation(.spring(response: 0.25, dampingFraction: 1.0)) {
                     self?.keyboardHeight = height
                 }
             }
@@ -30,8 +30,8 @@ class KeyboardObserver: ObservableObject {
                 notification.userInfo?[UIResponder.keyboardAnimationDurationUserInfoKey] as? Double
             }
             .receive(on: DispatchQueue.main)
-            .sink { [weak self] duration in
-                withAnimation(.easeOut(duration: duration)) {
+            .sink { [weak self] _ in
+                withAnimation(.spring(response: 0.25, dampingFraction: 1.0)) {
                     self?.keyboardHeight = 0
                 }
             }
@@ -293,7 +293,7 @@ struct NewChatView: View {
             }
             .padding(.horizontal)
             .padding(.vertical, 12)
-            .padding(.bottom, keyboardObserver.keyboardHeight > 0 ? keyboardObserver.keyboardHeight : 100)
+            .padding(.bottom, keyboardObserver.keyboardHeight > 0 ? keyboardObserver.keyboardHeight - 50 : 100)
             .background(Color.petlyBackground)
         }
     }
