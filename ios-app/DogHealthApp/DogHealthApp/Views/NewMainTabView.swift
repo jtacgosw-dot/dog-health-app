@@ -167,7 +167,6 @@ struct TabBarButton: View {
 struct ExploreView: View {
     @EnvironmentObject var appState: AppState
     @State private var selectedQuickAction: String?
-    @State private var petPhotoData: Data?
     var onQuickAction: ((String) -> Void)?
     
     // Scaled sizes for Dynamic Type support
@@ -216,8 +215,8 @@ struct ExploreView: View {
                         
                         Spacer()
                         
-                        if let photoData = petPhotoData,
-                           let uiImage = UIImage(data: photoData) {
+                                                if let photoData = appState.petPhotoData,
+                                                   let uiImage = UIImage(data: photoData) {
                             Image(uiImage: uiImage)
                                 .resizable()
                                 .scaledToFill()
@@ -290,21 +289,6 @@ struct ExploreView: View {
             .background(Color.petlyBackground)
         }
         .background(Color.petlyBackground.ignoresSafeArea())
-        .onAppear {
-            loadPetPhoto()
-        }
-        .onChange(of: appState.currentDog?.id) { _, _ in
-            loadPetPhoto()
-        }
-        .onReceive(NotificationCenter.default.publisher(for: .petPhotoDidChange)) { _ in
-            loadPetPhoto()
-        }
-    }
-    
-    private func loadPetPhoto() {
-        guard let dogId = appState.currentDog?.id else { return }
-        let key = "petPhoto_\(dogId)"
-        petPhotoData = UserDefaults.standard.data(forKey: key)
     }
 }
 
