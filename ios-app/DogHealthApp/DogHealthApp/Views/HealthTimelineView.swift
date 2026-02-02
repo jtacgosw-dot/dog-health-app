@@ -130,6 +130,11 @@ struct HealthTimelineView: View {
         }
         .buttonStyle(.plain)
         .preferredColorScheme(.light)
+        .onboardingTooltip(
+            key: .healthTimeline,
+            message: "View all your pet's health logs here. Tap any entry to edit, or swipe left to delete.",
+            icon: "list.bullet.clipboard"
+        )
     }
     
     private var header: some View {

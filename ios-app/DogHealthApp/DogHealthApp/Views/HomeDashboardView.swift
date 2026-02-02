@@ -35,8 +35,10 @@ struct HomeDashboardView: View {
     @State private var petPhotoData: Data?
     @State private var showConfetti = false
     @State private var showShareSheet = false
+    @State private var showWelcomeCard = false
     
     private let activityGoal = 60
+    private let welcomeCardKey = "hasSeenWelcomeCard"
     private let mealsTotal = 3
     
     private var todayLogs: [HealthLogEntry] {
@@ -387,6 +389,7 @@ struct HomeDashboardView: View {
             }
             .onAppear {
                 loadPetPhoto()
+                checkWelcomeCard()
             }
             .onChange(of: appState.currentDog?.id) { _, _ in
                 loadPetPhoto()
@@ -394,13 +397,41 @@ struct HomeDashboardView: View {
             .onReceive(NotificationCenter.default.publisher(for: .petPhotoDidChange)) { _ in
                 loadPetPhoto()
             }
+            .overlay(alignment: .top) {
+                if showWelcomeCard {
+                    WelcomeCard(petName: dogName) {
+                        UserDefaults.standard.set(true, forKey: welcomeCardKey)
+                        withAnimation {
+                            showWelcomeCard = false
+                        }
+                    }
+                    .padding()
+                    .padding(.top, 60)
+                    .transition(.move(edge: .top).combined(with: .opacity))
+                }
+            }
         }
+        .onboardingTooltip(
+            key: .dailyLog,
+            message: "Tap the + button below to log your pet's daily activities like meals, walks, and more!",
+            icon: "plus.circle.fill"
+        )
     }
     
     private func loadPetPhoto() {
         guard let dogId = appState.currentDog?.id else { return }
         let key = "petPhoto_\(dogId)"
         petPhotoData = UserDefaults.standard.data(forKey: key)
+    }
+    
+    private func checkWelcomeCard() {
+        if !UserDefaults.standard.bool(forKey: welcomeCardKey) && todayLogs.isEmpty {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                withAnimation(.spring(response: 0.4, dampingFraction: 0.7)) {
+                    showWelcomeCard = true
+                }
+            }
+        }
     }
 }
 

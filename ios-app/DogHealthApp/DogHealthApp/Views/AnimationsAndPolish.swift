@@ -1355,6 +1355,500 @@ struct HapticFeedback {
     }
 }
 
+// MARK: - Onboarding Tooltips System
+
+class OnboardingTooltipManager: ObservableObject {
+    static let shared = OnboardingTooltipManager()
+    
+    private let userDefaultsPrefix = "tooltip_shown_"
+    
+    enum TooltipKey: String, CaseIterable {
+        case dailyLog = "daily_log"
+        case healthTimeline = "health_timeline"
+        case aiChat = "ai_chat"
+        case petProfile = "pet_profile"
+        case reminders = "reminders"
+        case carePlans = "care_plans"
+        case healthScore = "health_score"
+        case swipeToDelete = "swipe_to_delete"
+    }
+    
+    func shouldShowTooltip(for key: TooltipKey) -> Bool {
+        !UserDefaults.standard.bool(forKey: userDefaultsPrefix + key.rawValue)
+    }
+    
+    func markTooltipShown(for key: TooltipKey) {
+        UserDefaults.standard.set(true, forKey: userDefaultsPrefix + key.rawValue)
+    }
+    
+    func resetAllTooltips() {
+        for key in TooltipKey.allCases {
+            UserDefaults.standard.removeObject(forKey: userDefaultsPrefix + key.rawValue)
+        }
+    }
+}
+
+struct TooltipView: View {
+    let message: String
+    let icon: String
+    let onDismiss: () -> Void
+    
+    @State private var isVisible = false
+    
+    var body: some View {
+        HStack(spacing: 12) {
+            Image(systemName: icon)
+                .font(.system(size: 20))
+                .foregroundColor(.white)
+            
+            Text(message)
+                .font(.petlyBody(14))
+                .foregroundColor(.white)
+                .fixedSize(horizontal: false, vertical: true)
+            
+            Spacer()
+            
+            Button(action: {
+                HapticFeedback.light()
+                withAnimation(.easeOut(duration: 0.2)) {
+                    isVisible = false
+                }
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                    onDismiss()
+                }
+            }) {
+                Image(systemName: "xmark.circle.fill")
+                    .font(.system(size: 20))
+                    .foregroundColor(.white.opacity(0.7))
+            }
+        }
+        .padding()
+        .background(
+            RoundedRectangle(cornerRadius: 12)
+                .fill(Color.petlyDarkGreen)
+                .shadow(color: .black.opacity(0.2), radius: 8, x: 0, y: 4)
+        )
+        .scaleEffect(isVisible ? 1 : 0.8)
+        .opacity(isVisible ? 1 : 0)
+        .onAppear {
+            withAnimation(.spring(response: 0.4, dampingFraction: 0.7)) {
+                isVisible = true
+            }
+        }
+    }
+}
+
+struct TooltipModifier: ViewModifier {
+    let tooltipKey: OnboardingTooltipManager.TooltipKey
+    let message: String
+    let icon: String
+    
+    @State private var showTooltip = false
+    @StateObject private var tooltipManager = OnboardingTooltipManager.shared
+    
+    func body(content: Content) -> some View {
+        content
+            .overlay(alignment: .top) {
+                if showTooltip {
+                    TooltipView(
+                        message: message,
+                        icon: icon,
+                        onDismiss: {
+                            tooltipManager.markTooltipShown(for: tooltipKey)
+                            showTooltip = false
+                        }
+                    )
+                    .padding(.horizontal)
+                    .padding(.top, 8)
+                    .transition(.asymmetric(
+                        insertion: .scale.combined(with: .opacity),
+                        removal: .opacity
+                    ))
+                }
+            }
+            .onAppear {
+                if tooltipManager.shouldShowTooltip(for: tooltipKey) {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                        withAnimation {
+                            showTooltip = true
+                        }
+                    }
+                }
+            }
+    }
+}
+
+extension View {
+    func onboardingTooltip(
+        key: OnboardingTooltipManager.TooltipKey,
+        message: String,
+        icon: String = "lightbulb.fill"
+    ) -> some View {
+        modifier(TooltipModifier(tooltipKey: key, message: message, icon: icon))
+    }
+}
+
+// MARK: - Feature Highlight Pulse
+
+struct FeatureHighlightView: View {
+    let isActive: Bool
+    
+    @State private var isPulsing = false
+    
+    var body: some View {
+        Circle()
+            .fill(Color.petlyDarkGreen.opacity(0.3))
+            .frame(width: 20, height: 20)
+            .scaleEffect(isPulsing ? 1.5 : 1.0)
+            .opacity(isPulsing ? 0 : 1)
+            .overlay(
+                Circle()
+                    .fill(Color.petlyDarkGreen)
+                    .frame(width: 10, height: 10)
+            )
+            .opacity(isActive ? 1 : 0)
+            .onAppear {
+                if isActive {
+                    withAnimation(.easeInOut(duration: 1.0).repeatForever(autoreverses: false)) {
+                        isPulsing = true
+                    }
+                }
+            }
+    }
+}
+
+// MARK: - Enhanced Button with Haptic Feedback
+
+struct HapticButton<Label: View>: View {
+    let action: () -> Void
+    let feedbackStyle: HapticStyle
+    let label: () -> Label
+    
+    enum HapticStyle {
+        case light, medium, heavy, selection, success
+    }
+    
+    init(
+        feedbackStyle: HapticStyle = .light,
+        action: @escaping () -> Void,
+        @ViewBuilder label: @escaping () -> Label
+    ) {
+        self.feedbackStyle = feedbackStyle
+        self.action = action
+        self.label = label
+    }
+    
+    var body: some View {
+        Button(action: {
+            triggerHaptic()
+            action()
+        }) {
+            label()
+        }
+        .buttonStyle(PetlyPressButtonStyle())
+    }
+    
+    private func triggerHaptic() {
+        switch feedbackStyle {
+        case .light:
+            HapticFeedback.light()
+        case .medium:
+            HapticFeedback.medium()
+        case .heavy:
+            HapticFeedback.heavy()
+        case .selection:
+            HapticFeedback.selection()
+        case .success:
+            HapticFeedback.success()
+        }
+    }
+}
+
+// MARK: - Loading Overlay
+
+struct LoadingOverlay: View {
+    let isLoading: Bool
+    let message: String
+    
+    var body: some View {
+        if isLoading {
+            ZStack {
+                Color.black.opacity(0.3)
+                    .ignoresSafeArea()
+                
+                VStack(spacing: 16) {
+                    ProgressView()
+                        .scaleEffect(1.5)
+                        .tint(.white)
+                    
+                    Text(message)
+                        .font(.petlyBodyMedium(14))
+                        .foregroundColor(.white)
+                }
+                .padding(24)
+                .background(Color.petlyDarkGreen)
+                .cornerRadius(16)
+            }
+            .transition(.opacity)
+        }
+    }
+}
+
+// MARK: - Skeleton Loading for Reminders
+
+struct SkeletonReminderCard: View {
+    var body: some View {
+        HStack(spacing: 12) {
+            SkeletonCircle(size: 44)
+            
+            VStack(alignment: .leading, spacing: 6) {
+                SkeletonView()
+                    .frame(width: 120, height: 14)
+                SkeletonView()
+                    .frame(width: 80, height: 12)
+            }
+            
+            Spacer()
+            
+            SkeletonCircle(size: 28)
+        }
+        .padding()
+        .background(Color.petlyLightGreen)
+        .cornerRadius(12)
+    }
+}
+
+// MARK: - Skeleton Loading for Care Plans
+
+struct SkeletonCarePlanCard: View {
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                SkeletonCircle(size: 40)
+                
+                VStack(alignment: .leading, spacing: 4) {
+                    SkeletonView()
+                        .frame(width: 140, height: 16)
+                    SkeletonView()
+                        .frame(width: 80, height: 12)
+                }
+                
+                Spacer()
+                
+                SkeletonView()
+                    .frame(width: 50, height: 24)
+                    .cornerRadius(8)
+            }
+            
+            SkeletonView()
+                .frame(height: 8)
+                .cornerRadius(4)
+            
+            HStack {
+                SkeletonView()
+                    .frame(width: 80, height: 12)
+                Spacer()
+                SkeletonView()
+                    .frame(width: 60, height: 12)
+            }
+        }
+        .padding()
+        .background(Color.white)
+        .cornerRadius(16)
+    }
+}
+
+// MARK: - Enhanced Empty State
+
+struct EnhancedEmptyState: View {
+    let icon: String
+    let title: String
+    let message: String
+    let actionTitle: String?
+    let action: (() -> Void)?
+    let secondaryActionTitle: String?
+    let secondaryAction: (() -> Void)?
+    
+    @State private var iconBounce = false
+    
+    init(
+        icon: String,
+        title: String,
+        message: String,
+        actionTitle: String? = nil,
+        action: (() -> Void)? = nil,
+        secondaryActionTitle: String? = nil,
+        secondaryAction: (() -> Void)? = nil
+    ) {
+        self.icon = icon
+        self.title = title
+        self.message = message
+        self.actionTitle = actionTitle
+        self.action = action
+        self.secondaryActionTitle = secondaryActionTitle
+        self.secondaryAction = secondaryAction
+    }
+    
+    var body: some View {
+        VStack(spacing: 20) {
+            Image(systemName: icon)
+                .font(.system(size: 60))
+                .foregroundColor(.petlyDarkGreen.opacity(0.5))
+                .scaleEffect(iconBounce ? 1.1 : 1.0)
+                .onAppear {
+                    withAnimation(.easeInOut(duration: 0.6).repeatForever(autoreverses: true)) {
+                        iconBounce = true
+                    }
+                }
+            
+            Text(title)
+                .font(.petlyTitle(22))
+                .foregroundColor(.petlyDarkGreen)
+            
+            Text(message)
+                .font(.petlyBody(14))
+                .foregroundColor(.petlyFormIcon)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal)
+            
+            if let actionTitle = actionTitle, let action = action {
+                HapticButton(feedbackStyle: .medium, action: action) {
+                    HStack {
+                        Image(systemName: "plus.circle.fill")
+                        Text(actionTitle)
+                    }
+                    .font(.petlyBodyMedium(14))
+                    .foregroundColor(.white)
+                    .padding(.horizontal, 24)
+                    .padding(.vertical, 12)
+                    .background(Color.petlyDarkGreen)
+                    .cornerRadius(25)
+                }
+            }
+            
+            if let secondaryTitle = secondaryActionTitle, let secondaryAction = secondaryAction {
+                Button(action: {
+                    HapticFeedback.light()
+                    secondaryAction()
+                }) {
+                    Text(secondaryTitle)
+                        .font(.petlyBody(14))
+                        .foregroundColor(.petlyDarkGreen)
+                        .underline()
+                }
+            }
+        }
+        .padding(.vertical, 40)
+    }
+}
+
+// MARK: - First Time User Welcome Card
+
+struct WelcomeCard: View {
+    let petName: String
+    let onDismiss: () -> Void
+    
+    @State private var isVisible = false
+    
+    var body: some View {
+        VStack(spacing: 16) {
+            HStack {
+                Image(systemName: "sparkles")
+                    .font(.system(size: 24))
+                    .foregroundColor(.yellow)
+                
+                Text("Welcome to Petly!")
+                    .font(.petlyTitle(20))
+                    .foregroundColor(.petlyDarkGreen)
+                
+                Spacer()
+                
+                Button(action: {
+                    HapticFeedback.light()
+                    withAnimation {
+                        isVisible = false
+                    }
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                        onDismiss()
+                    }
+                }) {
+                    Image(systemName: "xmark.circle.fill")
+                        .foregroundColor(.petlyFormIcon)
+                }
+            }
+            
+            Text("Start tracking \(petName)'s health by logging daily activities. Tap the + button to add your first entry!")
+                .font(.petlyBody(14))
+                .foregroundColor(.petlyDarkGreen)
+            
+            HStack(spacing: 16) {
+                QuickTipItem(icon: "fork.knife", text: "Log meals")
+                QuickTipItem(icon: "figure.walk", text: "Track walks")
+                QuickTipItem(icon: "heart.fill", text: "Monitor health")
+            }
+        }
+        .padding()
+        .background(
+            RoundedRectangle(cornerRadius: 16)
+                .fill(Color.petlyLightGreen)
+                .shadow(color: .black.opacity(0.1), radius: 8, x: 0, y: 4)
+        )
+        .scaleEffect(isVisible ? 1 : 0.9)
+        .opacity(isVisible ? 1 : 0)
+        .onAppear {
+            withAnimation(.spring(response: 0.4, dampingFraction: 0.7)) {
+                isVisible = true
+            }
+        }
+    }
+}
+
+struct QuickTipItem: View {
+    let icon: String
+    let text: String
+    
+    var body: some View {
+        VStack(spacing: 4) {
+            Image(systemName: icon)
+                .font(.system(size: 20))
+                .foregroundColor(.petlyDarkGreen)
+            Text(text)
+                .font(.petlyCaption(11))
+                .foregroundColor(.petlyFormIcon)
+        }
+        .frame(maxWidth: .infinity)
+    }
+}
+
+// MARK: - Swipe Hint Animation
+
+struct SwipeHintView: View {
+    @State private var offset: CGFloat = 0
+    @State private var opacity: Double = 1
+    
+    var body: some View {
+        HStack(spacing: 8) {
+            Image(systemName: "hand.draw")
+                .font(.system(size: 16))
+            Text("Swipe left to delete")
+                .font(.petlyBody(12))
+        }
+        .foregroundColor(.petlyFormIcon)
+        .offset(x: offset)
+        .opacity(opacity)
+        .onAppear {
+            withAnimation(.easeInOut(duration: 1.0).repeatForever(autoreverses: true)) {
+                offset = -10
+            }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
+                withAnimation(.easeOut(duration: 0.5)) {
+                    opacity = 0
+                }
+            }
+        }
+    }
+}
+
 #Preview {
     VStack(spacing: 20) {
         SkeletonCard()
