@@ -293,7 +293,7 @@ struct NewChatView: View {
             }
             .padding(.horizontal)
             .padding(.vertical, 12)
-            .padding(.bottom, keyboardObserver.keyboardHeight > 0 ? keyboardObserver.keyboardHeight - 50 : 100)
+            .padding(.bottom, keyboardObserver.keyboardHeight > 0 ? keyboardObserver.keyboardHeight - 34 : 100)
             .background(Color.petlyBackground)
         }
     }
