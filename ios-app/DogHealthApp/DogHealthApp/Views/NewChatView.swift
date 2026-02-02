@@ -55,8 +55,7 @@ struct NewChatView: View {
     @State private var showingCamera = false
     @State private var selectedPhotoItem: PhotosPickerItem?
     @FocusState private var isTextFieldFocused: Bool
-    @StateObject private var keyboardObserver = KeyboardObserver()
-    @State private var petPhotoData: Data?
+        @StateObject private var keyboardObserver = KeyboardObserver()
     
     // Scaled sizes for Dynamic Type support
     @ScaledMetric(relativeTo: .body) private var avatarSize: CGFloat = 50
@@ -95,9 +94,9 @@ struct NewChatView: View {
                     
                     Spacer()
                     
-                                            if appState.currentDog != nil {
-                                                if let photoData = petPhotoData,
-                                                   let uiImage = UIImage(data: photoData) {
+                                                                                        if appState.currentDog != nil {
+                                                                                            if let photoData = appState.petPhotoData,
+                                                                                               let uiImage = UIImage(data: photoData) {
                                                     Image(uiImage: uiImage)
                                                         .resizable()
                                                         .scaledToFill()
@@ -195,30 +194,15 @@ struct NewChatView: View {
                 }
             })
         }
-        .buttonStyle(.plain)
-        .onAppear {
-            loadPetPhoto()
-        }
-        .onChange(of: appState.currentDog?.id) { _, _ in
-            loadPetPhoto()
-        }
-        .onReceive(NotificationCenter.default.publisher(for: .petPhotoDidChange)) { _ in
-            loadPetPhoto()
-        }
-        .onboardingTooltip(
+                .buttonStyle(.plain)
+                .onboardingTooltip(
             key: .aiChat,
             message: "Ask Petly AI anything about your pet's health, nutrition, or training. You can also attach photos!",
             icon: "bubble.left.and.bubble.right.fill"
         )
     }
     
-    private func loadPetPhoto() {
-        guard let dogId = appState.currentDog?.id else { return }
-        let key = "petPhoto_\(dogId)"
-        petPhotoData = UserDefaults.standard.data(forKey: key)
-    }
-    
-    private var chatInputBar: some View {
+        private var chatInputBar: some View {
         VStack(spacing: 0) {
             if let errorMessage = errorMessage {
                 Text(errorMessage)

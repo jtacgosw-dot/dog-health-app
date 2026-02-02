@@ -30,10 +30,9 @@ struct HomeDashboardView: View {
     @State private var showCarePlans = false
     @State private var showVetVisitPack = false
     @State private var showDailyHealthReview = false
-    @State private var showPreventativeCare = false
-    @State private var showSmartInsights = false
-    @State private var petPhotoData: Data?
-    @State private var showConfetti = false
+        @State private var showPreventativeCare = false
+        @State private var showSmartInsights = false
+        @State private var showConfetti = false
     @State private var showShareSheet = false
     @State private var showWelcomeCard = false
     
@@ -177,10 +176,10 @@ struct HomeDashboardView: View {
                                 
                                 Spacer()
                                 
-                                if appState.currentDog != nil {
-                                    Button(action: { showPetSwitcher = true }) {
-                                        if let photoData = petPhotoData,
-                                           let uiImage = UIImage(data: photoData) {
+                                                                if appState.currentDog != nil {
+                                                                    Button(action: { showPetSwitcher = true }) {
+                                                                        if let photoData = appState.petPhotoData,
+                                                                           let uiImage = UIImage(data: photoData) {
                                             Image(uiImage: uiImage)
                                                 .resizable()
                                                 .scaledToFill()
@@ -387,16 +386,9 @@ struct HomeDashboardView: View {
                     mealsLogged: mealsLogged
                 )
             }
-            .onAppear {
-                loadPetPhoto()
-                checkWelcomeCard()
-            }
-            .onChange(of: appState.currentDog?.id) { _, _ in
-                loadPetPhoto()
-            }
-            .onReceive(NotificationCenter.default.publisher(for: .petPhotoDidChange)) { _ in
-                loadPetPhoto()
-            }
+                        .onAppear {
+                            checkWelcomeCard()
+                        }
             .overlay(alignment: .top) {
                 if showWelcomeCard {
                     WelcomeCard(petName: dogName) {
@@ -418,13 +410,7 @@ struct HomeDashboardView: View {
         )
     }
     
-    private func loadPetPhoto() {
-        guard let dogId = appState.currentDog?.id else { return }
-        let key = "petPhoto_\(dogId)"
-        petPhotoData = UserDefaults.standard.data(forKey: key)
-    }
-    
-    private func checkWelcomeCard() {
+        private func checkWelcomeCard(){
         if !UserDefaults.standard.bool(forKey: welcomeCardKey) && todayLogs.isEmpty {
             DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
                 withAnimation(.spring(response: 0.4, dampingFraction: 0.7)) {

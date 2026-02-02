@@ -84,34 +84,69 @@ class AppState: ObservableObject {
     @Published var isSignedIn: Bool = false
     @Published var hasActiveSubscription: Bool = false
     @Published var currentUser: User?
-    @Published var currentDog: Dog?
+    @Published var currentDog: Dog? {
+        didSet {
+            // Load pet photo when current dog changes
+            loadPetPhoto()
+        }
+    }
     @Published var dogs: [Dog] = []
+    @Published var petPhotoData: Data?
     
     private let localDogsKey = "localDogs"
     
-    init() {
-        if APIService.shared.getAuthToken() != nil {
-            isSignedIn = true
-            hasCompletedOnboarding = true
+            init() {
+            if APIService.shared.getAuthToken() != nil {
+                isSignedIn = true
+                hasCompletedOnboarding = true
             
-            // Load local dogs immediately so currentDog is available for pet photo
-            loadLocalDogs()
-        }
+                // Load local dogs immediately so currentDog is available for pet photo
+                loadLocalDogs()
+                // Load pet photo after dogs are loaded
+                loadPetPhoto()
+            }
         
-        #if DEBUG
-        Task {
-            await APIService.shared.ensureDevAuthenticated()
-            await MainActor.run {
-                if APIService.shared.getAuthToken() != nil {
-                    self.isSignedIn = true
-                    self.hasCompletedOnboarding = true
-                    // Load local dogs for dev mode too
-                    self.loadLocalDogs()
+            #if DEBUG
+            // For testing: bypass sign-in and create a test dog if needed
+            if !isSignedIn {
+                isSignedIn = true
+                hasCompletedOnboarding = true
+            
+                // Create a test dog if none exists
+                loadLocalDogs()
+                if dogs.isEmpty {
+                    let testDog = Dog(
+                        id: "test-dog-\(UUID().uuidString)",
+                        name: "Arlo",
+                        breed: "Mini Poodle",
+                        age: 3,
+                        weight: 15.0,
+                        imageUrl: nil,
+                        healthConcerns: [],
+                        allergies: [],
+                        createdAt: Date(),
+                        updatedAt: Date()
+                    )
+                    saveDogLocally(testDog)
+                }
+                loadPetPhoto()
+            }
+        
+            Task {
+                await APIService.shared.ensureDevAuthenticated()
+                await MainActor.run {
+                    if APIService.shared.getAuthToken() != nil {
+                        self.isSignedIn = true
+                        self.hasCompletedOnboarding = true
+                        // Load local dogs for dev mode too
+                        self.loadLocalDogs()
+                        // Load pet photo after dogs are loaded
+                        self.loadPetPhoto()
+                    }
                 }
             }
+            #endif
         }
-        #endif
-    }
     
     func loadUserData() async {
         // First, load local dogs as immediate fallback
@@ -180,5 +215,29 @@ class AppState: ObservableObject {
         saveLocalDogs(localDogs)
         dogs = localDogs
         currentDog = dog
+    }
+    
+    // MARK: - Pet Photo Management
+    
+    func loadPetPhoto() {
+        guard let dogId = currentDog?.id else {
+            petPhotoData = nil
+            return
+        }
+        let key = "petPhoto_\(dogId)"
+        petPhotoData = UserDefaults.standard.data(forKey: key)
+    }
+    
+    func savePetPhoto(_ data: Data?) {
+        guard let dogId = currentDog?.id else { return }
+        let key = "petPhoto_\(dogId)"
+        if let data = data {
+            UserDefaults.standard.set(data, forKey: key)
+        } else {
+            UserDefaults.standard.removeObject(forKey: key)
+        }
+        petPhotoData = data
+        // Post notification for any views that might still be listening
+        NotificationCenter.default.post(name: .petPhotoDidChange, object: nil)
     }
 }

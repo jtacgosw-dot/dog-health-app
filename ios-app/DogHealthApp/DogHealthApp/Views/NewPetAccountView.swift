@@ -17,15 +17,14 @@ struct NewPetAccountView: View {
     @State private var showingMembership = false
     @State private var showingInviteFriends = false
     @State private var showingCustomerSupport = false
-    @State private var showingEditProfile = false
-    @State private var showingPhotoOptions = false
-    @State private var showingImagePicker = false
-    @State private var showingCamera = false
-    @State private var selectedPhotoItem: PhotosPickerItem?
-    @State private var petPhotoData: Data?
+        @State private var showingEditProfile = false
+        @State private var showingPhotoOptions = false
+        @State private var showingImagePicker = false
+        @State private var showingCamera = false
+        @State private var selectedPhotoItem: PhotosPickerItem?
     
-    // Scaled sizes for Dynamic Type support
-    @ScaledMetric(relativeTo: .body) private var profileAvatarSize: CGFloat = 120
+        // Scaled sizes for Dynamic Type support
+        @ScaledMetric(relativeTo: .body) private var profileAvatarSize: CGFloat = 120
     @ScaledMetric(relativeTo: .body) private var profileIconSize: CGFloat = 60
     @ScaledMetric(relativeTo: .body) private var editButtonSize: CGFloat = 36
     @ScaledMetric(relativeTo: .body) private var editIconSize: CGFloat = 14
@@ -56,9 +55,9 @@ struct NewPetAccountView: View {
                             .font(.petlyTitle(28))
                             .foregroundColor(.petlyDarkGreen)
                         
-                        Button(action: { showingPhotoOptions = true }) {
-                            ZStack {
-                                if let photoData = petPhotoData, let uiImage = UIImage(data: photoData) {
+                                                Button(action: { showingPhotoOptions = true }) {
+                                                    ZStack {
+                                                        if let photoData = appState.petPhotoData, let uiImage = UIImage(data: photoData) {
                                     Image(uiImage: uiImage)
                                         .resizable()
                                         .scaledToFill()
@@ -93,34 +92,31 @@ struct NewPetAccountView: View {
                             Button("Choose from Library") {
                                 showingImagePicker = true
                             }
-                            if petPhotoData != nil {
-                                Button("Remove Photo", role: .destructive) {
-                                    petPhotoData = nil
-                                    savePetPhoto(nil)
+                                                        if appState.petPhotoData != nil {
+                                                            Button("Remove Photo", role: .destructive) {
+                                                                appState.savePetPhoto(nil)
                                 }
                             }
                             Button("Cancel", role: .cancel) { }
                         }
                         .photosPicker(isPresented: $showingImagePicker, selection: $selectedPhotoItem, matching: .images)
-                        .onChange(of: selectedPhotoItem) { oldValue, newValue in
-                            Task {
-                                if let data = try? await newValue?.loadTransferable(type: Data.self) {
-                                    await MainActor.run {
-                                        petPhotoData = data
-                                        savePetPhoto(data)
-                                    }
-                                }
-                            }
-                        }
-                        .fullScreenCover(isPresented: $showingCamera) {
-                            CameraView(photoData: Binding(
-                                get: { petPhotoData },
-                                set: { newValue in
-                                    petPhotoData = newValue
-                                    savePetPhoto(newValue)
-                                }
-                            ))
-                        }
+                                                .onChange(of: selectedPhotoItem) { oldValue, newValue in
+                                                    Task {
+                                                        if let data = try? await newValue?.loadTransferable(type: Data.self) {
+                                                            await MainActor.run {
+                                                                appState.savePetPhoto(data)
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                                .fullScreenCover(isPresented: $showingCamera) {
+                                                    CameraView(photoData: Binding(
+                                                        get: { appState.petPhotoData },
+                                                        set: { newValue in
+                                                            appState.savePetPhoto(newValue)
+                                                        }
+                                                    ))
+                                                }
                         
                         Text("\(appState.currentDog?.name ?? "Arlo"), \(appState.currentDog?.age ?? 1) Year")
                             .font(.petlyTitle(24))
@@ -130,11 +126,8 @@ struct NewPetAccountView: View {
                             .font(.petlyBody(14))
                             .foregroundColor(.petlyFormIcon)
                     }
-                    .padding(.top, 60)
-                    .padding(.bottom, 20)
-                    .onAppear {
-                        loadPetPhoto()
-                    }
+                                        .padding(.top, 60)
+                                        .padding(.bottom, 20)
                     
                     Button(action: { showingEditProfile = true }) {
                         HStack(spacing: 16) {
@@ -289,9 +282,9 @@ struct NewPetAccountView: View {
                 
                 Spacer()
                 
-                if showMiniHeader {
-                    HStack(spacing: 8) {
-                        if let photoData = petPhotoData, let uiImage = UIImage(data: photoData) {
+                                if showMiniHeader {
+                                    HStack(spacing: 8) {
+                                        if let photoData = appState.petPhotoData, let uiImage = UIImage(data: photoData) {
                             Image(uiImage: uiImage)
                                 .resizable()
                                 .scaledToFill()
@@ -327,23 +320,6 @@ struct NewPetAccountView: View {
             .animation(.easeInOut(duration: 0.2), value: showMiniHeader)
         }
         .buttonStyle(.plain)
-    }
-    
-    private func savePetPhoto(_ data: Data?) {
-        guard let dogId = appState.currentDog?.id else { return }
-        let key = "petPhoto_\(dogId)"
-        if let data = data {
-            UserDefaults.standard.set(data, forKey: key)
-        } else {
-            UserDefaults.standard.removeObject(forKey: key)
-        }
-        NotificationCenter.default.post(name: .petPhotoDidChange, object: nil)
-    }
-    
-    private func loadPetPhoto() {
-        guard let dogId = appState.currentDog?.id else { return }
-        let key = "petPhoto_\(dogId)"
-        petPhotoData = UserDefaults.standard.data(forKey: key)
     }
 }
 
@@ -1191,14 +1167,13 @@ struct EditPetProfileView: View {
     @State private var healthConditions = ""
     @State private var showSaved = false
     @State private var errorMessage: String?
-    @State private var showingPhotoOptions = false
-    @State private var showingImagePicker = false
-    @State private var showingCamera = false
-    @State private var selectedPhotoItem: PhotosPickerItem?
-    @State private var petPhotoData: Data?
+        @State private var showingPhotoOptions = false
+        @State private var showingImagePicker = false
+        @State private var showingCamera = false
+        @State private var selectedPhotoItem: PhotosPickerItem?
     
-    var body: some View {
-        NavigationView {
+        var body: some View {
+            NavigationView {
             ZStack {
                 Color.petlyBackground
                     .ignoresSafeArea()
@@ -1206,9 +1181,9 @@ struct EditPetProfileView: View {
                 ScrollView {
                     VStack(spacing: 20) {
                         VStack(spacing: 12) {
-                            Button(action: { showingPhotoOptions = true }) {
-                                ZStack {
-                                    if let photoData = petPhotoData, let uiImage = UIImage(data: photoData) {
+                                                        Button(action: { showingPhotoOptions = true }) {
+                                                            ZStack {
+                                                                if let photoData = appState.petPhotoData, let uiImage = UIImage(data: photoData) {
                                         Image(uiImage: uiImage)
                                             .resizable()
                                             .scaledToFill()
@@ -1248,34 +1223,31 @@ struct EditPetProfileView: View {
                             Button("Choose from Library") {
                                 showingImagePicker = true
                             }
-                            if petPhotoData != nil {
-                                Button("Remove Photo", role: .destructive) {
-                                    petPhotoData = nil
-                                    savePetPhotoFromEdit(nil)
-                                }
-                            }
-                            Button("Cancel", role: .cancel) { }
-                        }
-                        .photosPicker(isPresented: $showingImagePicker, selection: $selectedPhotoItem, matching: .images)
-                        .onChange(of: selectedPhotoItem) { oldValue, newValue in
-                            Task {
-                                if let data = try? await newValue?.loadTransferable(type: Data.self) {
-                                    await MainActor.run {
-                                        petPhotoData = data
-                                        savePetPhotoFromEdit(data)
-                                    }
-                                }
-                            }
-                        }
-                        .fullScreenCover(isPresented: $showingCamera) {
-                            CameraView(photoData: Binding(
-                                get: { petPhotoData },
-                                set: { newValue in
-                                    petPhotoData = newValue
-                                    savePetPhotoFromEdit(newValue)
-                                }
-                            ))
-                        }
+                                                    if appState.petPhotoData != nil {
+                                                        Button("Remove Photo", role: .destructive) {
+                                                            appState.savePetPhoto(nil)
+                                                        }
+                                                    }
+                                                    Button("Cancel", role: .cancel) { }
+                                                }
+                                                .photosPicker(isPresented: $showingImagePicker, selection: $selectedPhotoItem, matching: .images)
+                                                .onChange(of: selectedPhotoItem) { oldValue, newValue in
+                                                    Task {
+                                                        if let data = try? await newValue?.loadTransferable(type: Data.self) {
+                                                            await MainActor.run {
+                                                                appState.savePetPhoto(data)
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                                .fullScreenCover(isPresented: $showingCamera) {
+                                                    CameraView(photoData: Binding(
+                                                        get: { appState.petPhotoData },
+                                                        set: { newValue in
+                                                            appState.savePetPhoto(newValue)
+                                                        }
+                                                    ))
+                                                }
                         
                         VStack(alignment: .leading, spacing: 8) {
                             Text("Pet Name")
@@ -1401,32 +1373,15 @@ struct EditPetProfileView: View {
                     if let w = dog.weight {
                         weight = String(format: "%.1f", w)
                     }
-                    allergies = dog.allergies.joined(separator: ", ")
-                    healthConditions = dog.healthConcerns.joined(separator: ", ")
-                    loadPetPhotoForEdit()
+                        allergies = dog.allergies.joined(separator: ", ")
+                        healthConditions = dog.healthConcerns.joined(separator: ", ")
+                    }
                 }
             }
+            .preferredColorScheme(.light)
         }
-        .preferredColorScheme(.light)
-    }
     
-    private func savePetPhotoFromEdit(_ data: Data?) {
-        guard let dogId = appState.currentDog?.id else { return }
-        let key = "petPhoto_\(dogId)"
-        if let data = data {
-            UserDefaults.standard.set(data, forKey: key)
-        } else {
-            UserDefaults.standard.removeObject(forKey: key)
-        }
-    }
-    
-    private func loadPetPhotoForEdit() {
-        guard let dogId = appState.currentDog?.id else { return }
-        let key = "petPhoto_\(dogId)"
-        petPhotoData = UserDefaults.standard.data(forKey: key)
-    }
-    
-    private func saveProfile() {
+        private func saveProfile(){
         guard !name.isEmpty, !breed.isEmpty else {
             errorMessage = "Please fill in at least name and breed"
             return

@@ -1,10 +1,9 @@
 import SwiftUI
 
 struct DailyLogEntryView: View {
-    @Environment(\.dismiss) var dismiss
-    @EnvironmentObject var appState: AppState
-    @State private var selectedLogType: LogType?
-    @State private var petPhotoData: Data?
+        @Environment(\.dismiss) var dismiss
+        @EnvironmentObject var appState: AppState
+        @State private var selectedLogType: LogType?
     
     @ScaledMetric(relativeTo: .body) private var avatarSize: CGFloat = 50
     private var cappedAvatarSize: CGFloat { min(avatarSize, 70) }
@@ -37,9 +36,9 @@ struct DailyLogEntryView: View {
                     
                     Spacer()
                     
-                    if appState.currentDog != nil {
-                        if let photoData = petPhotoData,
-                           let uiImage = UIImage(data: photoData) {
+                                        if appState.currentDog != nil {
+                                            if let photoData = appState.petPhotoData,
+                                               let uiImage = UIImage(data: photoData) {
                             Image(uiImage: uiImage)
                                 .resizable()
                                 .scaledToFill()
@@ -81,21 +80,6 @@ struct DailyLogEntryView: View {
         }
         .buttonStyle(.plain)
         .preferredColorScheme(.light)
-        .onAppear {
-            loadPetPhoto()
-        }
-        .onChange(of: appState.currentDog?.id) { _, _ in
-            loadPetPhoto()
-        }
-        .onReceive(NotificationCenter.default.publisher(for: .petPhotoDidChange)) { _ in
-            loadPetPhoto()
-        }
-    }
-    
-    private func loadPetPhoto() {
-        guard let dogId = appState.currentDog?.id else { return }
-        let key = "petPhoto_\(dogId)"
-        petPhotoData = UserDefaults.standard.data(forKey: key)
     }
 }
 
