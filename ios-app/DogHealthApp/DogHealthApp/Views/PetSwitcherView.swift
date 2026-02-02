@@ -93,6 +93,7 @@ struct PetCard: View {
     var onSelect: () -> Void
     @State private var isPressed = false
     @State private var checkmarkScale: CGFloat = 0
+    @State private var petPhotoData: Data?
     
     var body: some View {
         Button(action: {
@@ -101,14 +102,22 @@ struct PetCard: View {
             onSelect()
         }) {
             HStack(spacing: 16) {
-                Circle()
-                    .fill(Color.petlyLightGreen)
-                    .frame(width: 60, height: 60)
-                    .overlay(
-                        Image(systemName: "dog.fill")
-                            .font(.system(size: 28))
-                            .foregroundColor(.petlyDarkGreen)
-                    )
+                if let photoData = petPhotoData, let uiImage = UIImage(data: photoData) {
+                    Image(uiImage: uiImage)
+                        .resizable()
+                        .scaledToFill()
+                        .frame(width: 60, height: 60)
+                        .clipShape(Circle())
+                } else {
+                    Circle()
+                        .fill(Color.petlyLightGreen)
+                        .frame(width: 60, height: 60)
+                        .overlay(
+                            Image(systemName: "dog.fill")
+                                .font(.system(size: 28))
+                                .foregroundColor(.petlyDarkGreen)
+                        )
+                }
                 
                 VStack(alignment: .leading, spacing: 4) {
                     Text(dog.name)
@@ -154,6 +163,14 @@ struct PetCard: View {
         .onLongPressGesture(minimumDuration: .infinity, pressing: { pressing in
             isPressed = pressing
         }, perform: {})
+        .onAppear {
+            loadPetPhoto()
+        }
+    }
+    
+    private func loadPetPhoto() {
+        let key = "petPhoto_\(dog.id)"
+        petPhotoData = UserDefaults.standard.data(forKey: key)
     }
 }
 
