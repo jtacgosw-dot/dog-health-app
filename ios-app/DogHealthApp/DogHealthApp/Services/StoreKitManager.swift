@@ -81,7 +81,7 @@ class StoreKitManager: ObservableObject {
                 errorMessage = "Purchase is pending approval."
                 return false
                 
-            @unknown default:
+            default:
                 isLoading = false
                 return false
             }
@@ -172,7 +172,7 @@ class StoreKitManager: ObservableObject {
             return value == 1 ? "month" : "\(value) months"
         case .year:
             return value == 1 ? "year" : "\(value) years"
-        @unknown default:
+        default:
             return nil
         }
     }
@@ -196,7 +196,7 @@ class StoreKitManager: ObservableObject {
             unit = period.value == 1 ? "month" : "\(period.value) months"
         case .year:
             unit = period.value == 1 ? "year" : "\(period.value) years"
-        @unknown default:
+        default:
             unit = ""
         }
         
@@ -207,7 +207,7 @@ class StoreKitManager: ObservableObject {
             return "\(offer.displayPrice) for \(unit)"
         case .payUpFront:
             return "\(offer.displayPrice) for \(unit)"
-        @unknown default:
+        default:
             return nil
         }
     }
