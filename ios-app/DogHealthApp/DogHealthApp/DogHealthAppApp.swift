@@ -106,31 +106,40 @@ class AppState: ObservableObject {
                 loadPetPhoto()
             }
         
-            #if DEBUG
-            // For testing: bypass sign-in and create a test dog if needed
-            if !isSignedIn {
-                isSignedIn = true
-                hasCompletedOnboarding = true
+                        #if DEBUG
+                        // For testing: bypass sign-in and create a test dog/user if needed
+                        if !isSignedIn {
+                            isSignedIn = true
+                            hasCompletedOnboarding = true
+                            hasActiveSubscription = true
+                
+                            // Create a test user so greeting shows a name
+                            currentUser = User(
+                                id: "test-user-\(UUID().uuidString)",
+                                email: "test@petlyapp.com",
+                                fullName: "Pet Parent",
+                                subscriptionStatus: .active
+                            )
             
-                // Create a test dog if none exists
-                loadLocalDogs()
-                if dogs.isEmpty {
-                    let testDog = Dog(
-                        id: "test-dog-\(UUID().uuidString)",
-                        name: "Arlo",
-                        breed: "Mini Poodle",
-                        age: 3,
-                        weight: 15.0,
-                        imageUrl: nil,
-                        healthConcerns: [],
-                        allergies: [],
-                        createdAt: Date(),
-                        updatedAt: Date()
-                    )
-                    saveDogLocally(testDog)
-                }
-                loadPetPhoto()
-            }
+                            // Create a test dog if none exists
+                            loadLocalDogs()
+                            if dogs.isEmpty {
+                                let testDog = Dog(
+                                    id: "test-dog-\(UUID().uuidString)",
+                                    name: "Arlo",
+                                    breed: "Mini Poodle",
+                                    age: 3,
+                                    weight: 15.0,
+                                    imageUrl: nil,
+                                    healthConcerns: [],
+                                    allergies: [],
+                                    createdAt: Date(),
+                                    updatedAt: Date()
+                                )
+                                saveDogLocally(testDog)
+                            }
+                            loadPetPhoto()
+                        }
         
             Task {
                 await APIService.shared.ensureDevAuthenticated()
