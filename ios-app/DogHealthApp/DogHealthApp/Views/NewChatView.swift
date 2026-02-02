@@ -293,7 +293,7 @@ struct NewChatView: View {
             }
             .padding(.horizontal)
             .padding(.vertical, 12)
-            .padding(.bottom, 8)
+            .padding(.bottom, 100)
             .background(Color.petlyBackground)
         }
     }
