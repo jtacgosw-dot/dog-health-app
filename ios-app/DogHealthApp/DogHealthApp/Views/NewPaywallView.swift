@@ -100,7 +100,7 @@ struct NewPaywallView: View {
                         HStack(spacing: 12) {
                             PlanCard(
                                 title: "Annual",
-                                price: "$29.99",
+                                price: storeKit.annualProduct?.displayPrice ?? "$29.99",
                                 originalPrice: "$35.99",
                                 subtitle: "Per-year after a\n7 day free trial.",
                                 badge: "SAVE 17%",
@@ -113,7 +113,7 @@ struct NewPaywallView: View {
                             
                             PlanCard(
                                 title: "Monthly",
-                                price: "$3.99",
+                                price: storeKit.monthlyProduct?.displayPrice ?? "$3.99",
                                 originalPrice: nil,
                                 subtitle: "Per-month after\na 7 day free trial.",
                                 badge: nil,
@@ -126,7 +126,7 @@ struct NewPaywallView: View {
                         }
                         .padding(.horizontal)
                         
-                        Text("You'll be charged $3.99 per-month after your 7 day free trial ends. You can cancel anytime.")
+                        Text("You'll be charged \(storeKit.monthlyProduct?.displayPrice ?? "$3.99") per-month after your 7 day free trial ends. You can cancel anytime.")
                             .font(.petlyBody(12))
                             .foregroundColor(.petlyFormIcon)
                             .multilineTextAlignment(.center)

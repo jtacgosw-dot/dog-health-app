@@ -18,6 +18,7 @@ struct SettingsView: View {
     @State private var showDeleteDataAlert = false
     @State private var showAboutSheet = false
     @State private var showExportSheet = false
+    @State private var showProfileSheet = false
     @State private var exportURL: URL?
     @State private var isDeletingData = false
     @State private var deleteSuccessMessage: String?
@@ -40,12 +41,14 @@ struct SettingsView: View {
                 ScrollView {
                     VStack(spacing: 25) {
                         VStack(spacing: 20) {
-                            SettingsSection(title: "Account") {
-                                SettingsRow(icon: "person.fill", title: "Profile", subtitle: appState.currentUser?.fullName ?? "Manage your account")
-                                Button(action: { showNotificationSettings = true }) {
-                                    SettingsRow(icon: "bell.fill", title: "Notifications", subtitle: "Manage reminders", showChevron: true)
+                                SettingsSection(title: "Account") {
+                                    Button(action: { showProfileSheet = true }) {
+                                        SettingsRow(icon: "person.fill", title: "Profile", subtitle: appState.currentUser?.fullName ?? "Manage your account", showChevron: true)
+                                    }
+                                    Button(action: { showNotificationSettings = true }) {
+                                        SettingsRow(icon: "bell.fill", title: "Notifications", subtitle: "Manage reminders", showChevron: true)
+                                    }
                                 }
-                            }
                             
                             SettingsSection(title: "Pet Health") {
                                 Button(action: { showWeightTracking = true }) {
@@ -211,6 +214,11 @@ struct SettingsView: View {
             }
             .sheet(isPresented: $showAboutSheet) {
                 AboutView()
+                    .buttonStyle(.plain)
+            }
+            .sheet(isPresented: $showProfileSheet) {
+                ProfileEditView()
+                    .environmentObject(appState)
                     .buttonStyle(.plain)
             }
             .alert("Delete All Data", isPresented: $showDeleteDataAlert) {
@@ -706,6 +714,102 @@ struct FeatureRow: View {
                     .foregroundColor(.secondary)
             }
         }
+    }
+}
+
+struct ProfileEditView: View {
+    @EnvironmentObject var appState: AppState
+    @Environment(\.dismiss) var dismiss
+    @State private var name: String = ""
+    @State private var isSaving = false
+    
+    var body: some View {
+        NavigationView {
+            ZStack {
+                Color.petlyBackground
+                    .ignoresSafeArea()
+                
+                VStack(spacing: 24) {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Your Name")
+                            .font(.petlyBodyMedium(14))
+                            .foregroundColor(.petlyDarkGreen)
+                        
+                        TextField("Enter your name", text: $name)
+                            .font(.petlyBody(16))
+                            .padding()
+                            .background(Color.petlyLightGreen)
+                            .cornerRadius(12)
+                    }
+                    .padding(.horizontal)
+                    .padding(.top, 20)
+                    
+                    Text("This name will be used to personalize your experience throughout the app.")
+                        .font(.petlyBody(14))
+                        .foregroundColor(.petlyFormIcon)
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal, 30)
+                    
+                    Spacer()
+                    
+                    Button(action: saveProfile) {
+                        if isSaving {
+                            ProgressView()
+                                .tint(.white)
+                        } else {
+                            Text("Save Changes")
+                                .font(.petlyBodyMedium(16))
+                        }
+                    }
+                    .foregroundColor(.white)
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .background(Color.petlyDarkGreen)
+                    .cornerRadius(25)
+                    .padding(.horizontal)
+                    .padding(.bottom, 30)
+                    .disabled(isSaving)
+                }
+            }
+            .navigationTitle("Edit Profile")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button("Cancel") {
+                        dismiss()
+                    }
+                    .foregroundColor(.petlyDarkGreen)
+                }
+            }
+        }
+        .onAppear {
+            // Pre-fill with existing name
+            if let existingName = appState.currentUser?.fullName {
+                name = existingName
+            } else if let savedName = UserDefaults.standard.string(forKey: "ownerName") {
+                name = savedName
+            }
+        }
+    }
+    
+    private func saveProfile() {
+        isSaving = true
+        
+        // Update the user's name
+        if var user = appState.currentUser {
+            user.fullName = name.isEmpty ? nil : name
+            appState.currentUser = user
+        }
+        
+        // Save to UserDefaults for persistence
+        if name.isEmpty {
+            UserDefaults.standard.removeObject(forKey: "ownerName")
+        } else {
+            UserDefaults.standard.set(name, forKey: "ownerName")
+        }
+        
+        isSaving = false
+        dismiss()
     }
 }
 

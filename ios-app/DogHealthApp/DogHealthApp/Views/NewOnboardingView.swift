@@ -4,6 +4,7 @@ struct NewOnboardingView: View {
     @EnvironmentObject var appState: AppState
     @State private var selectedInterests: Set<String> = []
     @State private var currentPage = 0
+    @State private var ownerName: String = ""
     
     let interests = [
         ("leaf.fill", "Nutrition"),
@@ -30,6 +31,8 @@ struct NewOnboardingView: View {
                 
                 if currentPage == 0 {
                     welcomePage
+                } else if currentPage == 1 {
+                    nameInputPage
                 } else {
                     interestsPage
                 }
@@ -90,12 +93,93 @@ struct NewOnboardingView: View {
         }
     }
     
-    var interestsPage: some View {
+    var nameInputPage: some View {
         VStack(spacing: 0) {
             HStack {
                 Button(action: {
                     withAnimation(.spring(response: 0.5, dampingFraction: 0.7)) {
                         currentPage = 0
+                    }
+                }) {
+                    Circle()
+                        .fill(Color.petlyLightGreen)
+                        .frame(width: 40, height: 40)
+                        .overlay(
+                            Image(systemName: "chevron.left")
+                                .font(.system(size: 16, weight: .medium))
+                                .foregroundColor(.petlyDarkGreen)
+                        )
+                }
+                Spacer()
+            }
+            .padding(.horizontal)
+            .padding(.top, 10)
+            .padding(.bottom, 20)
+            
+            Text("What's your name?")
+                .font(.petlyTitle(28))
+                .foregroundColor(.petlyDarkGreen)
+                .padding(.bottom, 10)
+            
+            Text("We'll use this to personalize your experience")
+                .font(.petlyBody(14))
+                .foregroundColor(.petlyFormIcon)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal)
+                .padding(.bottom, 30)
+            
+            TextField("Your name", text: $ownerName)
+                .font(.petlyBody(18))
+                .padding()
+                .background(Color.petlyLightGreen)
+                .cornerRadius(12)
+                .padding(.horizontal, 40)
+            
+            Spacer()
+            
+            Button(action: {
+                // Save the name to the user
+                if var user = appState.currentUser {
+                    user.fullName = ownerName.isEmpty ? nil : ownerName
+                    appState.currentUser = user
+                    // Save to UserDefaults for persistence
+                    UserDefaults.standard.set(ownerName, forKey: "ownerName")
+                } else if !ownerName.isEmpty {
+                    // Create a user with the name if one doesn't exist
+                    UserDefaults.standard.set(ownerName, forKey: "ownerName")
+                }
+                
+                withAnimation(.spring(response: 0.5, dampingFraction: 0.7)) {
+                    currentPage = 2
+                }
+            }) {
+                Text("CONTINUE")
+                    .font(.petlyBodyMedium(14))
+                    .foregroundColor(.white)
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .background(Color.petlyDarkGreen)
+                    .cornerRadius(8)
+            }
+            .padding(.horizontal)
+            .padding(.bottom, 20)
+        }
+        .onAppear {
+            // Pre-fill with existing name if available
+            if let existingName = appState.currentUser?.fullName {
+                ownerName = existingName
+            } else if let savedName = UserDefaults.standard.string(forKey: "ownerName") {
+                ownerName = savedName
+            }
+        }
+    }
+    
+    var interestsPage: some View {
+        VStack(spacing: 0) {
+            HStack {
+                Button(action: {
+                    withAnimation(.spring(response: 0.5, dampingFraction: 0.7)) {
+                        currentPage = 1
                     }
                 }) {
                     Circle()
@@ -185,7 +269,7 @@ struct NewOnboardingView: View {
     
     var pageIndicator: some View {
         HStack(spacing: 8) {
-            ForEach(0..<2) { index in
+            ForEach(0..<3) { index in
                 Circle()
                     .fill(index == currentPage ? Color.petlyDarkGreen : Color.petlyFormIcon.opacity(0.3))
                     .frame(width: 8, height: 8)
