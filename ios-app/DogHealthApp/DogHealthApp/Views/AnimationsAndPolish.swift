@@ -1444,18 +1444,22 @@ struct TooltipModifier: ViewModifier {
     let icon: String
     
     @State private var showTooltip = false
+    @State private var hasShownThisSession = false
+    @State private var keyboardVisible = false
     @StateObject private var tooltipManager = OnboardingTooltipManager.shared
     
     func body(content: Content) -> some View {
         content
             .overlay(alignment: .top) {
-                if showTooltip {
+                // Hide tooltip when keyboard is visible to avoid layout issues
+                if showTooltip && !keyboardVisible {
                     TooltipView(
                         message: message,
                         icon: icon,
                         onDismiss: {
-                            tooltipManager.markTooltipShown(for: tooltipKey)
-                            showTooltip = false
+                            withAnimation {
+                                showTooltip = false
+                            }
                         }
                     )
                     .padding(.horizontal)
@@ -1464,15 +1468,36 @@ struct TooltipModifier: ViewModifier {
                         insertion: .scale.combined(with: .opacity),
                         removal: .opacity
                     ))
+                    .allowsHitTesting(true)
                 }
             }
             .onAppear {
-                if tooltipManager.shouldShowTooltip(for: tooltipKey) {
+                // Only show tooltip once per session and if not already shown in UserDefaults
+                if !hasShownThisSession && tooltipManager.shouldShowTooltip(for: tooltipKey) {
+                    hasShownThisSession = true
+                    // Mark as shown immediately so it won't reappear
+                    tooltipManager.markTooltipShown(for: tooltipKey)
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
                         withAnimation {
                             showTooltip = true
                         }
+                        // Auto-dismiss after 5 seconds
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 5.0) {
+                            withAnimation {
+                                showTooltip = false
+                            }
+                        }
                     }
+                }
+            }
+            .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillShowNotification)) { _ in
+                withAnimation {
+                    keyboardVisible = true
+                }
+            }
+            .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillHideNotification)) { _ in
+                withAnimation {
+                    keyboardVisible = false
                 }
             }
     }
