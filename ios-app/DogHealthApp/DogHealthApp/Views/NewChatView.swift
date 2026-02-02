@@ -118,10 +118,13 @@ struct NewChatView: View {
                 .padding()
                 
                 if messages.isEmpty {
-                    EmptyStateChatView(onQuickAction: handleQuickAction)
-                        .onTapGesture {
-                            dismissKeyboard()
-                        }
+                    ScrollView {
+                        EmptyStateChatView(onQuickAction: handleQuickAction)
+                    }
+                    .scrollDismissesKeyboard(.interactively)
+                    .onTapGesture {
+                        dismissKeyboard()
+                    }
                 } else {
                     ScrollViewReader { proxy in
                         ScrollView {
@@ -291,7 +294,6 @@ struct NewChatView: View {
             .padding(.horizontal)
             .padding(.vertical, 12)
             .background(Color.petlyBackground)
-            .padding(.bottom, keyboardObserver.keyboardHeight > 0 ? keyboardObserver.keyboardHeight - 34 : 100)
         }
     }
     
