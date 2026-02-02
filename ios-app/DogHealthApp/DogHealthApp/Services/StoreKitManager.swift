@@ -134,8 +134,8 @@ class StoreKitManager: ObservableObject {
             throw error
         case .verified(let safe):
             return safe
-        @unknown default:
-            throw StoreKitError.unknown
+        default:
+            fatalError("Unexpected verification result")
         }
     }
     
