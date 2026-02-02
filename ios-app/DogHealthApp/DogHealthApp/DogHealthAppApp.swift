@@ -33,6 +33,7 @@ struct DogHealthAppApp: App {
     }()
     
     init() {
+        #if DEBUG
         print("=== AVAILABLE FONTS ===")
         for family in UIFont.familyNames.sorted() {
             print("Family: \(family)")
@@ -41,6 +42,7 @@ struct DogHealthAppApp: App {
             }
         }
         print("======================")
+        #endif
     }
     
     var body: some Scene {

@@ -202,6 +202,11 @@ struct NewChatView: View {
         .onReceive(NotificationCenter.default.publisher(for: .petPhotoDidChange)) { _ in
             loadPetPhoto()
         }
+        .onboardingTooltip(
+            key: .aiChat,
+            message: "Ask Petly AI anything about your pet's health, nutrition, or training. You can also attach photos!",
+            icon: "bubble.left.and.bubble.right.fill"
+        )
     }
     
     private func loadPetPhoto() {

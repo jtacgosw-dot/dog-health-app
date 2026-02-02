@@ -68,6 +68,11 @@ struct PetRemindersView: View {
         }
         .buttonStyle(.plain)
         .preferredColorScheme(.light)
+        .onboardingTooltip(
+            key: .reminders,
+            message: "Set reminders for vaccinations, medications, and vet appointments. Never miss an important date!",
+            icon: "calendar.badge.clock"
+        )
     }
     
     private var headerSection: some View {

@@ -75,6 +75,11 @@ struct CarePlanView: View {
         }
         .buttonStyle(.plain)
         .preferredColorScheme(.light)
+        .onboardingTooltip(
+            key: .carePlans,
+            message: "Create personalized care plans for your pet's health goals like weight management or allergy control.",
+            icon: "list.clipboard"
+        )
     }
     
     private var emptyState: some View {
