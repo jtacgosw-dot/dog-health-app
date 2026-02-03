@@ -120,7 +120,7 @@ class APIService {
     
     func getConversations() async throws -> [Conversation] {
         let response: ConversationsResponse = try await makeRequest(endpoint: "/chat/conversations")
-        return response.conversations
+        return response.conversations.map { $0.toConversation() }
     }
     
     func getConversationMessages(conversationId: String) async throws -> [Message] {
@@ -353,7 +353,49 @@ struct ChatMessage: Codable {
 }
 
 struct ConversationsResponse: Codable {
-    let conversations: [Conversation]
+    let success: Bool?
+    let conversations: [ServerConversation]
+}
+
+struct ServerConversation: Codable {
+    let id: String
+    let title: String?
+    let createdAt: String
+    let updatedAt: String?
+    let isArchived: Bool?
+    let dogId: String?
+    let dogs: ServerDogInfo?
+    
+    enum CodingKeys: String, CodingKey {
+        case id
+        case title
+        case createdAt = "created_at"
+        case updatedAt = "updated_at"
+        case isArchived = "is_archived"
+        case dogId = "dog_id"
+        case dogs
+    }
+    
+    func toConversation() -> Conversation {
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        let date = formatter.date(from: createdAt) ?? Date()
+        
+        return Conversation(
+            id: id,
+            userId: nil,
+            dogId: dogId,
+            createdAt: date,
+            title: title ?? "Chat",
+            messages: []
+        )
+    }
+}
+
+struct ServerDogInfo: Codable {
+    let id: String?
+    let name: String?
+    let breed: String?
 }
 
 struct ConversationMessagesResponse: Codable {
