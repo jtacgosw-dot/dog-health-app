@@ -253,37 +253,6 @@ struct NewChatView: View {
                     .background(Color.red.opacity(0.1))
             }
             
-            if !attachedImages.isEmpty {
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 6) {
-                        ForEach(attachedImages) { attachment in
-                            ZStack(alignment: .topTrailing) {
-                                Image(uiImage: attachment.previewImage)
-                                    .resizable()
-                                    .scaledToFill()
-                                    .frame(width: min(imagePreviewSize, 56), height: min(imagePreviewSize, 56))
-                                    .clipped()
-                                    .cornerRadius(8)
-                                
-                                Button(action: {
-                                    withAnimation {
-                                        attachedImages.removeAll { $0.id == attachment.id }
-                                    }
-                                }) {
-                                    Image(systemName: "xmark.circle.fill")
-                                        .font(.system(size: 16))
-                                        .foregroundColor(.white)
-                                        .background(Circle().fill(Color.black.opacity(0.6)))
-                                }
-                                .offset(x: 4, y: -4)
-                            }
-                        }
-                    }
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 6)
-                }
-            }
-            
             HStack(spacing: 8) {
                 Menu {
                     Button(action: { showingCamera = true }) {
@@ -296,6 +265,40 @@ struct NewChatView: View {
                     Image(systemName: "plus.circle.fill")
                         .font(.system(size: 28))
                         .foregroundColor(.petlyDarkGreen)
+                }
+                
+                if !attachedImages.isEmpty {
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: 6) {
+                            ForEach(attachedImages) { attachment in
+                                ZStack(alignment: .topTrailing) {
+                                    Image(uiImage: attachment.previewImage)
+                                        .resizable()
+                                        .scaledToFill()
+                                        .frame(width: 44, height: 44)
+                                        .clipped()
+                                        .cornerRadius(10)
+                                        .overlay(
+                                            RoundedRectangle(cornerRadius: 10)
+                                                .stroke(Color.petlyDarkGreen.opacity(0.3), lineWidth: 1)
+                                        )
+                                    
+                                    Button(action: {
+                                        withAnimation {
+                                            attachedImages.removeAll { $0.id == attachment.id }
+                                        }
+                                    }) {
+                                        Image(systemName: "xmark.circle.fill")
+                                            .font(.system(size: 14))
+                                            .foregroundColor(.white)
+                                            .background(Circle().fill(Color.petlyDarkGreen))
+                                    }
+                                    .offset(x: 4, y: -4)
+                                }
+                            }
+                        }
+                    }
+                    .frame(maxWidth: 100)
                 }
                 
                 TextField("Start A Conversation...", text: $messageText, axis: .vertical)
@@ -617,13 +620,7 @@ struct NewMessageBubble: View {
             }
             
             VStack(alignment: isUser ? .trailing : .leading, spacing: 4) {
-                if let images = message.imageData, !images.isEmpty {
-                    imageGrid(images: images)
-                }
-                
-                if !message.content.isEmpty && !message.content.starts(with: "[Sent") {
-                    messageBubble
-                }
+                combinedBubble
                 
                 HStack(spacing: 4) {
                     Text(message.timestamp, style: .time)
@@ -654,30 +651,62 @@ struct NewMessageBubble: View {
     }
     
     @ViewBuilder
-    private func imageGrid(images: [Data]) -> some View {
-        let columns = images.count == 1 ? 1 : 2
-        let gridItems = Array(repeating: GridItem(.flexible(), spacing: 4), count: columns)
+    private var combinedBubble: some View {
+        let hasImages = message.imageData != nil && !message.imageData!.isEmpty
+        let hasText = !message.content.isEmpty && !message.content.starts(with: "[Sent")
         
-        LazyVGrid(columns: gridItems, spacing: 4) {
+        VStack(alignment: .leading, spacing: 0) {
+            if hasImages, let images = message.imageData {
+                imageContent(images: images, hasTextBelow: hasText)
+            }
+            
+            if hasText {
+                Text(message.content)
+                    .font(.petlyBody(15))
+                    .foregroundColor(isUser ? .white : .petlyDarkGreen)
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, hasImages ? 10 : 12)
+                    .padding(.top, hasImages ? 0 : 0)
+            }
+        }
+        .background(
+            RoundedRectangle(cornerRadius: 18)
+                .fill(isUser ? Color.petlyDarkGreen : Color.petlyLightGreen)
+                .shadow(color: .black.opacity(0.08), radius: 4, x: 0, y: 2)
+        )
+        .contextMenu {
+            Button(action: copyMessage) {
+                Label("Copy", systemImage: "doc.on.doc")
+            }
+            
+            ShareLink(item: message.content) {
+                Label("Share", systemImage: "square.and.arrow.up")
+            }
+        }
+    }
+    
+    @ViewBuilder
+    private func imageContent(images: [Data], hasTextBelow: Bool) -> some View {
+        let columns = images.count == 1 ? 1 : 2
+        let gridItems = Array(repeating: GridItem(.flexible(), spacing: 3), count: columns)
+        
+        LazyVGrid(columns: gridItems, spacing: 3) {
             ForEach(Array(images.enumerated()), id: \.offset) { index, imageData in
                 if let uiImage = UIImage(data: imageData) {
                     Image(uiImage: uiImage)
                         .resizable()
                         .scaledToFill()
                         .frame(
-                            width: images.count == 1 ? min(imageSize * 1.5, 180) : min(imageSize * 0.8, 90),
-                            height: images.count == 1 ? min(imageSize * 1.5, 180) : min(imageSize * 0.8, 90)
+                            width: images.count == 1 ? min(imageSize * 1.8, 200) : min(imageSize * 0.85, 95),
+                            height: images.count == 1 ? min(imageSize * 1.8, 200) : min(imageSize * 0.85, 95)
                         )
                         .clipped()
-                        .cornerRadius(12)
+                        .cornerRadius(index == 0 && images.count == 1 ? 14 : 10)
                 }
             }
         }
         .padding(4)
-        .background(
-            RoundedRectangle(cornerRadius: 16)
-                .fill(Color.petlyDarkGreen.opacity(0.1))
-        )
+        .padding(.bottom, hasTextBelow ? 4 : 0)
     }
     
     private var petAvatar: some View {
