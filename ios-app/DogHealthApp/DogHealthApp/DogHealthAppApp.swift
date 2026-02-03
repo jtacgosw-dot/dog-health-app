@@ -143,8 +143,31 @@ class AppState: ObservableObject {
                 hasActiveSubscription = entitlements.hasActiveSubscription
             }
             
+            #if DEBUG
+            // In DEBUG mode, preserve local dog data to maintain photo persistence
+            // The API may return dogs with different UUIDs which would break photo lookup
+            let previousDogId = currentDog?.id
+            print("[AppState] loadUserData: Previous dog ID before API call: \(previousDogId ?? "nil")")
+            #endif
+            
             let dogs = try await APIService.shared.getDogs()
             await MainActor.run {
+                #if DEBUG
+                // In DEBUG mode, if we have a local dog with photo, don't overwrite it
+                // This preserves the user's local changes (photo, name, etc.)
+                if let localDog = self.currentDog, self.petPhotoData != nil {
+                    print("[AppState] loadUserData: Preserving local dog '\(localDog.name)' with photo (ID: \(localDog.id))")
+                    // Keep the local dog, don't overwrite with API dogs
+                    // But still update entitlements
+                    return
+                }
+                
+                // If API returns dogs, migrate photo from old dog ID to new dog ID
+                if let previousId = previousDogId, let newDog = dogs.first, previousId != newDog.id {
+                    migratePhotoIfNeeded(fromDogId: previousId, toDogId: newDog.id)
+                }
+                #endif
+                
                 self.dogs = dogs
                 if let firstDog = dogs.first {
                     self.currentDog = firstDog
@@ -157,6 +180,19 @@ class AppState: ObservableObject {
             // Local dogs already loaded above as fallback
         }
     }
+    
+    #if DEBUG
+    private func migratePhotoIfNeeded(fromDogId oldId: String, toDogId newId: String) {
+        let oldKey = "petPhoto_\(oldId)"
+        let newKey = "petPhoto_\(newId)"
+        
+        if let photoData = UserDefaults.standard.data(forKey: oldKey) {
+            print("[AppState] Migrating photo from '\(oldKey)' to '\(newKey)'")
+            UserDefaults.standard.set(photoData, forKey: newKey)
+            // Keep the old key too in case we switch back
+        }
+    }
+    #endif
     
     func signOut() {
         APIService.shared.clearAuthToken()

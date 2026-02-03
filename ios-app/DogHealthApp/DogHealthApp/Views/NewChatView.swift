@@ -47,6 +47,7 @@ struct NewChatView: View {
     @State private var messageText = ""
     @State private var messages: [Message] = []
     @State private var isLoading = false
+    @State private var isCreatingConversation = false
     @State private var conversationId: String?
     @State private var errorMessage: String?
     @State private var showCloseButton = false
@@ -80,6 +81,7 @@ struct NewChatView: View {
                                 withAnimation {
                                     messages = []
                                     conversationId = nil
+                                    isCreatingConversation = false
                                     showCloseButton = false
                                     attachedImages = []
                                 }
@@ -349,6 +351,13 @@ struct NewChatView: View {
     private func sendMessage() {
         guard !messageText.isEmpty || !attachedImages.isEmpty else { return }
         
+        // Prevent duplicate conversations: if we're already creating a conversation, wait for it
+        // This fixes the issue where rapid message sends create multiple conversations
+        if conversationId == nil && isCreatingConversation {
+            print("[NewChatView] Blocked duplicate conversation creation - already in progress")
+            return
+        }
+        
         // Haptic feedback when sending
         let generator = UIImpactFeedbackGenerator(style: .medium)
         generator.impactOccurred()
@@ -370,11 +379,17 @@ struct NewChatView: View {
         messages.append(userMessage)
         let currentMessage = messageText
         let currentImages = attachedImages.map { $0.base64String }
+        let currentConversationId = conversationId
         messageText = ""
         attachedImages = []
         isLoading = true
         errorMessage = nil
         showCloseButton = true
+        
+        // Mark that we're creating a conversation if we don't have one yet
+        if currentConversationId == nil {
+            isCreatingConversation = true
+        }
         
         Task {
             do {
@@ -383,7 +398,7 @@ struct NewChatView: View {
                 
                 let response = try await APIService.shared.sendChatMessage(
                     message: currentMessage.isEmpty ? "What do you see in this image?" : currentMessage,
-                    conversationId: conversationId,
+                    conversationId: currentConversationId,
                     dogId: appState.currentDog?.id,
                     dogProfile: dogProfile,
                     healthLogs: healthLogs,
@@ -392,6 +407,7 @@ struct NewChatView: View {
                 
                 await MainActor.run {
                     conversationId = response.conversationId
+                    isCreatingConversation = false
                     
                     let assistantMessage = Message(
                         id: response.message.id,
@@ -408,6 +424,7 @@ struct NewChatView: View {
                 await MainActor.run {
                     errorMessage = "Failed to send message: \(error.localizedDescription)"
                     isLoading = false
+                    isCreatingConversation = false
                 }
             }
         }
