@@ -95,69 +95,41 @@ class AppState: ObservableObject {
     
     private let localDogsKey = "localDogs"
     
-            init() {
-            if APIService.shared.getAuthToken() != nil {
-                isSignedIn = true
-                hasCompletedOnboarding = true
+    init() {
+        if APIService.shared.getAuthToken() != nil {
+            isSignedIn = true
+            hasCompletedOnboarding = true
             
-                // Load local dogs immediately so currentDog is available for pet photo
-                loadLocalDogs()
-                // Load pet photo after dogs are loaded
-                loadPetPhoto()
-            }
+            // Load local dogs immediately so currentDog is available for pet photo
+            loadLocalDogs()
+            // Load pet photo after dogs are loaded
+            loadPetPhoto()
+            print("[AppState] init: Loaded from existing auth token, currentDog: \(currentDog?.id ?? "nil")")
+        }
         
-                        #if DEBUG
-                        // For testing: bypass sign-in and create a test dog/user if needed
-                        if !isSignedIn {
-                            isSignedIn = true
-                            hasCompletedOnboarding = true
-                            hasActiveSubscription = true
-                
-                            // Create a test user so greeting shows a name
-                            // Use consistent ID so data persists across app launches
-                            currentUser = User(
-                                id: "test-user-debug",
-                                email: "test@petlyapp.com",
-                                fullName: "Pet Parent",
-                                subscriptionStatus: .active
-                            )
-            
-                            // Create a test dog if none exists
-                            // Use consistent ID so pet photo persists across app launches
-                            loadLocalDogs()
-                            if dogs.isEmpty {
-                                let testDog = Dog(
-                                    id: "test-dog-debug",
-                                    name: "Arlo",
-                                    breed: "Mini Poodle",
-                                    age: 3,
-                                    weight: 15.0,
-                                    imageUrl: nil,
-                                    healthConcerns: [],
-                                    allergies: [],
-                                    createdAt: Date(),
-                                    updatedAt: Date()
-                                )
-                                saveDogLocally(testDog)
-                            }
-                            loadPetPhoto()
-                        }
+        #if DEBUG
+        // For testing: bypass sign-in and create a test dog/user if needed
+        if !isSignedIn {
+            setupDebugUserAndDog()
+            print("[AppState] init: Set up debug user and dog, currentDog: \(currentDog?.id ?? "nil")")
+        }
         
-            Task {
-                await APIService.shared.ensureDevAuthenticated()
-                await MainActor.run {
-                    if APIService.shared.getAuthToken() != nil {
-                        self.isSignedIn = true
-                        self.hasCompletedOnboarding = true
-                        // Load local dogs for dev mode too
-                        self.loadLocalDogs()
-                        // Load pet photo after dogs are loaded
-                        self.loadPetPhoto()
-                    }
+        Task {
+            await APIService.shared.ensureDevAuthenticated()
+            await MainActor.run {
+                if APIService.shared.getAuthToken() != nil {
+                    self.isSignedIn = true
+                    self.hasCompletedOnboarding = true
+                    // Load local dogs for dev mode too
+                    self.loadLocalDogs()
+                    // Load pet photo after dogs are loaded
+                    self.loadPetPhoto()
+                    print("[AppState] init Task: Loaded after dev auth, currentDog: \(self.currentDog?.id ?? "nil")")
                 }
             }
-            #endif
         }
+        #endif
+    }
     
     func loadUserData() async {
         // First, load local dogs as immediate fallback
@@ -194,7 +166,49 @@ class AppState: ObservableObject {
         currentDog = nil
         dogs = []
         UserDefaults.standard.removeObject(forKey: localDogsKey)
+        
+        #if DEBUG
+        // In DEBUG mode, immediately re-setup test user and dog so the app remains functional
+        // This ensures currentDog is available for pet photo operations
+        setupDebugUserAndDog()
+        #endif
     }
+    
+    #if DEBUG
+    private func setupDebugUserAndDog() {
+        isSignedIn = true
+        hasCompletedOnboarding = true
+        hasActiveSubscription = true
+        
+        currentUser = User(
+            id: "test-user-debug",
+            email: "test@petlyapp.com",
+            fullName: "Pet Parent",
+            subscriptionStatus: .active
+        )
+        
+        // Create test dog with consistent ID so pet photo persists
+        let testDog = Dog(
+            id: "test-dog-debug",
+            name: "Arlo",
+            breed: "Mini Poodle",
+            age: 3,
+            weight: 15.0,
+            imageUrl: nil,
+            healthConcerns: [],
+            allergies: [],
+            createdAt: Date(),
+            updatedAt: Date()
+        )
+        saveDogLocally(testDog)
+        loadPetPhoto()
+        
+        // Ensure dev authentication
+        Task {
+            await APIService.shared.ensureDevAuthenticated()
+        }
+    }
+    #endif
     
     // MARK: - Local Dog Storage (for offline access and photo persistence)
     
@@ -240,15 +254,19 @@ class AppState: ObservableObject {
     }
     
     func savePetPhoto(_ data: Data?) {
-        guard let dogId = currentDog?.id else { return }
+        guard let dogId = currentDog?.id else {
+            print("[AppState] savePetPhoto: FAILED - currentDog is nil, cannot save photo")
+            return
+        }
         let key = "petPhoto_\(dogId)"
         if let data = data {
             UserDefaults.standard.set(data, forKey: key)
+            print("[AppState] savePetPhoto: Saved \(data.count) bytes to key '\(key)'")
         } else {
             UserDefaults.standard.removeObject(forKey: key)
+            print("[AppState] savePetPhoto: Removed photo for key '\(key)'")
         }
         petPhotoData = data
-        // Post notification for any views that might still be listening
         NotificationCenter.default.post(name: .petPhotoDidChange, object: nil)
     }
 }
