@@ -811,37 +811,31 @@ extension View {
 // MARK: - Loading Dots Animation
 
 struct LoadingDotsView: View {
-    @State private var dot1Animating = false
-    @State private var dot2Animating = false
-    @State private var dot3Animating = false
+    @State private var currentDot = 0
+    let timer = Timer.publish(every: 0.3, on: .main, in: .common).autoconnect()
     
     var body: some View {
         HStack(spacing: 6) {
             Circle()
                 .fill(Color.petlyDarkGreen)
                 .frame(width: 8, height: 8)
-                .offset(y: dot1Animating ? -8 : 0)
+                .offset(y: currentDot == 0 ? -6 : 0)
+                .animation(.easeInOut(duration: 0.2), value: currentDot)
             
             Circle()
                 .fill(Color.petlyDarkGreen)
                 .frame(width: 8, height: 8)
-                .offset(y: dot2Animating ? -8 : 0)
+                .offset(y: currentDot == 1 ? -6 : 0)
+                .animation(.easeInOut(duration: 0.2), value: currentDot)
             
             Circle()
                 .fill(Color.petlyDarkGreen)
                 .frame(width: 8, height: 8)
-                .offset(y: dot3Animating ? -8 : 0)
+                .offset(y: currentDot == 2 ? -6 : 0)
+                .animation(.easeInOut(duration: 0.2), value: currentDot)
         }
-        .onAppear {
-            withAnimation(.easeInOut(duration: 0.4).repeatForever(autoreverses: true)) {
-                dot1Animating = true
-            }
-            withAnimation(.easeInOut(duration: 0.4).repeatForever(autoreverses: true).delay(0.15)) {
-                dot2Animating = true
-            }
-            withAnimation(.easeInOut(duration: 0.4).repeatForever(autoreverses: true).delay(0.30)) {
-                dot3Animating = true
-            }
+        .onReceive(timer) { _ in
+            currentDot = (currentDot + 1) % 3
         }
     }
 }
