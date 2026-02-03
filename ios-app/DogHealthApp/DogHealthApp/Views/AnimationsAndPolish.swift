@@ -811,22 +811,20 @@ extension View {
 // MARK: - Loading Dots Animation
 
 struct LoadingDotsView: View {
-    @State private var currentDot = 0
-    private let timer = Timer.publish(every: 0.3, on: .main, in: .common).autoconnect()
-    
     var body: some View {
-        HStack(spacing: 6) {
-            ForEach(0..<3, id: \.self) { index in
-                Circle()
-                    .fill(Color.petlyDarkGreen)
-                    .frame(width: 8, height: 8)
-                    .scaleEffect(currentDot == index ? 1.3 : 1.0)
-                    .opacity(currentDot == index ? 1.0 : 0.5)
-                    .animation(.easeInOut(duration: 0.2), value: currentDot)
+        TimelineView(.animation) { timeline in
+            HStack(spacing: 8) {
+                ForEach(0..<3, id: \.self) { index in
+                    let phase = timeline.date.timeIntervalSinceReferenceDate
+                    let delay = Double(index) * 0.15
+                    let offset = sin((phase + delay) * 5) * 5
+                    
+                    Circle()
+                        .fill(Color.petlyDarkGreen)
+                        .frame(width: 8, height: 8)
+                        .offset(y: offset)
+                }
             }
-        }
-        .onReceive(timer) { _ in
-            currentDot = (currentDot + 1) % 3
         }
     }
 }
