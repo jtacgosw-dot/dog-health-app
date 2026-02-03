@@ -401,7 +401,7 @@ struct ConversationDetailView: View {
                                         MessageDateHeader(date: message.timestamp)
                                             .padding(.vertical, 8)
                                     }
-                                    NewMessageBubble(message: message, petPhotoData: appState.petPhotoData)
+                                    NewMessageBubble(message: message)
                                 }
                             }
                         }
