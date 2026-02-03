@@ -185,7 +185,9 @@ struct ChatHistoryView: View {
         errorMessage = nil
         
         do {
-            conversations = try await APIService.shared.getConversations()
+            let allConversations = try await APIService.shared.getConversations()
+            // Client-side filter: only show conversations with messages (messageCount > 0)
+            conversations = allConversations.filter { $0.messageCount > 0 }
             isLoading = false
         } catch {
             errorMessage = "Failed to load conversations: \(error.localizedDescription)"

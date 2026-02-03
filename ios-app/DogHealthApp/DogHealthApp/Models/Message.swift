@@ -40,6 +40,7 @@ struct Conversation: Identifiable, Codable {
     let createdAt: Date
     var title: String
     var messages: [Message]
+    var messageCount: Int
     
     enum CodingKeys: String, CodingKey {
         case id
@@ -48,6 +49,7 @@ struct Conversation: Identifiable, Codable {
         case createdAt = "created_at"
         case title
         case messages
+        case messageCount
     }
     
     init(id: String = UUID().uuidString,
@@ -55,13 +57,15 @@ struct Conversation: Identifiable, Codable {
          dogId: String? = nil,
          createdAt: Date = Date(),
          title: String = "New Conversation",
-         messages: [Message] = []) {
+         messages: [Message] = [],
+         messageCount: Int = 0) {
         self.id = id
         self.userId = userId
         self.dogId = dogId
         self.createdAt = createdAt
         self.title = title
         self.messages = messages
+        self.messageCount = messageCount
     }
     
     init(from decoder: Decoder) throws {
@@ -72,5 +76,6 @@ struct Conversation: Identifiable, Codable {
         createdAt = try container.decode(Date.self, forKey: .createdAt)
         title = try container.decodeIfPresent(String.self, forKey: .title) ?? "Chat"
         messages = try container.decodeIfPresent([Message].self, forKey: .messages) ?? []
+        messageCount = try container.decodeIfPresent(Int.self, forKey: .messageCount) ?? messages.count
     }
 }
