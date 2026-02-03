@@ -169,7 +169,7 @@ struct NewChatView: View {
                                 }
                                 
                                 if isLoading {
-                                    TypingIndicatorBubble(petPhotoData: appState.petPhotoData)
+                                    TypingIndicatorBubble()
                                         .transition(.opacity.combined(with: .move(edge: .bottom)))
                                 }
                             }
@@ -792,13 +792,12 @@ struct MessageDateHeader: View {
 }
 
 struct TypingIndicatorBubble: View {
-    var petPhotoData: Data?
     @State private var appeared = false
     @ScaledMetric(relativeTo: .body) private var avatarSize: CGFloat = 32
     
     var body: some View {
         HStack(alignment: .bottom, spacing: 8) {
-            petAvatar
+            aiAvatar
             
             HStack(spacing: 6) {
                 LoadingDotsView()
@@ -822,28 +821,16 @@ struct TypingIndicatorBubble: View {
         }
     }
     
-    private var petAvatar: some View {
-        Group {
-            if let photoData = petPhotoData,
-               let uiImage = UIImage(data: photoData) {
-                Image(uiImage: uiImage)
-                    .resizable()
-                    .scaledToFill()
-                    .frame(width: avatarSize, height: avatarSize)
-                    .clipShape(Circle())
-                    .shadow(color: .black.opacity(0.1), radius: 2, x: 0, y: 1)
-            } else {
-                Circle()
-                    .fill(Color.petlyDarkGreen)
-                    .frame(width: avatarSize, height: avatarSize)
-                    .overlay(
-                        Image(systemName: "sparkles")
-                            .font(.system(size: avatarSize * 0.5))
-                            .foregroundColor(.white)
-                    )
-                    .shadow(color: .black.opacity(0.1), radius: 2, x: 0, y: 1)
-            }
-        }
+    private var aiAvatar: some View {
+        Circle()
+            .fill(Color.petlyDarkGreen)
+            .frame(width: avatarSize, height: avatarSize)
+            .overlay(
+                Image(systemName: "sparkles")
+                    .font(.system(size: avatarSize * 0.5))
+                    .foregroundColor(.white)
+            )
+            .shadow(color: .black.opacity(0.1), radius: 2, x: 0, y: 1)
     }
 }
 

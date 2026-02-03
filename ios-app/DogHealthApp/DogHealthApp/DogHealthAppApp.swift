@@ -191,7 +191,7 @@ class AppState: ObservableObject {
         
         loadLocalDogs()
         
-        if currentDog == nil {
+        if currentDog == nil || dogs.isEmpty {
             let testDog = Dog(
                 id: "test-dog-debug",
                 name: "Arlo",
@@ -205,10 +205,11 @@ class AppState: ObservableObject {
                 updatedAt: Date()
             )
             saveDogLocally(testDog)
+            print("[AppState] setupDebugUserAndDog: Created default test dog")
         }
         
         loadPetPhoto()
-        print("[AppState] setupDebugUserAndDog: owner=\(savedOwnerName), dog=\(currentDog?.name ?? "nil")")
+        print("[AppState] setupDebugUserAndDog: owner=\(savedOwnerName), dog=\(currentDog?.name ?? "nil"), dogs.count=\(dogs.count)")
         
         Task {
             await APIService.shared.ensureDevAuthenticated()
