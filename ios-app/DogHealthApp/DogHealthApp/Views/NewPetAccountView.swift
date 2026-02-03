@@ -1211,6 +1211,8 @@ struct EditPetProfileView: View {
     @State private var showingPhotoOptions = false
     @State private var showingImagePicker = false
     @State private var showingCamera = false
+    @State private var originalDogId: String?
+    @State private var originalCreatedAt: Date?
     
     var body: some View {
             NavigationView {
@@ -1403,15 +1405,21 @@ struct EditPetProfileView: View {
             }
             .onAppear {
                 if let dog = appState.currentDog {
+                    originalDogId = dog.id
+                    originalCreatedAt = dog.createdAt
                     name = dog.name
                     age = "\(dog.age)"
                     breed = dog.breed
                     if let w = dog.weight {
                         weight = String(format: "%.1f", w)
                     }
-                        allergies = dog.allergies.joined(separator: ", ")
-                        healthConditions = dog.healthConcerns.joined(separator: ", ")
-                    }
+                    allergies = dog.allergies.joined(separator: ", ")
+                    healthConditions = dog.healthConcerns.joined(separator: ", ")
+                    print("[EditPetProfileView] onAppear: Loaded dog \(dog.name) with id \(dog.id)")
+                } else {
+                    print("[EditPetProfileView] onAppear: No currentDog found, using defaults")
+                    originalDogId = "test-dog-debug"
+                    originalCreatedAt = Date()
                 }
             }
             .preferredColorScheme(.light)
@@ -1423,31 +1431,31 @@ struct EditPetProfileView: View {
             return
         }
         
-        guard let existingDog = appState.currentDog else {
+        guard let dogId = originalDogId, let createdAt = originalCreatedAt else {
             errorMessage = "No pet profile found"
             return
         }
         
-        let ageInt = Int(age) ?? existingDog.age
+        let ageInt = Int(age) ?? 1
         let weightDouble = Double(weight)
         let allergiesArray = allergies.split(separator: ",").map { $0.trimmingCharacters(in: .whitespaces) }
         let healthConcernsArray = healthConditions.split(separator: ",").map { $0.trimmingCharacters(in: .whitespaces) }
         
         let updatedDog = Dog(
-            id: existingDog.id,
+            id: dogId,
             name: name,
             breed: breed,
             age: ageInt,
             weight: weightDouble,
-            imageUrl: existingDog.imageUrl,
+            imageUrl: appState.currentDog?.imageUrl,
             healthConcerns: healthConcernsArray,
             allergies: allergiesArray,
-            createdAt: existingDog.createdAt,
+            createdAt: createdAt,
             updatedAt: Date()
         )
         
         appState.saveDogLocally(updatedDog)
-        print("[EditPetProfileView] Saved dog locally: \(updatedDog.name)")
+        print("[EditPetProfileView] Saved dog locally: \(updatedDog.name) with id \(dogId)")
         
         showSaved = true
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
