@@ -6,7 +6,9 @@ struct ChatHistoryView: View {
     @State private var conversations: [Conversation] = []
     @State private var isLoading = true
     @State private var errorMessage: String?
-    @State private var selectedConversation: Conversation?
+    @State private var selectedConversationForDetail: Conversation?
+    
+    var onSelectConversation: ((String, [Message]) -> Void)?
     
     var body: some View {
         NavigationStack {
@@ -55,10 +57,17 @@ struct ChatHistoryView: View {
                     ScrollView {
                         LazyVStack(spacing: 12) {
                             ForEach(conversations) { conversation in
-                                ConversationRow(conversation: conversation)
-                                    .onTapGesture {
-                                        selectedConversation = conversation
+                                ConversationRow(
+                                    conversation: conversation,
+                                    showContinueButton: onSelectConversation != nil
+                                )
+                                .onTapGesture {
+                                    if onSelectConversation != nil {
+                                        loadAndSwitchToConversation(conversation)
+                                    } else {
+                                        selectedConversationForDetail = conversation
                                     }
+                                }
                             }
                         }
                         .padding()
@@ -75,13 +84,27 @@ struct ChatHistoryView: View {
                     .foregroundColor(.petlyDarkGreen)
                 }
             }
-            .sheet(item: $selectedConversation) { conversation in
+            .sheet(item: $selectedConversationForDetail) { conversation in
                 ConversationDetailView(conversation: conversation)
                     .environmentObject(appState)
             }
         }
         .task {
             await loadConversations()
+        }
+    }
+    
+    private func loadAndSwitchToConversation(_ conversation: Conversation) {
+        Task {
+            do {
+                let messages = try await APIService.shared.getConversationMessages(conversationId: conversation.id)
+                await MainActor.run {
+                    onSelectConversation?(conversation.id, messages)
+                    dismiss()
+                }
+            } catch {
+                print("Failed to load conversation: \(error)")
+            }
         }
     }
     
@@ -101,6 +124,7 @@ struct ChatHistoryView: View {
 
 struct ConversationRow: View {
     let conversation: Conversation
+    var showContinueButton: Bool = false
     
     private var formattedDate: String {
         let formatter = RelativeDateTimeFormatter()
