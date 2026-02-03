@@ -375,6 +375,7 @@ struct ServerConversation: Codable {
     let isArchived: Bool?
     let dogId: String?
     let dogs: ServerDogInfo?
+    let messageCount: Int?
     
     enum CodingKeys: String, CodingKey {
         case id
@@ -384,6 +385,7 @@ struct ServerConversation: Codable {
         case isArchived = "is_archived"
         case dogId = "dog_id"
         case dogs
+        case messageCount
     }
     
     func toConversation() -> Conversation {
@@ -397,7 +399,8 @@ struct ServerConversation: Codable {
             dogId: dogId,
             createdAt: date,
             title: title ?? "Chat",
-            messages: []
+            messages: [],
+            messageCount: messageCount ?? 0
         )
     }
 }
