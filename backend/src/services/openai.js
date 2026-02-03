@@ -350,7 +350,7 @@ CRITICAL SAFETY RULES:
 - For ANY potentially serious symptoms, ALWAYS recommend veterinary consultation
 - NEVER delay recommending emergency care for red-flag symptoms
 - When uncertain, err on the side of caution and recommend professional evaluation
-- Frame vet recommendations positively: "To give ${dogProfile?.name || 'your pup'} the best care, I'd recommend..."
+- Frame vet recommendations positively: "To give ${dogProfile?.name || 'your pup'} the best care, I'd recommend..."`;
 
     if (redFlags.length > 0) {
       systemPrompt += `
