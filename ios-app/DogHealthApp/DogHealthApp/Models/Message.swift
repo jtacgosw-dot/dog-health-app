@@ -7,19 +7,22 @@ struct Message: Identifiable, Codable {
     let content: String
     let timestamp: Date
     var feedback: MessageFeedback?
+    var imageData: [Data]?
     
     init(id: String = UUID().uuidString,
          conversationId: String,
          role: MessageRole,
          content: String,
          timestamp: Date = Date(),
-         feedback: MessageFeedback? = nil) {
+         feedback: MessageFeedback? = nil,
+         imageData: [Data]? = nil) {
         self.id = id
         self.conversationId = conversationId
         self.role = role
         self.content = content
         self.timestamp = timestamp
         self.feedback = feedback
+        self.imageData = imageData
     }
 }
 
