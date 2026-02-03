@@ -1,27 +1,49 @@
 import SwiftUI
-import PhotosUI
-import UniformTypeIdentifiers
+import UIKit
 
 extension Notification.Name {
     static let petPhotoDidChange = Notification.Name("petPhotoDidChange")
 }
 
-// Custom Transferable type for loading image data from PhotosPicker
-struct PickedImageData: Transferable {
-    let data: Data
+// UIImagePickerController wrapper for reliable photo selection
+struct ImagePicker: UIViewControllerRepresentable {
+    @Environment(\.dismiss) private var dismiss
+    let sourceType: UIImagePickerController.SourceType
+    let onImagePicked: (UIImage) -> Void
     
-    static var transferRepresentation: some TransferRepresentation {
-        DataRepresentation(importedContentType: .jpeg) { data in
-            PickedImageData(data: data)
+    func makeUIViewController(context: Context) -> UIImagePickerController {
+        let picker = UIImagePickerController()
+        picker.sourceType = sourceType
+        picker.delegate = context.coordinator
+        picker.allowsEditing = true
+        return picker
+    }
+    
+    func updateUIViewController(_ uiViewController: UIImagePickerController, context: Context) {}
+    
+    func makeCoordinator() -> Coordinator {
+        Coordinator(self)
+    }
+    
+    class Coordinator: NSObject, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
+        let parent: ImagePicker
+        
+        init(_ parent: ImagePicker) {
+            self.parent = parent
         }
-        DataRepresentation(importedContentType: .png) { data in
-            PickedImageData(data: data)
+        
+        func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey: Any]) {
+            // Try edited image first, then original
+            if let image = info[.editedImage] as? UIImage {
+                parent.onImagePicked(image)
+            } else if let image = info[.originalImage] as? UIImage {
+                parent.onImagePicked(image)
+            }
+            parent.dismiss()
         }
-        DataRepresentation(importedContentType: .heic) { data in
-            PickedImageData(data: data)
-        }
-        DataRepresentation(importedContentType: .image) { data in
-            PickedImageData(data: data)
+        
+        func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
+            parent.dismiss()
         }
     }
 }
@@ -39,11 +61,10 @@ struct NewPetAccountView: View {
     @State private var showingMembership = false
     @State private var showingInviteFriends = false
     @State private var showingCustomerSupport = false
-        @State private var showingEditProfile = false
-        @State private var showingPhotoOptions = false
-        @State private var showingImagePicker = false
-        @State private var showingCamera = false
-        @State private var selectedPhotoItem: PhotosPickerItem?
+    @State private var showingEditProfile = false
+    @State private var showingPhotoOptions = false
+    @State private var showingImagePicker = false
+    @State private var showingCamera = false
     
         // Scaled sizes for Dynamic Type support
         @ScaledMetric(relativeTo: .body) private var profileAvatarSize: CGFloat = 120
@@ -114,44 +135,29 @@ struct NewPetAccountView: View {
                             Button("Choose from Library") {
                                 showingImagePicker = true
                             }
-                                                        if appState.petPhotoData != nil {
-                                                            Button("Remove Photo", role: .destructive) {
-                                                                appState.savePetPhoto(nil)
+                            if appState.petPhotoData != nil {
+                                Button("Remove Photo", role: .destructive) {
+                                    appState.savePetPhoto(nil)
                                 }
                             }
                             Button("Cancel", role: .cancel) { }
                         }
-                        .photosPicker(isPresented: $showingImagePicker, selection: $selectedPhotoItem, matching: .images)
-                                                .onChange(of: selectedPhotoItem) { oldValue, newValue in
-                                                    guard let item = newValue else { return }
-                                                    Task {
-                                                        do {
-                                                            // Try loading with custom PickedImageData type first
-                                                            if let pickedData = try await item.loadTransferable(type: PickedImageData.self) {
-                                                                await MainActor.run {
-                                                                    // Convert to UIImage and compress as JPEG
-                                                                    if let uiImage = UIImage(data: pickedData.data),
-                                                                       let jpegData = uiImage.jpegData(compressionQuality: 0.8) {
-                                                                        appState.savePetPhoto(jpegData)
-                                                                    } else {
-                                                                        // If conversion fails, save raw data
-                                                                        appState.savePetPhoto(pickedData.data)
-                                                                    }
-                                                                }
-                                                            }
-                                                        } catch {
-                                                            print("Failed to load photo: \(error)")
-                                                        }
-                                                    }
-                                                }
-                                                .fullScreenCover(isPresented: $showingCamera) {
-                                                    CameraView(photoData: Binding(
-                                                        get: { appState.petPhotoData },
-                                                        set: { newValue in
-                                                            appState.savePetPhoto(newValue)
-                                                        }
-                                                    ))
-                                                }
+                        .sheet(isPresented: $showingImagePicker) {
+                            ImagePicker(sourceType: .photoLibrary) { image in
+                                // Compress and save the image
+                                if let jpegData = image.jpegData(compressionQuality: 0.8) {
+                                    appState.savePetPhoto(jpegData)
+                                }
+                            }
+                        }
+                        .fullScreenCover(isPresented: $showingCamera) {
+                            ImagePicker(sourceType: .camera) { image in
+                                // Compress and save the image
+                                if let jpegData = image.jpegData(compressionQuality: 0.8) {
+                                    appState.savePetPhoto(jpegData)
+                                }
+                            }
+                        }
                         
                         Text("\(appState.currentDog?.name ?? "Arlo"), \(appState.currentDog?.age ?? 1) Year")
                             .font(.petlyTitle(24))
@@ -1202,12 +1208,11 @@ struct EditPetProfileView: View {
     @State private var healthConditions = ""
     @State private var showSaved = false
     @State private var errorMessage: String?
-        @State private var showingPhotoOptions = false
-        @State private var showingImagePicker = false
-        @State private var showingCamera = false
-        @State private var selectedPhotoItem: PhotosPickerItem?
+    @State private var showingPhotoOptions = false
+    @State private var showingImagePicker = false
+    @State private var showingCamera = false
     
-        var body: some View {
+    var body: some View {
             NavigationView {
             ZStack {
                 Color.petlyBackground
@@ -1258,41 +1263,27 @@ struct EditPetProfileView: View {
                             Button("Choose from Library") {
                                 showingImagePicker = true
                             }
-                                                    if appState.petPhotoData != nil {
-                                                        Button("Remove Photo", role: .destructive) {
-                                                            appState.savePetPhoto(nil)
-                                                        }
-                                                    }
-                                                    Button("Cancel", role: .cancel) { }
-                                                }
-                                                                        .photosPicker(isPresented: $showingImagePicker, selection: $selectedPhotoItem, matching: .images)
-                                                                        .onChange(of: selectedPhotoItem) { oldValue, newValue in
-                                                                            guard let item = newValue else { return }
-                                                                            Task {
-                                                                                do {
-                                                                                    if let pickedData = try await item.loadTransferable(type: PickedImageData.self) {
-                                                                                        await MainActor.run {
-                                                                                            if let uiImage = UIImage(data: pickedData.data),
-                                                                                               let jpegData = uiImage.jpegData(compressionQuality: 0.8) {
-                                                                                                appState.savePetPhoto(jpegData)
-                                                                                            } else {
-                                                                                                appState.savePetPhoto(pickedData.data)
-                                                                                            }
-                                                                                        }
-                                                                                    }
-                                                                                } catch {
-                                                                                    print("Failed to load photo: \(error)")
-                                                                                }
-                                                                            }
-                                                                        }
-                                                .fullScreenCover(isPresented: $showingCamera) {
-                                                    CameraView(photoData: Binding(
-                                                        get: { appState.petPhotoData },
-                                                        set: { newValue in
-                                                            appState.savePetPhoto(newValue)
-                                                        }
-                                                    ))
-                                                }
+                            if appState.petPhotoData != nil {
+                                Button("Remove Photo", role: .destructive) {
+                                    appState.savePetPhoto(nil)
+                                }
+                            }
+                            Button("Cancel", role: .cancel) { }
+                        }
+                        .sheet(isPresented: $showingImagePicker) {
+                            ImagePicker(sourceType: .photoLibrary) { image in
+                                if let jpegData = image.jpegData(compressionQuality: 0.8) {
+                                    appState.savePetPhoto(jpegData)
+                                }
+                            }
+                        }
+                        .fullScreenCover(isPresented: $showingCamera) {
+                            ImagePicker(sourceType: .camera) { image in
+                                if let jpegData = image.jpegData(compressionQuality: 0.8) {
+                                    appState.savePetPhoto(jpegData)
+                                }
+                            }
+                        }
                         
                         VStack(alignment: .leading, spacing: 8) {
                             Text("Pet Name")
