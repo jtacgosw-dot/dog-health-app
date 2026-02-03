@@ -5,6 +5,16 @@ extension Notification.Name {
     static let petPhotoDidChange = Notification.Name("petPhotoDidChange")
 }
 
+struct PhotoData: Transferable {
+    let data: Data
+    
+    static var transferRepresentation: some TransferRepresentation {
+        DataRepresentation(importedContentType: .image) { data in
+            PhotoData(data: data)
+        }
+    }
+}
+
 struct NewPetAccountView: View {
     @EnvironmentObject var appState: AppState
     @Environment(\.dismiss) var dismiss
@@ -102,9 +112,10 @@ struct NewPetAccountView: View {
                         .photosPicker(isPresented: $showingImagePicker, selection: $selectedPhotoItem, matching: .images)
                                                 .onChange(of: selectedPhotoItem) { oldValue, newValue in
                                                     Task {
-                                                        if let data = try? await newValue?.loadTransferable(type: Data.self) {
+                                                        guard let item = newValue else { return }
+                                                        if let photoData = try? await item.loadTransferable(type: PhotoData.self) {
                                                             await MainActor.run {
-                                                                appState.savePetPhoto(data)
+                                                                appState.savePetPhoto(photoData.data)
                                                             }
                                                         }
                                                     }
@@ -1233,9 +1244,10 @@ struct EditPetProfileView: View {
                                                 .photosPicker(isPresented: $showingImagePicker, selection: $selectedPhotoItem, matching: .images)
                                                 .onChange(of: selectedPhotoItem) { oldValue, newValue in
                                                     Task {
-                                                        if let data = try? await newValue?.loadTransferable(type: Data.self) {
+                                                        guard let item = newValue else { return }
+                                                        if let photoData = try? await item.loadTransferable(type: PhotoData.self) {
                                                             await MainActor.run {
-                                                                appState.savePetPhoto(data)
+                                                                appState.savePetPhoto(photoData.data)
                                                             }
                                                         }
                                                     }
