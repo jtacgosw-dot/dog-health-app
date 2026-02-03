@@ -212,26 +212,27 @@ struct ConversationRow: View {
     let conversation: Conversation
     var showContinueButton: Bool = false
     
-    private var formattedDate: String {
-        let calendar = Calendar.current
-        let now = Date()
+        private var formattedDate: String {
+            let calendar = Calendar.current
+            let now = Date()
+            let dateToShow = conversation.updatedAt ?? conversation.createdAt
         
-        if calendar.isDateInToday(conversation.createdAt) {
-            let formatter = DateFormatter()
-            formatter.dateFormat = "h:mm a"
-            return formatter.string(from: conversation.createdAt)
-        } else if calendar.isDateInYesterday(conversation.createdAt) {
-            return "Yesterday"
-        } else if let daysAgo = calendar.dateComponents([.day], from: conversation.createdAt, to: now).day, daysAgo < 7 {
-            let formatter = DateFormatter()
-            formatter.dateFormat = "EEEE"
-            return formatter.string(from: conversation.createdAt)
-        } else {
-            let formatter = DateFormatter()
-            formatter.dateFormat = "MMM d"
-            return formatter.string(from: conversation.createdAt)
+            if calendar.isDateInToday(dateToShow) {
+                let formatter = DateFormatter()
+                formatter.dateFormat = "h:mm a"
+                return formatter.string(from: dateToShow)
+            } else if calendar.isDateInYesterday(dateToShow) {
+                return "Yesterday"
+            } else if let daysAgo = calendar.dateComponents([.day], from: dateToShow, to: now).day, daysAgo < 7 {
+                let formatter = DateFormatter()
+                formatter.dateFormat = "EEEE"
+                return formatter.string(from: dateToShow)
+            } else {
+                let formatter = DateFormatter()
+                formatter.dateFormat = "MMM d"
+                return formatter.string(from: dateToShow)
+            }
         }
-    }
     
     private var previewText: String {
         if let preview = conversation.lastMessagePreview {

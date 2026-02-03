@@ -500,12 +500,15 @@ struct EmptyStateChatView: View {
     @EnvironmentObject var appState: AppState
     let onQuickAction: (String) -> Void
     
-    private var userName: String {
-        if let fullName = appState.currentUser?.fullName, !fullName.isEmpty {
-            return fullName.components(separatedBy: " ").first ?? fullName
+        private var userName: String {
+            if let fullName = appState.currentUser?.fullName, !fullName.isEmpty {
+                return fullName.components(separatedBy: " ").first ?? fullName
+            }
+            if let savedName = UserDefaults.standard.string(forKey: "ownerName"), !savedName.isEmpty {
+                return savedName.components(separatedBy: " ").first ?? savedName
+            }
+            return "there"
         }
-        return "there"
-    }
     
     let quickActions = [
         ("bolt.fill", "Energy level today?", "What's my dog's energy level today?"),

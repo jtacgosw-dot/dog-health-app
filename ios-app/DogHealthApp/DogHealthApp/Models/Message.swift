@@ -41,6 +41,7 @@ struct Conversation: Identifiable, Codable {
     let userId: String?
     var dogId: String?
     let createdAt: Date
+    var updatedAt: Date?
     var title: String
     var messages: [Message]
     var messageCount: Int
@@ -52,6 +53,7 @@ struct Conversation: Identifiable, Codable {
         case userId = "user_id"
         case dogId = "dog_id"
         case createdAt = "created_at"
+        case updatedAt = "updated_at"
         case title
         case messages
         case messageCount
@@ -63,6 +65,7 @@ struct Conversation: Identifiable, Codable {
          userId: String? = nil,
          dogId: String? = nil,
          createdAt: Date = Date(),
+         updatedAt: Date? = nil,
          title: String = "New Conversation",
          messages: [Message] = [],
          messageCount: Int = 0,
@@ -72,6 +75,7 @@ struct Conversation: Identifiable, Codable {
         self.userId = userId
         self.dogId = dogId
         self.createdAt = createdAt
+        self.updatedAt = updatedAt
         self.title = title
         self.messages = messages
         self.messageCount = messageCount
@@ -85,6 +89,7 @@ struct Conversation: Identifiable, Codable {
         userId = try container.decodeIfPresent(String.self, forKey: .userId)
         dogId = try container.decodeIfPresent(String.self, forKey: .dogId)
         createdAt = try container.decode(Date.self, forKey: .createdAt)
+        updatedAt = try container.decodeIfPresent(Date.self, forKey: .updatedAt)
         title = try container.decodeIfPresent(String.self, forKey: .title) ?? "Chat"
         messages = try container.decodeIfPresent([Message].self, forKey: .messages) ?? []
         messageCount = try container.decodeIfPresent(Int.self, forKey: .messageCount) ?? messages.count
