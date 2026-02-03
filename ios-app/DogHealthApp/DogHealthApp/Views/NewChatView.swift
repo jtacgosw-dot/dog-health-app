@@ -253,6 +253,37 @@ struct NewChatView: View {
                     .background(Color.red.opacity(0.1))
             }
             
+            if !attachedImages.isEmpty {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 8) {
+                        ForEach(attachedImages) { attachment in
+                            ZStack(alignment: .topTrailing) {
+                                Image(uiImage: attachment.previewImage)
+                                    .resizable()
+                                    .scaledToFill()
+                                    .frame(width: 60, height: 60)
+                                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                                
+                                Button(action: {
+                                    withAnimation {
+                                        attachedImages.removeAll { $0.id == attachment.id }
+                                    }
+                                }) {
+                                    Image(systemName: "xmark.circle.fill")
+                                        .font(.system(size: 18))
+                                        .foregroundColor(.white)
+                                        .background(Circle().fill(Color.black.opacity(0.5)))
+                                }
+                                .offset(x: 6, y: -6)
+                            }
+                        }
+                    }
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 8)
+                }
+                .background(Color.petlyLightGreen.opacity(0.5))
+            }
+            
             HStack(spacing: 8) {
                 Menu {
                     Button(action: { showingCamera = true }) {
@@ -265,40 +296,6 @@ struct NewChatView: View {
                     Image(systemName: "plus.circle.fill")
                         .font(.system(size: 28))
                         .foregroundColor(.petlyDarkGreen)
-                }
-                
-                if !attachedImages.isEmpty {
-                    ScrollView(.horizontal, showsIndicators: false) {
-                        HStack(spacing: 6) {
-                            ForEach(attachedImages) { attachment in
-                                ZStack(alignment: .topTrailing) {
-                                    Image(uiImage: attachment.previewImage)
-                                        .resizable()
-                                        .scaledToFill()
-                                        .frame(width: 44, height: 44)
-                                        .clipped()
-                                        .cornerRadius(10)
-                                        .overlay(
-                                            RoundedRectangle(cornerRadius: 10)
-                                                .stroke(Color.petlyDarkGreen.opacity(0.3), lineWidth: 1)
-                                        )
-                                    
-                                    Button(action: {
-                                        withAnimation {
-                                            attachedImages.removeAll { $0.id == attachment.id }
-                                        }
-                                    }) {
-                                        Image(systemName: "xmark.circle.fill")
-                                            .font(.system(size: 14))
-                                            .foregroundColor(.white)
-                                            .background(Circle().fill(Color.petlyDarkGreen))
-                                    }
-                                    .offset(x: 4, y: -4)
-                                }
-                            }
-                        }
-                    }
-                    .frame(maxWidth: 100)
                 }
                 
                 TextField("Start A Conversation...", text: $messageText, axis: .vertical)
@@ -654,10 +651,11 @@ struct NewMessageBubble: View {
     private var combinedBubble: some View {
         let hasImages = message.imageData != nil && !message.imageData!.isEmpty
         let hasText = !message.content.isEmpty && !message.content.starts(with: "[Sent")
+        let bubbleColor = isUser ? Color.petlyDarkGreen : Color.petlyLightGreen
         
         VStack(alignment: .leading, spacing: 0) {
             if hasImages, let images = message.imageData {
-                imageContent(images: images, hasTextBelow: hasText)
+                imageContent(images: images, hasTextBelow: hasText, bubbleColor: bubbleColor)
             }
             
             if hasText {
@@ -665,15 +663,13 @@ struct NewMessageBubble: View {
                     .font(.petlyBody(15))
                     .foregroundColor(isUser ? .white : .petlyDarkGreen)
                     .padding(.horizontal, 14)
-                    .padding(.vertical, hasImages ? 10 : 12)
-                    .padding(.top, hasImages ? 0 : 0)
+                    .padding(.vertical, 10)
+                    .frame(maxWidth: .infinity, alignment: .leading)
             }
         }
-        .background(
-            RoundedRectangle(cornerRadius: 18)
-                .fill(isUser ? Color.petlyDarkGreen : Color.petlyLightGreen)
-                .shadow(color: .black.opacity(0.08), radius: 4, x: 0, y: 2)
-        )
+        .background(bubbleColor)
+        .clipShape(RoundedRectangle(cornerRadius: 18))
+        .shadow(color: .black.opacity(0.08), radius: 4, x: 0, y: 2)
         .contextMenu {
             Button(action: copyMessage) {
                 Label("Copy", systemImage: "doc.on.doc")
@@ -686,27 +682,20 @@ struct NewMessageBubble: View {
     }
     
     @ViewBuilder
-    private func imageContent(images: [Data], hasTextBelow: Bool) -> some View {
-        let columns = images.count == 1 ? 1 : 2
-        let gridItems = Array(repeating: GridItem(.flexible(), spacing: 3), count: columns)
-        
-        LazyVGrid(columns: gridItems, spacing: 3) {
+    private func imageContent(images: [Data], hasTextBelow: Bool, bubbleColor: Color) -> some View {
+        VStack(spacing: 2) {
             ForEach(Array(images.enumerated()), id: \.offset) { index, imageData in
                 if let uiImage = UIImage(data: imageData) {
                     Image(uiImage: uiImage)
                         .resizable()
                         .scaledToFill()
-                        .frame(
-                            width: images.count == 1 ? min(imageSize * 1.8, 200) : min(imageSize * 0.85, 95),
-                            height: images.count == 1 ? min(imageSize * 1.8, 200) : min(imageSize * 0.85, 95)
-                        )
+                        .frame(maxWidth: 220)
+                        .frame(height: 160)
                         .clipped()
-                        .cornerRadius(index == 0 && images.count == 1 ? 14 : 10)
                 }
             }
         }
-        .padding(4)
-        .padding(.bottom, hasTextBelow ? 4 : 0)
+        .padding(.bottom, hasTextBelow ? 6 : 0)
     }
     
     private var petAvatar: some View {

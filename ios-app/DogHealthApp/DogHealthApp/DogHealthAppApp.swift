@@ -180,30 +180,36 @@ class AppState: ObservableObject {
         hasCompletedOnboarding = true
         hasActiveSubscription = true
         
+        let savedOwnerName = UserDefaults.standard.string(forKey: "ownerName") ?? "Pet Parent"
+        
         currentUser = User(
             id: "test-user-debug",
             email: "test@petlyapp.com",
-            fullName: "Pet Parent",
+            fullName: savedOwnerName,
             subscriptionStatus: .active
         )
         
-        // Create test dog with consistent ID so pet photo persists
-        let testDog = Dog(
-            id: "test-dog-debug",
-            name: "Arlo",
-            breed: "Mini Poodle",
-            age: 3,
-            weight: 15.0,
-            imageUrl: nil,
-            healthConcerns: [],
-            allergies: [],
-            createdAt: Date(),
-            updatedAt: Date()
-        )
-        saveDogLocally(testDog)
-        loadPetPhoto()
+        loadLocalDogs()
         
-        // Ensure dev authentication
+        if currentDog == nil {
+            let testDog = Dog(
+                id: "test-dog-debug",
+                name: "Arlo",
+                breed: "Mini Poodle",
+                age: 3,
+                weight: 15.0,
+                imageUrl: nil,
+                healthConcerns: [],
+                allergies: [],
+                createdAt: Date(),
+                updatedAt: Date()
+            )
+            saveDogLocally(testDog)
+        }
+        
+        loadPetPhoto()
+        print("[AppState] setupDebugUserAndDog: owner=\(savedOwnerName), dog=\(currentDog?.name ?? "nil")")
+        
         Task {
             await APIService.shared.ensureDevAuthenticated()
         }
@@ -243,23 +249,44 @@ class AppState: ObservableObject {
     }
     
     // MARK: - Pet Photo Management
-    // Using a FIXED key for photo storage to ensure persistence regardless of dog ID changes
-    private let petPhotoKey = "petPhoto"
+    // Using FileManager for robust photo storage (avoids UserDefaults size limits)
+    private var petPhotoURL: URL {
+        let documentsDirectory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+        return documentsDirectory.appendingPathComponent("petPhoto.jpg")
+    }
     
     func loadPetPhoto() {
-        petPhotoData = UserDefaults.standard.data(forKey: petPhotoKey)
-        print("[AppState] loadPetPhoto: Loaded \(petPhotoData?.count ?? 0) bytes from key '\(petPhotoKey)'")
+        do {
+            if FileManager.default.fileExists(atPath: petPhotoURL.path) {
+                let data = try Data(contentsOf: petPhotoURL)
+                petPhotoData = data
+                print("[AppState] loadPetPhoto: Loaded \(data.count) bytes from \(petPhotoURL.lastPathComponent)")
+            } else {
+                petPhotoData = nil
+                print("[AppState] loadPetPhoto: No photo file exists")
+            }
+        } catch {
+            print("[AppState] loadPetPhoto ERROR: \(error.localizedDescription)")
+            petPhotoData = nil
+        }
     }
     
     func savePetPhoto(_ data: Data?) {
-        if let data = data {
-            UserDefaults.standard.set(data, forKey: petPhotoKey)
-            print("[AppState] savePetPhoto: Saved \(data.count) bytes to key '\(petPhotoKey)'")
-        } else {
-            UserDefaults.standard.removeObject(forKey: petPhotoKey)
-            print("[AppState] savePetPhoto: Removed photo for key '\(petPhotoKey)'")
+        do {
+            if let data = data {
+                try data.write(to: petPhotoURL, options: .atomic)
+                petPhotoData = data
+                print("[AppState] savePetPhoto: Saved \(data.count) bytes to \(petPhotoURL.lastPathComponent)")
+            } else {
+                if FileManager.default.fileExists(atPath: petPhotoURL.path) {
+                    try FileManager.default.removeItem(at: petPhotoURL)
+                }
+                petPhotoData = nil
+                print("[AppState] savePetPhoto: Removed photo file")
+            }
+            NotificationCenter.default.post(name: .petPhotoDidChange, object: nil)
+        } catch {
+            print("[AppState] savePetPhoto ERROR: \(error.localizedDescription)")
         }
-        petPhotoData = data
-        NotificationCenter.default.post(name: .petPhotoDidChange, object: nil)
     }
 }
