@@ -376,6 +376,8 @@ struct ServerConversation: Codable {
     let dogId: String?
     let dogs: ServerDogInfo?
     let messageCount: Int?
+    let lastMessagePreview: String?
+    let lastMessageRole: String?
     
     enum CodingKeys: String, CodingKey {
         case id
@@ -386,6 +388,8 @@ struct ServerConversation: Codable {
         case dogId = "dog_id"
         case dogs
         case messageCount
+        case lastMessagePreview
+        case lastMessageRole
     }
     
     func toConversation() -> Conversation {
@@ -400,7 +404,9 @@ struct ServerConversation: Codable {
             createdAt: date,
             title: title ?? "Chat",
             messages: [],
-            messageCount: messageCount ?? 0
+            messageCount: messageCount ?? 0,
+            lastMessagePreview: lastMessagePreview,
+            lastMessageRole: lastMessageRole
         )
     }
 }

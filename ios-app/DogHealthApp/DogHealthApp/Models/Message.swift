@@ -41,6 +41,8 @@ struct Conversation: Identifiable, Codable {
     var title: String
     var messages: [Message]
     var messageCount: Int
+    var lastMessagePreview: String?
+    var lastMessageRole: String?
     
     enum CodingKeys: String, CodingKey {
         case id
@@ -50,6 +52,8 @@ struct Conversation: Identifiable, Codable {
         case title
         case messages
         case messageCount
+        case lastMessagePreview
+        case lastMessageRole
     }
     
     init(id: String = UUID().uuidString,
@@ -58,7 +62,9 @@ struct Conversation: Identifiable, Codable {
          createdAt: Date = Date(),
          title: String = "New Conversation",
          messages: [Message] = [],
-         messageCount: Int = 0) {
+         messageCount: Int = 0,
+         lastMessagePreview: String? = nil,
+         lastMessageRole: String? = nil) {
         self.id = id
         self.userId = userId
         self.dogId = dogId
@@ -66,6 +72,8 @@ struct Conversation: Identifiable, Codable {
         self.title = title
         self.messages = messages
         self.messageCount = messageCount
+        self.lastMessagePreview = lastMessagePreview
+        self.lastMessageRole = lastMessageRole
     }
     
     init(from decoder: Decoder) throws {
@@ -77,5 +85,7 @@ struct Conversation: Identifiable, Codable {
         title = try container.decodeIfPresent(String.self, forKey: .title) ?? "Chat"
         messages = try container.decodeIfPresent([Message].self, forKey: .messages) ?? []
         messageCount = try container.decodeIfPresent(Int.self, forKey: .messageCount) ?? messages.count
+        lastMessagePreview = try container.decodeIfPresent(String.self, forKey: .lastMessagePreview)
+        lastMessageRole = try container.decodeIfPresent(String.self, forKey: .lastMessageRole)
     }
 }
