@@ -3,9 +3,25 @@ const supabase = require('../services/supabase');
 
 /**
  * Middleware to verify JWT token and attach user to request
+ * In development mode (NODE_ENV=development), authentication can be bypassed
  */
 const authenticateToken = async (req, res, next) => {
   try {
+    // Development mode bypass - allows testing without authentication
+    if (process.env.NODE_ENV === 'development' && process.env.DEV_BYPASS_AUTH === 'true') {
+      // Create a mock user for development testing
+      req.user = {
+        id: 'dev-test-user-id',
+        email: 'dev@test.com',
+        name: 'Dev Test User',
+        subscription_status: 'premium',
+        subscription_expires_at: null
+      };
+      req.auth = { userId: 'dev-test-user-id', isGuest: true };
+      console.log('[DEV MODE] Authentication bypassed for development testing');
+      return next();
+    }
+
     const authHeader = req.headers['authorization'];
     const token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
 
