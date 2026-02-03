@@ -216,6 +216,9 @@ router.get('/conversations',
             id,
             name,
             breed
+          ),
+          messages (
+            id
           )
         `)
         .eq('user_id', userId)
@@ -227,9 +230,18 @@ router.get('/conversations',
         throw new Error('Failed to fetch conversations');
       }
 
+      // Filter out conversations with no messages and add message count
+      const conversationsWithMessages = (conversations || [])
+        .filter(conv => conv.messages && conv.messages.length > 0)
+        .map(conv => ({
+          ...conv,
+          messageCount: conv.messages.length,
+          messages: undefined // Remove the messages array to reduce payload
+        }));
+
       res.status(200).json({
         success: true,
-        conversations: conversations || []
+        conversations: conversationsWithMessages
       });
     } catch (error) {
       console.error('Fetch conversations error:', error);
