@@ -96,12 +96,15 @@ struct HomeDashboardView: View {
         return meals
     }
     
-    private var userName: String {
-        if let fullName = appState.currentUser?.fullName, !fullName.isEmpty {
-            return fullName.components(separatedBy: " ").first ?? fullName
+        private var userName: String {
+            if let fullName = appState.currentUser?.fullName, !fullName.isEmpty {
+                return fullName.components(separatedBy: " ").first ?? fullName
+            }
+            if let savedName = UserDefaults.standard.string(forKey: "ownerName"), !savedName.isEmpty {
+                return savedName.components(separatedBy: " ").first ?? savedName
+            }
+            return "there"
         }
-        return "there"
-    }
     
     private var greeting: String {
         let hour = Calendar.current.component(.hour, from: Date())
@@ -113,9 +116,9 @@ struct HomeDashboardView: View {
         }
     }
     
-    private var dogName: String {
-        appState.currentDog?.name ?? "your pet"
-    }
+        private var dogName: String {
+            (appState.currentDog?.name ?? "your pet").trimmingCharacters(in: .whitespaces)
+        }
     
     // Calculate streak days (consecutive days with at least one log)
     private var streakDays: Int {
