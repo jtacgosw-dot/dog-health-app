@@ -137,6 +137,16 @@ class APIService {
         }
     }
     
+    func deleteConversation(conversationId: String) async throws {
+        let _: DeleteResponse = try await makeRequest(endpoint: "/chat/conversations/\(conversationId)", method: "DELETE")
+    }
+    
+    func renameConversation(conversationId: String, title: String) async throws {
+        let body = ["title": title]
+        let data = try JSONEncoder().encode(body)
+        let _: ConversationUpdateResponse = try await makeRequest(endpoint: "/chat/conversations/\(conversationId)", method: "PATCH", body: data)
+    }
+    
     func getDogs() async throws -> [Dog] {
         let response: DogsResponse = try await makeRequest(endpoint: "/dogs")
         return response.dogs
@@ -500,6 +510,11 @@ struct HealthLogSyncResponse: Codable {
 struct DeleteResponse: Codable {
     let success: Bool
     let message: String?
+}
+
+struct ConversationUpdateResponse: Codable {
+    let success: Bool
+    let conversation: ServerConversation?
 }
 
 struct ServerHealthLog: Codable {

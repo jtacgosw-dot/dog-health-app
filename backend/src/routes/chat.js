@@ -304,6 +304,125 @@ router.get('/conversations/:id/messages',
 );
 
 /**
+ * DELETE /api/chat/conversations/:id
+ * Delete a conversation
+ */
+router.delete('/conversations/:id',
+  authenticateToken,
+  async (req, res) => {
+    try {
+      const userId = req.user.id;
+      const conversationId = req.params.id;
+
+      // Verify the conversation belongs to the user
+      const { data: conversation, error: convError } = await supabase
+        .from('conversations')
+        .select('*')
+        .eq('id', conversationId)
+        .eq('user_id', userId)
+        .single();
+
+      if (convError || !conversation) {
+        return res.status(403).json({ error: 'Conversation not found or access denied' });
+      }
+
+      // Delete all messages in the conversation first
+      await supabase
+        .from('messages')
+        .delete()
+        .eq('conversation_id', conversationId);
+
+      // Delete the conversation
+      const { error: deleteError } = await supabase
+        .from('conversations')
+        .delete()
+        .eq('id', conversationId);
+
+      if (deleteError) {
+        throw new Error('Failed to delete conversation');
+      }
+
+      res.status(200).json({
+        success: true,
+        message: 'Conversation deleted successfully'
+      });
+    } catch (error) {
+      console.error('Delete conversation error:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Failed to delete conversation',
+        message: error.message
+      });
+    }
+  }
+);
+
+/**
+ * PATCH /api/chat/conversations/:id
+ * Update a conversation (rename)
+ */
+router.patch('/conversations/:id',
+  authenticateToken,
+  [
+    body('title').optional().isString().withMessage('Title must be a string')
+  ],
+  async (req, res) => {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+      }
+
+      const userId = req.user.id;
+      const conversationId = req.params.id;
+      const { title } = req.body;
+
+      // Verify the conversation belongs to the user
+      const { data: conversation, error: convError } = await supabase
+        .from('conversations')
+        .select('*')
+        .eq('id', conversationId)
+        .eq('user_id', userId)
+        .single();
+
+      if (convError || !conversation) {
+        return res.status(403).json({ error: 'Conversation not found or access denied' });
+      }
+
+      // Update the conversation
+      const updateData = {};
+      if (title !== undefined) {
+        updateData.title = title;
+      }
+      updateData.updated_at = new Date().toISOString();
+
+      const { data: updatedConversation, error: updateError } = await supabase
+        .from('conversations')
+        .update(updateData)
+        .eq('id', conversationId)
+        .select()
+        .single();
+
+      if (updateError) {
+        throw new Error('Failed to update conversation');
+      }
+
+      res.status(200).json({
+        success: true,
+        conversation: updatedConversation
+      });
+    } catch (error) {
+      console.error('Update conversation error:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Failed to update conversation',
+        message: error.message
+      });
+    }
+  }
+);
+
+/**
  * POST /api/chat/messages/:id/feedback
  * Submit feedback for a message
  */
