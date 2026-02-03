@@ -75,21 +75,33 @@ struct NewChatView: View {
             VStack(spacing: 0) {
                 HStack {
                     if showCloseButton {
-                        Button(action: {
-                            withAnimation {
-                                messages = []
-                                conversationId = nil
-                                showCloseButton = false
-                                attachedImages = []
+                        Menu {
+                            Button(action: {
+                                withAnimation {
+                                    messages = []
+                                    conversationId = nil
+                                    showCloseButton = false
+                                    attachedImages = []
+                                }
+                            }) {
+                                Label("New Chat", systemImage: "plus.bubble")
                             }
-                        }) {
-                            Text("X Close Chat")
-                                .font(.petlyBody(14))
-                                .foregroundColor(.petlyDarkGreen)
-                                .padding(.horizontal, 16)
-                                .padding(.vertical, 8)
-                                .background(Color.petlyLightGreen)
-                                .cornerRadius(20)
+                            
+                            Button(action: { showingChatHistory = true }) {
+                                Label("Switch Chat", systemImage: "bubble.left.and.bubble.right")
+                            }
+                        } label: {
+                            HStack(spacing: 6) {
+                                Image(systemName: "line.3.horizontal")
+                                    .font(.system(size: 14))
+                                Text("Chats")
+                                    .font(.petlyBody(14))
+                            }
+                            .foregroundColor(.petlyDarkGreen)
+                            .padding(.horizontal, 16)
+                            .padding(.vertical, 8)
+                            .background(Color.petlyLightGreen)
+                            .cornerRadius(20)
                         }
                     } else {
                         Button(action: { showingChatHistory = true }) {
@@ -210,7 +222,14 @@ struct NewChatView: View {
             })
         }
         .sheet(isPresented: $showingChatHistory) {
-            ChatHistoryView()
+            ChatHistoryView(onSelectConversation: { selectedConversationId, loadedMessages in
+                withAnimation {
+                    conversationId = selectedConversationId
+                    messages = loadedMessages
+                    showCloseButton = true
+                    attachedImages = []
+                }
+            })
                 .environmentObject(appState)
         }
                 .buttonStyle(.plain)
