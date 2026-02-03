@@ -812,40 +812,21 @@ extension View {
 
 struct LoadingDotsView: View {
     @State private var activeIndex = 0
-    private let timer = Timer.publish(every: 0.15, on: .main, in: .common).autoconnect()
+    private let timer = Timer.publish(every: 0.4, on: .main, in: .common).autoconnect()
     
     var body: some View {
-        HStack(spacing: 5) {
+        HStack(spacing: 6) {
             ForEach(0..<3, id: \.self) { index in
                 Circle()
                     .fill(Color.petlyDarkGreen)
-                    .frame(width: 7, height: 7)
-                    .scaleEffect(scaleForDot(index))
-                    .opacity(opacityForDot(index))
-                    .animation(.spring(response: 0.25, dampingFraction: 0.6), value: activeIndex)
+                    .frame(width: 8, height: 8)
+                    .opacity(index == activeIndex ? 1.0 : 0.3)
+                    .animation(.easeInOut(duration: 0.3), value: activeIndex)
             }
         }
         .onReceive(timer) { _ in
             activeIndex = (activeIndex + 1) % 3
         }
-    }
-    
-    private func scaleForDot(_ index: Int) -> CGFloat {
-        if index == activeIndex {
-            return 1.4
-        } else if index == (activeIndex + 2) % 3 {
-            return 0.8
-        }
-        return 1.0
-    }
-    
-    private func opacityForDot(_ index: Int) -> Double {
-        if index == activeIndex {
-            return 1.0
-        } else if index == (activeIndex + 2) % 3 {
-            return 0.4
-        }
-        return 0.7
     }
 }
 
