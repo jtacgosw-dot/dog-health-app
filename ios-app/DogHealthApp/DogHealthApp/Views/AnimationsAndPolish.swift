@@ -811,7 +811,8 @@ extension View {
 // MARK: - Loading Dots Animation
 
 struct LoadingDotsView: View {
-    @State private var isAnimating = false
+    @State private var currentDot = 0
+    private let timer = Timer.publish(every: 0.3, on: .main, in: .common).autoconnect()
     
     var body: some View {
         HStack(spacing: 6) {
@@ -819,17 +820,13 @@ struct LoadingDotsView: View {
                 Circle()
                     .fill(Color.petlyDarkGreen)
                     .frame(width: 8, height: 8)
-                    .offset(y: isAnimating ? -6 : 0)
-                    .animation(
-                        .easeInOut(duration: 0.5)
-                        .repeatForever(autoreverses: true)
-                        .delay(Double(index) * 0.15),
-                        value: isAnimating
-                    )
+                    .scaleEffect(currentDot == index ? 1.3 : 1.0)
+                    .opacity(currentDot == index ? 1.0 : 0.5)
+                    .animation(.easeInOut(duration: 0.2), value: currentDot)
             }
         }
-        .onAppear {
-            isAnimating = true
+        .onReceive(timer) { _ in
+            currentDot = (currentDot + 1) % 3
         }
     }
 }
