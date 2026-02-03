@@ -173,7 +173,7 @@ router.post('/',
 
       // Auto-generate title for new conversations (first message)
       // Check if this is a new conversation without a custom title
-c      const { data: convForTitle, error: titleCheckError } = await supabase
+      const { data: convForTitle, error: titleCheckError } = await supabase
         .from('conversations')
         .select('title')
         .eq('id', currentConversationId)
