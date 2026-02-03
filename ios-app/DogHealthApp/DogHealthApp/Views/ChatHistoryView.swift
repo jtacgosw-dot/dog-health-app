@@ -207,10 +207,14 @@ struct ConversationRow: View {
     }
     
     private var previewText: String {
+        if let preview = conversation.lastMessagePreview {
+            let prefix = conversation.lastMessageRole == "assistant" ? "AI: " : ""
+            return prefix + preview
+        }
         if let lastMessage = conversation.messages.last {
             return lastMessage.content
         }
-        return "No messages"
+        return "\(conversation.messageCount) message\(conversation.messageCount == 1 ? "" : "s")"
     }
     
     var body: some View {

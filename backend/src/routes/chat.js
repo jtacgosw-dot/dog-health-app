@@ -171,6 +171,25 @@ router.post('/',
           }
         }]);
 
+      // Auto-generate title for new conversations (first message)
+      // Check if this is a new conversation without a custom title
+      const { data: convForTitle } = await supabase
+        .from('conversations')
+        .select('title')
+        .eq('id', currentConversationId)
+        .single();
+      
+      if (!convForTitle?.title || convForTitle.title === 'Chat' || convForTitle.title === 'New Chat') {
+        // Generate a short title from the user's first message
+        const titleWords = message.split(' ').slice(0, 5).join(' ');
+        const autoTitle = titleWords.length > 30 ? titleWords.substring(0, 30) + '...' : titleWords;
+        
+        await supabase
+          .from('conversations')
+          .update({ title: autoTitle })
+          .eq('id', currentConversationId);
+      }
+
       res.status(200).json({
         success: true,
         conversationId: currentConversationId,
@@ -218,7 +237,10 @@ router.get('/conversations',
             breed
           ),
           messages (
-            id
+            id,
+            content,
+            role,
+            created_at
           )
         `)
         .eq('user_id', userId)
@@ -230,14 +252,24 @@ router.get('/conversations',
         throw new Error('Failed to fetch conversations');
       }
 
-      // Filter out conversations with no messages and add message count
+      // Filter out conversations with no messages and add message count + preview
       const conversationsWithMessages = (conversations || [])
         .filter(conv => conv.messages && conv.messages.length > 0)
-        .map(conv => ({
-          ...conv,
-          messageCount: conv.messages.length,
-          messages: undefined // Remove the messages array to reduce payload
-        }));
+        .map(conv => {
+          // Sort messages by created_at to get the last one
+          const sortedMessages = conv.messages.sort((a, b) => 
+            new Date(b.created_at) - new Date(a.created_at)
+          );
+          const lastMessage = sortedMessages[0];
+          
+          return {
+            ...conv,
+            messageCount: conv.messages.length,
+            lastMessagePreview: lastMessage ? lastMessage.content.substring(0, 100) : null,
+            lastMessageRole: lastMessage ? lastMessage.role : null,
+            messages: undefined // Remove the messages array to reduce payload
+          };
+        });
 
       res.status(200).json({
         success: true,
