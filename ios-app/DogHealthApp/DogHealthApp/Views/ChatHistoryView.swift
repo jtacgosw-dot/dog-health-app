@@ -7,6 +7,11 @@ struct ChatHistoryView: View {
     @State private var isLoading = true
     @State private var errorMessage: String?
     @State private var selectedConversationForDetail: Conversation?
+    @State private var conversationToDelete: Conversation?
+    @State private var conversationToRename: Conversation?
+    @State private var newTitle: String = ""
+    @State private var showingDeleteAlert = false
+    @State private var showingRenameAlert = false
     
     var onSelectConversation: ((String, [Message]) -> Void)?
     
@@ -54,24 +59,42 @@ struct ChatHistoryView: View {
                     }
                     .padding()
                 } else {
-                    ScrollView {
-                        LazyVStack(spacing: 12) {
-                            ForEach(conversations) { conversation in
-                                ConversationRow(
-                                    conversation: conversation,
-                                    showContinueButton: onSelectConversation != nil
-                                )
-                                .onTapGesture {
-                                    if onSelectConversation != nil {
-                                        loadAndSwitchToConversation(conversation)
-                                    } else {
-                                        selectedConversationForDetail = conversation
-                                    }
+                    List {
+                        ForEach(conversations) { conversation in
+                            ConversationRow(
+                                conversation: conversation,
+                                showContinueButton: onSelectConversation != nil
+                            )
+                            .listRowBackground(Color.petlyBackground)
+                            .listRowSeparator(.hidden)
+                            .onTapGesture {
+                                if onSelectConversation != nil {
+                                    loadAndSwitchToConversation(conversation)
+                                } else {
+                                    selectedConversationForDetail = conversation
                                 }
                             }
+                            .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                                Button(role: .destructive) {
+                                    conversationToDelete = conversation
+                                    showingDeleteAlert = true
+                                } label: {
+                                    Label("Delete", systemImage: "trash")
+                                }
+                                
+                                Button {
+                                    conversationToRename = conversation
+                                    newTitle = conversation.title
+                                    showingRenameAlert = true
+                                } label: {
+                                    Label("Rename", systemImage: "pencil")
+                                }
+                                .tint(.petlyDarkGreen)
+                            }
                         }
-                        .padding()
                     }
+                    .listStyle(.plain)
+                    .scrollContentBackground(.hidden)
                 }
             }
             .navigationTitle("Chat History")
@@ -88,9 +111,58 @@ struct ChatHistoryView: View {
                 ConversationDetailView(conversation: conversation)
                     .environmentObject(appState)
             }
+            .alert("Delete Chat", isPresented: $showingDeleteAlert) {
+                Button("Cancel", role: .cancel) { }
+                Button("Delete", role: .destructive) {
+                    if let conversation = conversationToDelete {
+                        deleteConversation(conversation)
+                    }
+                }
+            } message: {
+                Text("Are you sure you want to delete this chat? This cannot be undone.")
+            }
+            .alert("Rename Chat", isPresented: $showingRenameAlert) {
+                TextField("Chat name", text: $newTitle)
+                Button("Cancel", role: .cancel) { }
+                Button("Save") {
+                    if let conversation = conversationToRename {
+                        renameConversation(conversation, newTitle: newTitle)
+                    }
+                }
+            } message: {
+                Text("Enter a new name for this chat")
+            }
         }
         .task {
             await loadConversations()
+        }
+    }
+    
+    private func deleteConversation(_ conversation: Conversation) {
+        Task {
+            do {
+                try await APIService.shared.deleteConversation(conversationId: conversation.id)
+                await MainActor.run {
+                    conversations.removeAll { $0.id == conversation.id }
+                }
+            } catch {
+                print("Failed to delete conversation: \(error)")
+            }
+        }
+    }
+    
+    private func renameConversation(_ conversation: Conversation, newTitle: String) {
+        Task {
+            do {
+                try await APIService.shared.renameConversation(conversationId: conversation.id, title: newTitle)
+                await MainActor.run {
+                    if let index = conversations.firstIndex(where: { $0.id == conversation.id }) {
+                        conversations[index].title = newTitle
+                    }
+                }
+            } catch {
+                print("Failed to rename conversation: \(error)")
+            }
         }
     }
     

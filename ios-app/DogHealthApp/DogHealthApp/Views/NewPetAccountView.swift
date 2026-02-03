@@ -5,15 +5,6 @@ extension Notification.Name {
     static let petPhotoDidChange = Notification.Name("petPhotoDidChange")
 }
 
-struct PhotoData: Transferable {
-    let data: Data
-    
-    static var transferRepresentation: some TransferRepresentation {
-        DataRepresentation(importedContentType: .image) { data in
-            PhotoData(data: data)
-        }
-    }
-}
 
 struct NewPetAccountView: View {
     @EnvironmentObject var appState: AppState
@@ -111,11 +102,19 @@ struct NewPetAccountView: View {
                         }
                         .photosPicker(isPresented: $showingImagePicker, selection: $selectedPhotoItem, matching: .images)
                                                 .onChange(of: selectedPhotoItem) { oldValue, newValue in
-                                                    Task {
-                                                        guard let item = newValue else { return }
-                                                        if let photoData = try? await item.loadTransferable(type: PhotoData.self) {
-                                                            await MainActor.run {
-                                                                appState.savePetPhoto(photoData.data)
+                                                    guard let item = newValue else { return }
+                                                    item.loadTransferable(type: Data.self) { result in
+                                                        DispatchQueue.main.async {
+                                                            switch result {
+                                                            case .success(let data):
+                                                                if let data = data, let uiImage = UIImage(data: data) {
+                                                                    // Compress and save the image
+                                                                    if let jpegData = uiImage.jpegData(compressionQuality: 0.8) {
+                                                                        appState.savePetPhoto(jpegData)
+                                                                    }
+                                                                }
+                                                            case .failure(let error):
+                                                                print("Failed to load photo: \(error)")
                                                             }
                                                         }
                                                     }
@@ -1241,17 +1240,24 @@ struct EditPetProfileView: View {
                                                     }
                                                     Button("Cancel", role: .cancel) { }
                                                 }
-                                                .photosPicker(isPresented: $showingImagePicker, selection: $selectedPhotoItem, matching: .images)
-                                                .onChange(of: selectedPhotoItem) { oldValue, newValue in
-                                                    Task {
-                                                        guard let item = newValue else { return }
-                                                        if let photoData = try? await item.loadTransferable(type: PhotoData.self) {
-                                                            await MainActor.run {
-                                                                appState.savePetPhoto(photoData.data)
-                                                            }
-                                                        }
-                                                    }
-                                                }
+                                                                        .photosPicker(isPresented: $showingImagePicker, selection: $selectedPhotoItem, matching: .images)
+                                                                        .onChange(of: selectedPhotoItem) { oldValue, newValue in
+                                                                            guard let item = newValue else { return }
+                                                                            item.loadTransferable(type: Data.self) { result in
+                                                                                DispatchQueue.main.async {
+                                                                                    switch result {
+                                                                                    case .success(let data):
+                                                                                        if let data = data, let uiImage = UIImage(data: data) {
+                                                                                            if let jpegData = uiImage.jpegData(compressionQuality: 0.8) {
+                                                                                                appState.savePetPhoto(jpegData)
+                                                                                            }
+                                                                                        }
+                                                                                    case .failure(let error):
+                                                                                        print("Failed to load photo: \(error)")
+                                                                                    }
+                                                                                }
+                                                                            }
+                                                                        }
                                                 .fullScreenCover(isPresented: $showingCamera) {
                                                     CameraView(photoData: Binding(
                                                         get: { appState.petPhotoData },
