@@ -45,19 +45,31 @@ struct ChatHistoryView: View {
                     }
                     .padding()
                 } else if conversations.isEmpty {
-                    VStack(spacing: 16) {
-                        Image(systemName: "bubble.left.and.bubble.right")
-                            .font(.system(size: 50))
-                            .foregroundColor(.petlyFormIcon.opacity(0.5))
-                        Text("No conversations yet")
-                            .font(.petlyTitle(20))
-                            .foregroundColor(.petlyDarkGreen)
-                        Text("Start a new chat to see your conversation history here")
-                            .font(.petlyBody(14))
-                            .foregroundColor(.petlyFormIcon)
-                            .multilineTextAlignment(.center)
+                    VStack(spacing: 24) {
+                        ZStack {
+                            Circle()
+                                .fill(Color.petlyLightGreen)
+                                .frame(width: 100, height: 100)
+                            
+                            Image(systemName: "bubble.left.and.bubble.right.fill")
+                                .font(.system(size: 40))
+                                .foregroundColor(.petlyDarkGreen.opacity(0.6))
+                        }
+                        
+                        VStack(spacing: 8) {
+                            Text("No conversations yet")
+                                .font(.petlyTitle(22))
+                                .foregroundColor(.petlyDarkGreen)
+                            
+                            Text("Start chatting with Petly AI to get personalized advice about your pet's health, nutrition, and training.")
+                                .font(.petlyBody(15))
+                                .foregroundColor(.petlyFormIcon)
+                                .multilineTextAlignment(.center)
+                                .lineSpacing(4)
+                        }
                     }
-                    .padding()
+                    .padding(.horizontal, 32)
+                    .padding(.vertical, 40)
                 } else {
                     List {
                         ForEach(conversations) { conversation in
@@ -201,9 +213,24 @@ struct ConversationRow: View {
     var showContinueButton: Bool = false
     
     private var formattedDate: String {
-        let formatter = RelativeDateTimeFormatter()
-        formatter.unitsStyle = .abbreviated
-        return formatter.localizedString(for: conversation.createdAt, relativeTo: Date())
+        let calendar = Calendar.current
+        let now = Date()
+        
+        if calendar.isDateInToday(conversation.createdAt) {
+            let formatter = DateFormatter()
+            formatter.dateFormat = "h:mm a"
+            return formatter.string(from: conversation.createdAt)
+        } else if calendar.isDateInYesterday(conversation.createdAt) {
+            return "Yesterday"
+        } else if let daysAgo = calendar.dateComponents([.day], from: conversation.createdAt, to: now).day, daysAgo < 7 {
+            let formatter = DateFormatter()
+            formatter.dateFormat = "EEEE"
+            return formatter.string(from: conversation.createdAt)
+        } else {
+            let formatter = DateFormatter()
+            formatter.dateFormat = "MMM d"
+            return formatter.string(from: conversation.createdAt)
+        }
     }
     
     private var previewText: String {
@@ -217,22 +244,44 @@ struct ConversationRow: View {
         return "\(conversation.messageCount) message\(conversation.messageCount == 1 ? "" : "s")"
     }
     
+    private var conversationIcon: String {
+        let title = conversation.title.lowercased()
+        if title.contains("food") || title.contains("eat") || title.contains("diet") || title.contains("nutrition") {
+            return "fork.knife"
+        } else if title.contains("health") || title.contains("sick") || title.contains("symptom") || title.contains("vet") {
+            return "heart.fill"
+        } else if title.contains("train") || title.contains("behavior") || title.contains("walk") {
+            return "figure.walk"
+        } else if title.contains("groom") || title.contains("bath") || title.contains("brush") {
+            return "scissors"
+        } else {
+            return "bubble.left.fill"
+        }
+    }
+    
     var body: some View {
-        HStack(spacing: 12) {
-            Circle()
-                .fill(Color.petlyDarkGreen)
-                .frame(width: 44, height: 44)
-                .overlay(
-                    Image(systemName: "bubble.left.fill")
-                        .font(.system(size: 18))
-                        .foregroundColor(.white)
-                )
+        HStack(spacing: 14) {
+            ZStack {
+                Circle()
+                    .fill(
+                        LinearGradient(
+                            colors: [Color.petlyDarkGreen, Color.petlyDarkGreen.opacity(0.8)],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                    .frame(width: 48, height: 48)
+                
+                Image(systemName: conversationIcon)
+                    .font(.system(size: 20, weight: .medium))
+                    .foregroundColor(.white)
+            }
             
-            VStack(alignment: .leading, spacing: 4) {
-                HStack {
+            VStack(alignment: .leading, spacing: 6) {
+                HStack(alignment: .top) {
                     Text(conversation.title)
-                        .font(.petlyBody(15))
-                        .fontWeight(.medium)
+                        .font(.petlyBody(16))
+                        .fontWeight(.semibold)
                         .foregroundColor(.petlyDarkGreen)
                         .lineLimit(1)
                     
@@ -243,21 +292,41 @@ struct ConversationRow: View {
                         .foregroundColor(.petlyFormIcon)
                 }
                 
-                Text(previewText)
-                    .font(.petlyBody(13))
-                    .foregroundColor(.petlyFormIcon)
-                    .lineLimit(2)
+                HStack(spacing: 4) {
+                    Text(previewText)
+                        .font(.petlyBody(14))
+                        .foregroundColor(.petlyFormIcon)
+                        .lineLimit(2)
+                }
+                
+                HStack(spacing: 8) {
+                    HStack(spacing: 4) {
+                        Image(systemName: "message.fill")
+                            .font(.system(size: 10))
+                        Text("\(conversation.messageCount)")
+                            .font(.petlyBody(11))
+                    }
+                    .foregroundColor(.petlyDarkGreen.opacity(0.7))
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+                    .background(Color.petlyLightGreen)
+                    .cornerRadius(8)
+                }
             }
             
             Image(systemName: "chevron.right")
-                .font(.system(size: 14))
-                .foregroundColor(.petlyFormIcon)
+                .font(.system(size: 14, weight: .medium))
+                .foregroundColor(.petlyFormIcon.opacity(0.6))
         }
         .padding(16)
         .background(
             RoundedRectangle(cornerRadius: 16)
                 .fill(Color.white)
-                .shadow(color: .black.opacity(0.05), radius: 4, x: 0, y: 2)
+                .shadow(color: .black.opacity(0.06), radius: 8, x: 0, y: 4)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 16)
+                .stroke(Color.petlyDarkGreen.opacity(0.08), lineWidth: 1)
         )
     }
 }

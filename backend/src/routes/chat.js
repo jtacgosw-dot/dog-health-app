@@ -72,7 +72,7 @@ router.post('/',
 
             let dogProfile = null;
             let healthLogs = null;
-      
+
             // Use client-provided dog profile and health logs if available (from local SwiftData)
             // This allows the AI to have context even without Supabase sync
             if (clientDogProfile) {
@@ -85,7 +85,7 @@ router.post('/',
                 allergies: clientDogProfile.allergies
               };
             }
-      
+
             if (clientHealthLogs && clientHealthLogs.length > 0) {
               healthLogs = clientHealthLogs.map(log => ({
                 log_type: log.logType,
@@ -108,7 +108,7 @@ router.post('/',
                 water_amount: log.waterAmount
               }));
             }
-      
+
             // Fall back to database queries if client didn't provide data
             if (!dogProfile && conversation.dog_id) {
               const { data: dog } = await supabase
@@ -118,12 +118,12 @@ router.post('/',
                 .single();
               dogProfile = dog;
             }
-      
+
             if (!healthLogs && conversation.dog_id) {
               // Fetch recent health logs (last 30 days) for comprehensive AI context
               const thirtyDaysAgo = new Date();
               thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-        
+
               const { data: logs } = await supabase
                 .from('health_logs')
                 .select('*')
@@ -132,7 +132,7 @@ router.post('/',
                 .gte('timestamp', thirtyDaysAgo.toISOString())
                 .order('timestamp', { ascending: false })
                 .limit(100);
-        
+
               healthLogs = logs;
             }
 
@@ -140,7 +140,7 @@ router.post('/',
       if (images && images.length > 0) {
         console.log(`Chat request includes ${images.length} image(s), first image length: ${images[0]?.length || 0} chars`);
       }
-      
+
       const aiResponse = await generateAIResponse(message, currentConversationId, dogProfile, healthLogs, images);
 
       const { data: assistantMessage, error: aiMsgError } = await supabase
@@ -173,21 +173,42 @@ router.post('/',
 
       // Auto-generate title for new conversations (first message)
       // Check if this is a new conversation without a custom title
-      const { data: convForTitle } = await supabase
+c      const { data: convForTitle, error: titleCheckError } = await supabase
         .from('conversations')
         .select('title')
         .eq('id', currentConversationId)
         .single();
-      
-      if (!convForTitle?.title || convForTitle.title === 'Chat' || convForTitle.title === 'New Chat') {
+
+      if (titleCheckError) {
+        console.log('[Chat] Error checking conversation title:', titleCheckError);
+      }
+
+      console.log('[Chat] Current title for conversation', currentConversationId, ':', convForTitle?.title);
+
+      // Generate title if: no title, null title, empty title, or default titles
+      const needsTitle = !convForTitle?.title ||
+                         convForTitle.title === '' ||
+                         convForTitle.title === 'Chat' ||
+                         convForTitle.title === 'New Chat' ||
+                         convForTitle.title === 'New Conversation';
+
+      if (needsTitle) {
         // Generate a short title from the user's first message
         const titleWords = message.split(' ').slice(0, 5).join(' ');
         const autoTitle = titleWords.length > 30 ? titleWords.substring(0, 30) + '...' : titleWords;
-        
-        await supabase
+
+        console.log('[Chat] Generating auto-title:', autoTitle);
+
+        const { error: titleUpdateError } = await supabase
           .from('conversations')
           .update({ title: autoTitle })
           .eq('id', currentConversationId);
+
+        if (titleUpdateError) {
+          console.error('[Chat] Failed to update conversation title:', titleUpdateError);
+        } else {
+          console.log('[Chat] Successfully updated conversation title to:', autoTitle);
+        }
       }
 
       res.status(200).json({
@@ -257,11 +278,11 @@ router.get('/conversations',
         .filter(conv => conv.messages && conv.messages.length > 0)
         .map(conv => {
           // Sort messages by created_at to get the last one
-          const sortedMessages = conv.messages.sort((a, b) => 
+          const sortedMessages = conv.messages.sort((a, b) =>
             new Date(b.created_at) - new Date(a.created_at)
           );
           const lastMessage = sortedMessages[0];
-          
+
           return {
             ...conv,
             messageCount: conv.messages.length,

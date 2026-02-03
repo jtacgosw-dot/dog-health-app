@@ -5,6 +5,7 @@ import StoreKit
 struct SettingsView: View {
     @EnvironmentObject var appState: AppState
     @Environment(\.modelContext) private var modelContext
+    @Environment(\.dismiss) private var dismiss
     @Query private var healthLogs: [HealthLogEntry]
     @Query private var reminders: [PetReminder]
     @Query private var carePlans: [CarePlan]
@@ -22,7 +23,6 @@ struct SettingsView: View {
     @State private var exportURL: URL?
     @State private var isDeletingData = false
     @State private var deleteSuccessMessage: String?
-    @AppStorage("appearanceMode") private var appearanceMode: Int = 0
     
     private var appVersion: String {
         Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0.0"
@@ -39,135 +39,159 @@ struct SettingsView: View {
                     .ignoresSafeArea()
                 
                 ScrollView {
-                    VStack(spacing: 25) {
-                        VStack(spacing: 20) {
-                                SettingsSection(title: "Account") {
-                                    Button(action: { showProfileSheet = true }) {
-                                        SettingsRow(icon: "person.fill", title: "Profile", subtitle: appState.currentUser?.fullName ?? "Manage your account", showChevron: true)
-                                    }
-                                    Button(action: { showNotificationSettings = true }) {
-                                        SettingsRow(icon: "bell.fill", title: "Notifications", subtitle: "Manage reminders", showChevron: true)
-                                    }
+                    VStack(spacing: 20) {
+                        // Header
+                        VStack(spacing: 8) {
+                            Text("General")
+                                .font(.petlyTitle(28))
+                                .foregroundColor(.petlyDarkGreen)
+                            Text("Manage your app settings")
+                                .font(.petlyBody(14))
+                                .foregroundColor(.petlyFormIcon)
+                        }
+                        .padding(.top, 20)
+                        .padding(.bottom, 10)
+                        
+                        VStack(spacing: 16) {
+                            // Account Section
+                            PetlySettingsSection(title: "Account") {
+                                PetlySettingsButton(icon: "person.fill", title: "Profile", subtitle: appState.currentUser?.fullName ?? "Manage your account") {
+                                    showProfileSheet = true
                                 }
-                            
-                            SettingsSection(title: "Pet Health") {
-                                Button(action: { showWeightTracking = true }) {
-                                    SettingsRow(icon: "scalemass.fill", title: "Weight Tracking", subtitle: "Track your pet's weight", showChevron: true)
-                                }
-                                Button(action: { showPetReminders = true }) {
-                                    SettingsRow(icon: "calendar.badge.clock", title: "Pet Reminders", subtitle: "Vaccinations, medications & more", showChevron: true)
-                                }
-                                Button(action: { showVetSummary = true }) {
-                                    SettingsRow(icon: "doc.text.fill", title: "Vet Visit Summary", subtitle: "Export health logs as PDF", showChevron: true)
-                                }
-                                Button(action: { showHealthInsights = true }) {
-                                    SettingsRow(icon: "chart.bar.fill", title: "Health Insights", subtitle: "View trends and analytics", showChevron: true)
-                                }
-                            }
-                            
-                            SettingsSection(title: "Appearance") {
-                                VStack(spacing: 0) {
-                                    SettingsRow(icon: "paintbrush.fill", title: "Theme", subtitle: appearanceModeText)
-                                    
-                                    Picker("Appearance", selection: $appearanceMode) {
-                                        Text("System").tag(0)
-                                        Text("Light").tag(1)
-                                        Text("Dark").tag(2)
-                                    }
-                                    .pickerStyle(.segmented)
-                                    .padding(.horizontal)
-                                    .padding(.bottom, 12)
+                                PetlySettingsDivider()
+                                PetlySettingsButton(icon: "bell.fill", title: "Notifications", subtitle: "Manage reminders") {
+                                    showNotificationSettings = true
                                 }
                             }
                             
-                            SettingsSection(title: "Subscription") {
+                            // Pet Health Section
+                            PetlySettingsSection(title: "Pet Health") {
+                                PetlySettingsButton(icon: "scalemass.fill", title: "Weight Tracking", subtitle: "Track your pet's weight") {
+                                    showWeightTracking = true
+                                }
+                                PetlySettingsDivider()
+                                PetlySettingsButton(icon: "calendar.badge.clock", title: "Pet Reminders", subtitle: "Vaccinations, medications & more") {
+                                    showPetReminders = true
+                                }
+                                PetlySettingsDivider()
+                                PetlySettingsButton(icon: "doc.text.fill", title: "Vet Visit Summary", subtitle: "Export health logs as PDF") {
+                                    showVetSummary = true
+                                }
+                                PetlySettingsDivider()
+                                PetlySettingsButton(icon: "chart.bar.fill", title: "Health Insights", subtitle: "View trends and analytics") {
+                                    showHealthInsights = true
+                                }
+                            }
+                            
+                            // Subscription Section
+                            PetlySettingsSection(title: "Subscription") {
                                 if appState.hasActiveSubscription {
-                                    SettingsRow(
-                                        icon: "crown.fill",
-                                        title: "Petly Premium",
-                                        subtitle: "Active subscription",
-                                        badge: "Active"
-                                    )
+                                    PetlySettingsRow(icon: "crown.fill", title: "Petly Premium", subtitle: "Active subscription", badge: "Active")
                                 } else {
                                     NavigationLink(destination: NewPaywallView()) {
-                                        SettingsRow(
-                                            icon: "crown.fill",
-                                            title: "Upgrade to Premium",
-                                            subtitle: "Unlock all features",
-                                            showChevron: true
-                                        )
+                                        PetlySettingsRow(icon: "crown.fill", title: "Upgrade to Premium", subtitle: "Unlock all features", showChevron: true)
                                     }
                                 }
-                                Button(action: openSubscriptionManagement) {
-                                    SettingsRow(icon: "creditcard.fill", title: "Manage Subscription", subtitle: "View billing details", showChevron: true)
+                                PetlySettingsDivider()
+                                PetlySettingsButton(icon: "creditcard.fill", title: "Manage Subscription", subtitle: "View billing details") {
+                                    openSubscriptionManagement()
                                 }
                             }
                             
-                            SettingsSection(title: "Data & Privacy") {
-                                Button(action: exportAllData) {
-                                    SettingsRow(icon: "square.and.arrow.up.fill", title: "Export Data", subtitle: "Download all your pet's data", showChevron: true)
+                            // Data & Privacy Section
+                            PetlySettingsSection(title: "Data & Privacy") {
+                                PetlySettingsButton(icon: "square.and.arrow.up.fill", title: "Export Data", subtitle: "Download all your pet's data") {
+                                    exportAllData()
                                 }
-                                Button(action: { showDeleteDataAlert = true }) {
-                                    SettingsRow(icon: "trash.fill", title: "Delete All Data", subtitle: "Remove all health logs", iconColor: .red)
-                                }
-                            }
-                            
-                            SettingsSection(title: "Support") {
-                                Button(action: openHelpCenter) {
-                                    SettingsRow(icon: "questionmark.circle.fill", title: "Help & FAQ", subtitle: "Get help", showChevron: true)
-                                }
-                                Button(action: { showFeedbackSheet = true }) {
-                                    SettingsRow(icon: "envelope.fill", title: "Send Feedback", subtitle: "Report issues or suggestions", showChevron: true)
-                                }
-                                Button(action: rateApp) {
-                                    SettingsRow(icon: "star.fill", title: "Rate Petly", subtitle: "Love the app? Leave a review!", showChevron: true)
-                                }
-                                Button(action: shareApp) {
-                                    SettingsRow(icon: "square.and.arrow.up", title: "Share Petly", subtitle: "Tell your friends about us", showChevron: true)
+                                PetlySettingsDivider()
+                                PetlySettingsButton(icon: "trash.fill", title: "Delete All Data", subtitle: "Remove all health logs", iconColor: .red) {
+                                    showDeleteDataAlert = true
                                 }
                             }
                             
-                            SettingsSection(title: "Legal") {
-                                Button(action: openPrivacyPolicy) {
-                                    SettingsRow(icon: "hand.raised.fill", title: "Privacy Policy", subtitle: "How we protect your data", showChevron: true)
+                            // Support Section
+                            PetlySettingsSection(title: "Support") {
+                                PetlySettingsButton(icon: "questionmark.circle.fill", title: "Help & FAQ", subtitle: "Get help") {
+                                    openHelpCenter()
                                 }
-                                Button(action: openTermsOfService) {
-                                    SettingsRow(icon: "doc.text.fill", title: "Terms of Service", subtitle: "Usage terms", showChevron: true)
+                                PetlySettingsDivider()
+                                PetlySettingsButton(icon: "envelope.fill", title: "Send Feedback", subtitle: "Report issues or suggestions") {
+                                    showFeedbackSheet = true
+                                }
+                                PetlySettingsDivider()
+                                PetlySettingsButton(icon: "star.fill", title: "Rate Petly", subtitle: "Love the app? Leave a review!") {
+                                    rateApp()
+                                }
+                                PetlySettingsDivider()
+                                PetlySettingsButton(icon: "square.and.arrow.up", title: "Share Petly", subtitle: "Tell your friends about us") {
+                                    shareApp()
                                 }
                             }
                             
-                            SettingsSection(title: "About") {
-                                Button(action: { showAboutSheet = true }) {
-                                    SettingsRow(icon: "info.circle.fill", title: "About Petly", subtitle: "Version \(appVersion) (\(buildNumber))", showChevron: true)
+                            // Legal Section
+                            PetlySettingsSection(title: "Legal") {
+                                PetlySettingsButton(icon: "hand.raised.fill", title: "Privacy Policy", subtitle: "How we protect your data") {
+                                    openPrivacyPolicy()
+                                }
+                                PetlySettingsDivider()
+                                PetlySettingsButton(icon: "doc.text.fill", title: "Terms of Service", subtitle: "Usage terms") {
+                                    openTermsOfService()
+                                }
+                            }
+                            
+                            // About Section
+                            PetlySettingsSection(title: "About") {
+                                PetlySettingsButton(icon: "info.circle.fill", title: "About Petly", subtitle: "Version \(appVersion) (\(buildNumber))") {
+                                    showAboutSheet = true
                                 }
                             }
                         }
                         .padding(.horizontal)
-                        .padding(.top, 20)
                         
+                        // Sign Out Button
                         Button(action: { showSignOutAlert = true }) {
-                            HStack {
+                            HStack(spacing: 10) {
                                 Image(systemName: "rectangle.portrait.and.arrow.right")
+                                    .font(.system(size: 18))
                                 Text("Sign Out")
-                                    .fontWeight(.semibold)
+                                    .font(.petlyBodyMedium(16))
                             }
                             .frame(maxWidth: .infinity)
-                            .padding()
+                            .padding(.vertical, 16)
                             .background(Color.red.opacity(0.1))
                             .foregroundColor(.red)
-                            .cornerRadius(12)
+                            .cornerRadius(16)
                         }
                         .padding(.horizontal)
+                        .padding(.top, 8)
                         
-                        Text("Made with love for pet parents everywhere")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                            .padding(.bottom, 30)
+                        // Footer
+                        VStack(spacing: 4) {
+                            Text("Made with love for pet parents")
+                                .font(.petlyBody(12))
+                                .foregroundColor(.petlyFormIcon)
+                            Text("Version \(appVersion)")
+                                .font(.petlyBody(11))
+                                .foregroundColor(.petlyFormIcon.opacity(0.7))
+                        }
+                        .padding(.vertical, 20)
+                        .padding(.bottom, 30)
                     }
                 }
             }
-            .navigationTitle("Settings")
-            .navigationBarTitleDisplayMode(.large)
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button(action: { dismiss() }) {
+                        Image(systemName: "xmark")
+                            .font(.system(size: 16, weight: .medium))
+                            .foregroundColor(.petlyDarkGreen)
+                            .padding(8)
+                            .background(Color.petlyLightGreen)
+                            .clipShape(Circle())
+                    }
+                }
+            }
             .alert("Sign Out", isPresented: $showSignOutAlert) {
                 Button("Cancel", role: .cancel) { }
                 Button("Sign Out", role: .destructive) {
@@ -238,15 +262,7 @@ struct SettingsView: View {
         .preferredColorScheme(.light)
     }
     
-    private var appearanceModeText:String {
-        switch appearanceMode {
-        case 1: return "Light"
-        case 2: return "Dark"
-        default: return "System"
-        }
-    }
-    
-    private func openHelpCenter() {
+    private func openHelpCenter(){
         if let url = URL(string: "https://petlyapp.com/help") {
             UIApplication.shared.open(url)
         }
@@ -810,6 +826,107 @@ struct ProfileEditView: View {
         
         isSaving = false
         dismiss()
+    }
+}
+
+// MARK: - Petly Themed Settings Components
+
+struct PetlySettingsSection<Content: View>: View {
+    let title: String
+    @ViewBuilder let content: Content
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text(title.uppercased())
+                .font(.petlyBody(12))
+                .fontWeight(.semibold)
+                .foregroundColor(.petlyFormIcon)
+                .padding(.horizontal, 4)
+            
+            VStack(spacing: 0) {
+                content
+            }
+            .background(Color.petlyLightGreen)
+            .cornerRadius(16)
+        }
+    }
+}
+
+struct PetlySettingsButton: View {
+    let icon: String
+    let title: String
+    let subtitle: String
+    var iconColor: Color = .petlyDarkGreen
+    let action: () -> Void
+    
+    var body: some View {
+        Button(action: action) {
+            PetlySettingsRow(icon: icon, title: title, subtitle: subtitle, iconColor: iconColor, showChevron: true)
+        }
+    }
+}
+
+struct PetlySettingsRow: View {
+    let icon: String
+    let title: String
+    let subtitle: String
+    var badge: String? = nil
+    var iconColor: Color = .petlyDarkGreen
+    var showChevron: Bool = false
+    
+    var body: some View {
+        HStack(spacing: 14) {
+            ZStack {
+                Circle()
+                    .fill(iconColor.opacity(0.15))
+                    .frame(width: 40, height: 40)
+                
+                Image(systemName: icon)
+                    .font(.system(size: 18))
+                    .foregroundColor(iconColor)
+            }
+            
+            VStack(alignment: .leading, spacing: 2) {
+                Text(title)
+                    .font(.petlyBody(16))
+                    .fontWeight(.medium)
+                    .foregroundColor(.petlyDarkGreen)
+                Text(subtitle)
+                    .font(.petlyBody(13))
+                    .foregroundColor(.petlyFormIcon)
+            }
+            
+            Spacer()
+            
+            if let badge = badge {
+                Text(badge)
+                    .font(.petlyBody(11))
+                    .fontWeight(.semibold)
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 5)
+                    .background(Color.petlyDarkGreen)
+                    .foregroundColor(.white)
+                    .cornerRadius(12)
+            }
+            
+            if showChevron {
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 14, weight: .medium))
+                    .foregroundColor(.petlyFormIcon.opacity(0.6))
+            }
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 14)
+        .contentShape(Rectangle())
+    }
+}
+
+struct PetlySettingsDivider: View {
+    var body: some View {
+        Rectangle()
+            .fill(Color.petlyDarkGreen.opacity(0.08))
+            .frame(height: 1)
+            .padding(.leading, 70)
     }
 }
 
