@@ -399,11 +399,14 @@ struct NewChatView: View {
                 let dogProfile = buildDogProfile()
                 let healthLogs = buildHealthLogs()
                 
-                                                                // Validate dogId is a valid UUID before sending
-                                                let validDogId: String? = {
-                                                    guard let id = appState.currentDog?.id else { return nil }
-                                                    return UUID(uuidString: id) != nil ? id : nil
-                                                }()
+                                                                                                                // Validate dogId is a valid UUID before sending
+                                                                // Don't send test dog IDs that don't exist in the database
+                                                                let validDogId: String? = {
+                                                                    guard let id = appState.currentDog?.id else { return nil }
+                                                                    // Skip test dog IDs that would fail foreign key constraint
+                                                                    if id.hasPrefix("00000000-0000-") { return nil }
+                                                                    return UUID(uuidString: id) != nil ? id : nil
+                                                                }()
                 
                                                 // Validate conversationId is a valid UUID before sending
                                                 let validConversationId: String? = {
