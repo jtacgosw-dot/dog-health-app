@@ -107,6 +107,20 @@ class APIService {
         return response.conversations
     }
     
+    func getConversationMessages(conversationId: String) async throws -> [Message] {
+        let response: ConversationMessagesResponse = try await makeRequest(endpoint: "/chat/conversations/\(conversationId)/messages")
+        return response.messages.map { serverMsg in
+            Message(
+                id: serverMsg.id,
+                conversationId: conversationId,
+                role: serverMsg.role == "user" ? .user : .assistant,
+                content: serverMsg.content,
+                timestamp: ISO8601DateFormatter().date(from: serverMsg.createdAt) ?? Date(),
+                feedback: serverMsg.feedback.flatMap { MessageFeedback(rawValue: $0) }
+            )
+        }
+    }
+    
     func getDogs() async throws -> [Dog] {
         let response: DogsResponse = try await makeRequest(endpoint: "/dogs")
         return response.dogs
@@ -324,6 +338,24 @@ struct ChatMessage: Codable {
 
 struct ConversationsResponse: Codable {
     let conversations: [Conversation]
+}
+
+struct ConversationMessagesResponse: Codable {
+    let success: Bool
+    let messages: [ServerMessage]
+}
+
+struct ServerMessage: Codable {
+    let id: String
+    let role: String
+    let content: String
+    let createdAt: String
+    let feedback: String?
+    
+    enum CodingKeys: String, CodingKey {
+        case id, role, content, feedback
+        case createdAt = "created_at"
+    }
 }
 
 struct DogsResponse: Codable {
