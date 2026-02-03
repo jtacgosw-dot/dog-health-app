@@ -158,64 +158,73 @@ class AppState: ObservableObject {
         }
     }
     
-    func signOut() {
-        APIService.shared.clearAuthToken()
-        isSignedIn = false
-        hasActiveSubscription = false
-        currentUser = nil
-        currentDog = nil
-        dogs = []
-        UserDefaults.standard.removeObject(forKey: localDogsKey)
+        func signOut() {
+            APIService.shared.clearAuthToken()
+            isSignedIn = false
+            hasActiveSubscription = false
+            currentUser = nil
+            currentDog = nil
+            dogs = []
+            UserDefaults.standard.removeObject(forKey: localDogsKey)
         
-        #if DEBUG
-        // In DEBUG mode, immediately re-setup test user and dog so the app remains functional
-        // This ensures currentDog is available for pet photo operations
-        setupDebugUserAndDog()
-        #endif
-    }
+            #if DEBUG
+            // In DEBUG mode, re-setup test user and dog so the app remains functional
+            // setupDebugUserAndDog will authenticate and then set isSignedIn = true
+            setupDebugUserAndDog()
+            #endif
+        }
     
-    #if DEBUG
-    private func setupDebugUserAndDog() {
-        isSignedIn = true
-        hasCompletedOnboarding = true
-        hasActiveSubscription = true
+        #if DEBUG
+        private func setupDebugUserAndDog() {
+            hasCompletedOnboarding = true
+            hasActiveSubscription = true
         
-        let savedOwnerName = UserDefaults.standard.string(forKey: "ownerName") ?? "Pet Parent"
+            let savedOwnerName = UserDefaults.standard.string(forKey: "ownerName") ?? "Pet Parent"
         
-        currentUser = User(
-            id: "test-user-debug",
-            email: "test@petlyapp.com",
-            fullName: savedOwnerName,
-            subscriptionStatus: .active
-        )
-        
-        loadLocalDogs()
-        
-                if currentDog == nil || dogs.isEmpty {
-                    let testDog = Dog(
-                        id: "00000000-0000-0000-0000-000000000001",
-                name: "Arlo",
-                breed: "Mini Poodle",
-                age: 3,
-                weight: 15.0,
-                imageUrl: nil,
-                healthConcerns: [],
-                allergies: [],
-                createdAt: Date(),
-                updatedAt: Date()
+            currentUser = User(
+                id: "test-user-debug",
+                email: "test@petlyapp.com",
+                fullName: savedOwnerName,
+                subscriptionStatus: .active
             )
-            saveDogLocally(testDog)
-            print("[AppState] setupDebugUserAndDog: Created default test dog")
-        }
         
-        loadPetPhoto()
-        print("[AppState] setupDebugUserAndDog: owner=\(savedOwnerName), dog=\(currentDog?.name ?? "nil"), dogs.count=\(dogs.count)")
+            loadLocalDogs()
         
-        Task {
-            await APIService.shared.ensureDevAuthenticated()
+            if currentDog == nil || dogs.isEmpty {
+                let testDog = Dog(
+                    id: "00000000-0000-0000-0000-000000000001",
+                    name: "Arlo",
+                    breed: "Mini Poodle",
+                    age: 3,
+                    weight: 15.0,
+                    imageUrl: nil,
+                    healthConcerns: [],
+                    allergies: [],
+                    createdAt: Date(),
+                    updatedAt: Date()
+                )
+                saveDogLocally(testDog)
+                print("[AppState] setupDebugUserAndDog: Created default test dog")
+            }
+        
+            loadPetPhoto()
+            print("[AppState] setupDebugUserAndDog: owner=\(savedOwnerName), dog=\(currentDog?.name ?? "nil"), dogs.count=\(dogs.count)")
+        
+            // Authenticate and THEN set isSignedIn to true
+            Task {
+                await APIService.shared.ensureDevAuthenticated()
+                await MainActor.run {
+                    // Only set isSignedIn after auth token is actually set
+                    if APIService.shared.getAuthToken() != nil {
+                        self.isSignedIn = true
+                        print("[AppState] setupDebugUserAndDog: Auth complete, isSignedIn=true")
+                    } else {
+                        print("[AppState] setupDebugUserAndDog: Auth failed, isSignedIn remains false")
+                    }
+                }
+            }
         }
-    }
-    #endif
+        #endif
     
     // MARK: - Local Dog Storage (for offline access and photo persistence)
     
