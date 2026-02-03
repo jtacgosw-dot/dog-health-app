@@ -1424,6 +1424,7 @@ struct EditPetProfileView: View {
             }
             .preferredColorScheme(.light)
         }
+    }
     
     private func saveProfile() {
         guard !name.isEmpty, !breed.isEmpty else {
