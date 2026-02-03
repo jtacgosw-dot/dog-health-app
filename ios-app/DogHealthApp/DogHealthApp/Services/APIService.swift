@@ -53,9 +53,13 @@ class APIService {
             throw APIError.invalidResponse
         }
         
-        guard (200...299).contains(httpResponse.statusCode) else {
-            throw APIError.httpError(statusCode: httpResponse.statusCode)
-        }
+                guard (200...299).contains(httpResponse.statusCode) else {
+                    // Log the error response body for debugging
+                    if let errorBody = String(data: data, encoding: .utf8) {
+                        print("[APIService] HTTP \(httpResponse.statusCode) error: \(errorBody)")
+                    }
+                    throw APIError.httpError(statusCode: httpResponse.statusCode)
+                }
         
         let decoder = JSONDecoder()
         // Use custom date formatter to handle ISO8601 with fractional seconds (Supabase format)
@@ -112,11 +116,16 @@ class APIService {
             #endif
         }
     
-        func sendChatMessage(message: String, conversationId: String?, dogId: String?, dogProfile: ChatDogProfile?, healthLogs: [ChatHealthLog]?, images: [String]? = nil) async throws -> ChatResponse {
-            let body = ChatRequest(message: message, conversationId: conversationId, dogId: dogId, dogProfile: dogProfile, healthLogs: healthLogs, images: images)
-            let data = try JSONEncoder().encode(body)
-            return try await makeRequest(endpoint: "/chat", method: "POST", body: data)
-        }
+                func sendChatMessage(message: String, conversationId: String?, dogId: String?, dogProfile: ChatDogProfile?, healthLogs: [ChatHealthLog]?, images: [String]? = nil) async throws -> ChatResponse {
+                    let body = ChatRequest(message: message, conversationId: conversationId, dogId: dogId, dogProfile: dogProfile, healthLogs: healthLogs, images: images)
+                    let data = try JSONEncoder().encode(body)
+                    #if DEBUG
+                    if let jsonString = String(data: data, encoding: .utf8) {
+                        print("[APIService] sendChatMessage request: \(jsonString)")
+                    }
+                    #endif
+                    return try await makeRequest(endpoint: "/chat", method: "POST", body: data)
+                }
     
     func getConversations() async throws -> [Conversation] {
         let response: ConversationsResponse = try await makeRequest(endpoint: "/chat/conversations")
