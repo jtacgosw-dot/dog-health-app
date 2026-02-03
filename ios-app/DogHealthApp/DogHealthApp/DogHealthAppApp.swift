@@ -191,9 +191,9 @@ class AppState: ObservableObject {
         
         loadLocalDogs()
         
-        if currentDog == nil || dogs.isEmpty {
-            let testDog = Dog(
-                id: "test-dog-debug",
+                if currentDog == nil || dogs.isEmpty {
+                    let testDog = Dog(
+                        id: "00000000-0000-0000-0000-000000000001",
                 name: "Arlo",
                 breed: "Mini Poodle",
                 age: 3,

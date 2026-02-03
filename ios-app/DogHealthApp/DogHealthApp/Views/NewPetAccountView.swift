@@ -1417,8 +1417,8 @@ struct EditPetProfileView: View {
                     healthConditions = dog.healthConcerns.joined(separator: ", ")
                     print("[EditPetProfileView] onAppear: Loaded dog \(dog.name) with id \(dog.id)")
                 } else {
-                    print("[EditPetProfileView] onAppear: No currentDog found, using defaults")
-                    originalDogId = "test-dog-debug"
+                                        print("[EditPetProfileView] onAppear: No currentDog found, using defaults")
+                                        originalDogId = "00000000-0000-0000-0000-000000000001"
                     originalCreatedAt = Date()
                 }
             }
