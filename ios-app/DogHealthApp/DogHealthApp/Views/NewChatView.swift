@@ -54,6 +54,7 @@ struct NewChatView: View {
     @State private var showingImagePicker = false
     @State private var showingCamera = false
     @State private var selectedPhotoItem: PhotosPickerItem?
+    @State private var showingChatHistory = false
     @FocusState private var isTextFieldFocused: Bool
         @StateObject private var keyboardObserver = KeyboardObserver()
     
@@ -89,6 +90,20 @@ struct NewChatView: View {
                                 .padding(.vertical, 8)
                                 .background(Color.petlyLightGreen)
                                 .cornerRadius(20)
+                        }
+                    } else {
+                        Button(action: { showingChatHistory = true }) {
+                            HStack(spacing: 6) {
+                                Image(systemName: "clock.arrow.circlepath")
+                                    .font(.system(size: 14))
+                                Text("History")
+                                    .font(.petlyBody(14))
+                            }
+                            .foregroundColor(.petlyDarkGreen)
+                            .padding(.horizontal, 16)
+                            .padding(.vertical, 8)
+                            .background(Color.petlyLightGreen)
+                            .cornerRadius(20)
                         }
                     }
                     
@@ -127,21 +142,21 @@ struct NewChatView: View {
                 } else {
                     ScrollViewReader { proxy in
                         ScrollView {
-                            LazyVStack(spacing: 15) {
-                                ForEach(messages) { message in
-                                    NewMessageBubble(message: message)
-                                        .id(message.id)
+                            LazyVStack(spacing: 16) {
+                                ForEach(Array(messages.enumerated()), id: \.element.id) { index, message in
+                                    VStack(spacing: 0) {
+                                        if shouldShowDateHeader(for: index) {
+                                            MessageDateHeader(date: message.timestamp)
+                                                .padding(.vertical, 8)
+                                        }
+                                        NewMessageBubble(message: message, petPhotoData: appState.petPhotoData)
+                                    }
+                                    .id(message.id)
                                 }
                                 
                                 if isLoading {
-                                    HStack(spacing: 12) {
-                                        LoadingDotsView()
-                                        Text("Petly is thinking...")
-                                            .font(.petlyBody(12))
-                                            .foregroundColor(.petlyFormIcon)
-                                    }
-                                    .padding()
-                                    .transition(.opacity.combined(with: .scale))
+                                    TypingIndicatorBubble(petPhotoData: appState.petPhotoData)
+                                        .transition(.opacity.combined(with: .move(edge: .bottom)))
                                 }
                             }
                             .padding()
@@ -193,6 +208,10 @@ struct NewChatView: View {
                     attachedImages.append(attachment)
                 }
             })
+        }
+        .sheet(isPresented: $showingChatHistory) {
+            ChatHistoryView()
+                .environmentObject(appState)
         }
                 .buttonStyle(.plain)
                 .onboardingTooltip(
@@ -311,6 +330,10 @@ struct NewChatView: View {
     private func sendMessage() {
         guard !messageText.isEmpty || !attachedImages.isEmpty else { return }
         
+        // Haptic feedback when sending
+        let generator = UIImpactFeedbackGenerator(style: .medium)
+        generator.impactOccurred()
+        
         let imageCount = attachedImages.count
         let displayContent = messageText.isEmpty && imageCount > 0 
             ? "[Sent \(imageCount) image\(imageCount > 1 ? "s" : "")]" 
@@ -414,6 +437,18 @@ struct NewChatView: View {
                 waterAmount: log.waterAmount
             )
         }
+    }
+    
+    private func shouldShowDateHeader(for index: Int) -> Bool {
+        guard index < messages.count else { return false }
+        let message = messages[index]
+        
+        if index == 0 { return true }
+        
+        let previousMessage = messages[index - 1]
+        let calendar = Calendar.current
+        
+        return !calendar.isDate(message.timestamp, inSameDayAs: previousMessage.timestamp)
     }
 }
 
@@ -525,40 +560,199 @@ struct ChatQuickActionChip: View {
 
 struct NewMessageBubble: View {
     let message: Message
+    var petPhotoData: Data?
     @State private var appeared = false
+    @State private var showCopiedFeedback = false
     
     // Scaled sizes for Dynamic Type support
     @ScaledMetric(relativeTo: .body) private var bubbleMaxWidth: CGFloat = 280
+    @ScaledMetric(relativeTo: .body) private var avatarSize: CGFloat = 32
+    
+    private var isUser: Bool { message.role == .user }
     
     var body: some View {
-        HStack(alignment: .top, spacing: 10) {
-            if message.role == .user {
-                Spacer()
+        HStack(alignment: .bottom, spacing: 8) {
+            if isUser {
+                Spacer(minLength: 50)
+            } else {
+                petAvatar
             }
             
-            VStack(alignment: message.role == .user ? .trailing : .leading, spacing: 5) {
-                Text(message.content)
-                    .font(.petlyBody(14))
-                    .padding(14)
-                    .background(message.role == .user ? Color.petlyDarkGreen : Color.petlyLightGreen)
-                    .foregroundColor(message.role == .user ? .white : .petlyDarkGreen)
-                    .cornerRadius(18)
+            VStack(alignment: isUser ? .trailing : .leading, spacing: 4) {
+                messageBubble
                 
-                Text(message.timestamp, style: .time)
-                    .font(.petlyBody(10))
-                    .foregroundColor(.petlyFormIcon)
+                HStack(spacing: 4) {
+                    Text(message.timestamp, style: .time)
+                        .font(.petlyBody(10))
+                        .foregroundColor(.petlyFormIcon)
+                    
+                    if showCopiedFeedback {
+                        Text("Copied!")
+                            .font(.petlyBody(10))
+                            .foregroundColor(.petlyDarkGreen)
+                            .transition(.opacity.combined(with: .scale))
+                    }
+                }
             }
-            .frame(maxWidth: min(bubbleMaxWidth, 360), alignment: message.role == .user ? .trailing : .leading)
+            .frame(maxWidth: min(bubbleMaxWidth, 320), alignment: isUser ? .trailing : .leading)
             
-            if message.role == .assistant {
-                Spacer()
+            if !isUser {
+                Spacer(minLength: 50)
             }
         }
         .opacity(appeared ? 1 : 0)
-        .offset(y: appeared ? 0 : 20)
+        .offset(y: appeared ? 0 : 15)
         .onAppear {
-            withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+            withAnimation(.spring(response: 0.35, dampingFraction: 0.75)) {
                 appeared = true
+            }
+        }
+    }
+    
+    private var petAvatar: some View {
+        Group {
+            if let photoData = petPhotoData,
+               let uiImage = UIImage(data: photoData) {
+                Image(uiImage: uiImage)
+                    .resizable()
+                    .scaledToFill()
+                    .frame(width: avatarSize, height: avatarSize)
+                    .clipShape(Circle())
+                    .shadow(color: .black.opacity(0.1), radius: 2, x: 0, y: 1)
+            } else {
+                Circle()
+                    .fill(Color.petlyDarkGreen)
+                    .frame(width: avatarSize, height: avatarSize)
+                    .overlay(
+                        Image(systemName: "sparkles")
+                            .font(.system(size: avatarSize * 0.5))
+                            .foregroundColor(.white)
+                    )
+                    .shadow(color: .black.opacity(0.1), radius: 2, x: 0, y: 1)
+            }
+        }
+    }
+    
+    private var messageBubble: some View {
+        Text(message.content)
+            .font(.petlyBody(15))
+            .padding(.horizontal, 16)
+            .padding(.vertical, 12)
+            .background(
+                RoundedRectangle(cornerRadius: 20)
+                    .fill(isUser ? Color.petlyDarkGreen : Color.petlyLightGreen)
+                    .shadow(color: .black.opacity(0.08), radius: 4, x: 0, y: 2)
+            )
+            .foregroundColor(isUser ? .white : .petlyDarkGreen)
+            .contextMenu {
+                Button(action: copyMessage) {
+                    Label("Copy", systemImage: "doc.on.doc")
+                }
+                
+                ShareLink(item: message.content) {
+                    Label("Share", systemImage: "square.and.arrow.up")
+                }
+            }
+    }
+    
+    private func copyMessage() {
+        UIPasteboard.general.string = message.content
+        let generator = UIImpactFeedbackGenerator(style: .light)
+        generator.impactOccurred()
+        
+        withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+            showCopiedFeedback = true
+        }
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+            withAnimation(.easeOut(duration: 0.2)) {
+                showCopiedFeedback = false
+            }
+        }
+    }
+}
+
+struct MessageDateHeader: View {
+    let date: Date
+    
+    private var dateText: String {
+        let calendar = Calendar.current
+        if calendar.isDateInToday(date) {
+            return "Today"
+        } else if calendar.isDateInYesterday(date) {
+            return "Yesterday"
+        } else {
+            let formatter = DateFormatter()
+            formatter.dateFormat = "EEEE, MMM d"
+            return formatter.string(from: date)
+        }
+    }
+    
+    var body: some View {
+        Text(dateText)
+            .font(.petlyBody(12))
+            .fontWeight(.medium)
+            .foregroundColor(.petlyFormIcon)
+            .padding(.horizontal, 12)
+            .padding(.vertical, 6)
+            .background(
+                Capsule()
+                    .fill(Color.petlyLightGreen.opacity(0.5))
+            )
+    }
+}
+
+struct TypingIndicatorBubble: View {
+    var petPhotoData: Data?
+    @State private var appeared = false
+    @ScaledMetric(relativeTo: .body) private var avatarSize: CGFloat = 32
+    
+    var body: some View {
+        HStack(alignment: .bottom, spacing: 8) {
+            petAvatar
+            
+            HStack(spacing: 6) {
+                LoadingDotsView()
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 14)
+            .background(
+                RoundedRectangle(cornerRadius: 20)
+                    .fill(Color.petlyLightGreen)
+                    .shadow(color: .black.opacity(0.08), radius: 4, x: 0, y: 2)
+            )
+            
+            Spacer(minLength: 50)
+        }
+        .opacity(appeared ? 1 : 0)
+        .offset(y: appeared ? 0 : 15)
+        .onAppear {
+            withAnimation(.spring(response: 0.35, dampingFraction: 0.75)) {
+                appeared = true
+            }
+        }
+    }
+    
+    private var petAvatar: some View {
+        Group {
+            if let photoData = petPhotoData,
+               let uiImage = UIImage(data: photoData) {
+                Image(uiImage: uiImage)
+                    .resizable()
+                    .scaledToFill()
+                    .frame(width: avatarSize, height: avatarSize)
+                    .clipShape(Circle())
+                    .shadow(color: .black.opacity(0.1), radius: 2, x: 0, y: 1)
+            } else {
+                Circle()
+                    .fill(Color.petlyDarkGreen)
+                    .frame(width: avatarSize, height: avatarSize)
+                    .overlay(
+                        Image(systemName: "sparkles")
+                            .font(.system(size: avatarSize * 0.5))
+                            .foregroundColor(.white)
+                    )
+                    .shadow(color: .black.opacity(0.1), radius: 2, x: 0, y: 1)
             }
         }
     }
