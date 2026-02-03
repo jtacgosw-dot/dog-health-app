@@ -176,8 +176,9 @@ struct NewChatView: View {
                             .padding()
                             .padding(.bottom, 120)
                         }
-                        .scrollDismissesKeyboard(.interactively)
-                                                .onChange(of: messages.count) {
+                                                .scrollDismissesKeyboard(.interactively)
+                                                                        .scrollBounceBehavior(.basedOnSize)
+                                                                        .onChange(of: messages.count) {
                                                     if let lastMessage = messages.last {
                                                         withAnimation {
                                                             proxy.scrollTo(lastMessage.id, anchor: .bottom)
@@ -398,14 +399,19 @@ struct NewChatView: View {
                 let dogProfile = buildDogProfile()
                 let healthLogs = buildHealthLogs()
                 
-                let response = try await APIService.shared.sendChatMessage(
-                    message: currentMessage.isEmpty ? "What do you see in this image?" : currentMessage,
-                    conversationId: currentConversationId,
-                    dogId: appState.currentDog?.id,
-                    dogProfile: dogProfile,
-                    healthLogs: healthLogs,
-                    images: currentImages.isEmpty ? nil : currentImages
-                )
+                                let validDogId: String? = {
+                                    guard let id = appState.currentDog?.id else { return nil }
+                                    return UUID(uuidString: id) != nil ? id : nil
+                                }()
+                
+                                let response = try await APIService.shared.sendChatMessage(
+                                    message: currentMessage.isEmpty ? "What do you see in this image?" : currentMessage,
+                                    conversationId: currentConversationId,
+                                    dogId: validDogId,
+                                    dogProfile: dogProfile,
+                                    healthLogs: healthLogs,
+                                    images: currentImages.isEmpty ? nil : currentImages
+                                )
                 
                 await MainActor.run {
                     conversationId = response.conversationId
