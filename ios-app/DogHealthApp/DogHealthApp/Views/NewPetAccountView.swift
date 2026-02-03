@@ -1,8 +1,29 @@
 import SwiftUI
 import PhotosUI
+import UniformTypeIdentifiers
 
 extension Notification.Name {
     static let petPhotoDidChange = Notification.Name("petPhotoDidChange")
+}
+
+// Custom Transferable type for loading image data from PhotosPicker
+struct PickedImageData: Transferable {
+    let data: Data
+    
+    static var transferRepresentation: some TransferRepresentation {
+        DataRepresentation(importedContentType: .jpeg) { data in
+            PickedImageData(data: data)
+        }
+        DataRepresentation(importedContentType: .png) { data in
+            PickedImageData(data: data)
+        }
+        DataRepresentation(importedContentType: .heic) { data in
+            PickedImageData(data: data)
+        }
+        DataRepresentation(importedContentType: .image) { data in
+            PickedImageData(data: data)
+        }
+    }
 }
 
 
@@ -103,19 +124,23 @@ struct NewPetAccountView: View {
                         .photosPicker(isPresented: $showingImagePicker, selection: $selectedPhotoItem, matching: .images)
                                                 .onChange(of: selectedPhotoItem) { oldValue, newValue in
                                                     guard let item = newValue else { return }
-                                                    item.loadTransferable(type: Data.self) { result in
-                                                        DispatchQueue.main.async {
-                                                            switch result {
-                                                            case .success(let data):
-                                                                if let data = data, let uiImage = UIImage(data: data) {
-                                                                    // Compress and save the image
-                                                                    if let jpegData = uiImage.jpegData(compressionQuality: 0.8) {
+                                                    Task {
+                                                        do {
+                                                            // Try loading with custom PickedImageData type first
+                                                            if let pickedData = try await item.loadTransferable(type: PickedImageData.self) {
+                                                                await MainActor.run {
+                                                                    // Convert to UIImage and compress as JPEG
+                                                                    if let uiImage = UIImage(data: pickedData.data),
+                                                                       let jpegData = uiImage.jpegData(compressionQuality: 0.8) {
                                                                         appState.savePetPhoto(jpegData)
+                                                                    } else {
+                                                                        // If conversion fails, save raw data
+                                                                        appState.savePetPhoto(pickedData.data)
                                                                     }
                                                                 }
-                                                            case .failure(let error):
-                                                                print("Failed to load photo: \(error)")
                                                             }
+                                                        } catch {
+                                                            print("Failed to load photo: \(error)")
                                                         }
                                                     }
                                                 }
@@ -1243,18 +1268,20 @@ struct EditPetProfileView: View {
                                                                         .photosPicker(isPresented: $showingImagePicker, selection: $selectedPhotoItem, matching: .images)
                                                                         .onChange(of: selectedPhotoItem) { oldValue, newValue in
                                                                             guard let item = newValue else { return }
-                                                                            item.loadTransferable(type: Data.self) { result in
-                                                                                DispatchQueue.main.async {
-                                                                                    switch result {
-                                                                                    case .success(let data):
-                                                                                        if let data = data, let uiImage = UIImage(data: data) {
-                                                                                            if let jpegData = uiImage.jpegData(compressionQuality: 0.8) {
+                                                                            Task {
+                                                                                do {
+                                                                                    if let pickedData = try await item.loadTransferable(type: PickedImageData.self) {
+                                                                                        await MainActor.run {
+                                                                                            if let uiImage = UIImage(data: pickedData.data),
+                                                                                               let jpegData = uiImage.jpegData(compressionQuality: 0.8) {
                                                                                                 appState.savePetPhoto(jpegData)
+                                                                                            } else {
+                                                                                                appState.savePetPhoto(pickedData.data)
                                                                                             }
                                                                                         }
-                                                                                    case .failure(let error):
-                                                                                        print("Failed to load photo: \(error)")
                                                                                     }
+                                                                                } catch {
+                                                                                    print("Failed to load photo: \(error)")
                                                                                 }
                                                                             }
                                                                         }
