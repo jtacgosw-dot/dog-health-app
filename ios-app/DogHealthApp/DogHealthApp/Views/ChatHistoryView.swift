@@ -150,18 +150,23 @@ struct ChatHistoryView: View {
         }
     }
     
-    private func deleteConversation(_ conversation: Conversation) {
-        Task {
-            do {
-                try await APIService.shared.deleteConversation(conversationId: conversation.id)
-                await MainActor.run {
-                    conversations.removeAll { $0.id == conversation.id }
+        private func deleteConversation(_ conversation: Conversation) {
+            // Remove immediately from UI (optimistic delete) to prevent pop-back issue
+            withAnimation(.easeOut(duration: 0.25)) {
+                conversations.removeAll { $0.id == conversation.id }
+            }
+            conversationToDelete = nil
+        
+            // Then delete from server in background
+            Task {
+                do {
+                    try await APIService.shared.deleteConversation(conversationId: conversation.id)
+                } catch {
+                    print("Failed to delete conversation: \(error)")
+                    // Optionally: could re-add the conversation if delete fails
                 }
-            } catch {
-                print("Failed to delete conversation: \(error)")
             }
         }
-    }
     
     private func renameConversation(_ conversation: Conversation, newTitle: String) {
         Task {
