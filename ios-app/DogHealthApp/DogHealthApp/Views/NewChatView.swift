@@ -399,19 +399,30 @@ struct NewChatView: View {
                 let dogProfile = buildDogProfile()
                 let healthLogs = buildHealthLogs()
                 
-                                let validDogId: String? = {
-                                    guard let id = appState.currentDog?.id else { return nil }
-                                    return UUID(uuidString: id) != nil ? id : nil
-                                }()
+                                                                // Validate dogId is a valid UUID before sending
+                                                let validDogId: String? = {
+                                                    guard let id = appState.currentDog?.id else { return nil }
+                                                    return UUID(uuidString: id) != nil ? id : nil
+                                                }()
                 
-                                let response = try await APIService.shared.sendChatMessage(
-                                    message: currentMessage.isEmpty ? "What do you see in this image?" : currentMessage,
-                                    conversationId: currentConversationId,
-                                    dogId: validDogId,
-                                    dogProfile: dogProfile,
-                                    healthLogs: healthLogs,
-                                    images: currentImages.isEmpty ? nil : currentImages
-                                )
+                                                // Validate conversationId is a valid UUID before sending
+                                                let validConversationId: String? = {
+                                                    guard let id = currentConversationId else { return nil }
+                                                    return UUID(uuidString: id) != nil ? id : nil
+                                                }()
+                
+                                                // Ensure message is not empty (trim whitespace)
+                                                let messageToSend = currentMessage.trimmingCharacters(in: .whitespacesAndNewlines)
+                                                let finalMessage = messageToSend.isEmpty ? "What do you see in this image?" : messageToSend
+                
+                                                let response = try await APIService.shared.sendChatMessage(
+                                                    message: finalMessage,
+                                                    conversationId: validConversationId,
+                                                    dogId: validDogId,
+                                                    dogProfile: dogProfile,
+                                                    healthLogs: healthLogs,
+                                                    images: currentImages.isEmpty ? nil : currentImages
+                                                )
                 
                 await MainActor.run {
                     conversationId = response.conversationId
