@@ -1417,49 +1417,49 @@ struct EditPetProfileView: View {
             .preferredColorScheme(.light)
         }
     
-        private func saveProfile(){
+    private func saveProfile() {
         guard !name.isEmpty, !breed.isEmpty else {
             errorMessage = "Please fill in at least name and breed"
             return
         }
         
+        guard let existingDog = appState.currentDog else {
+            errorMessage = "No pet profile found"
+            return
+        }
+        
+        let ageInt = Int(age) ?? existingDog.age
+        let weightDouble = Double(weight)
+        let allergiesArray = allergies.split(separator: ",").map { $0.trimmingCharacters(in: .whitespaces) }
+        let healthConcernsArray = healthConditions.split(separator: ",").map { $0.trimmingCharacters(in: .whitespaces) }
+        
+        let updatedDog = Dog(
+            id: existingDog.id,
+            name: name,
+            breed: breed,
+            age: ageInt,
+            weight: weightDouble,
+            imageUrl: existingDog.imageUrl,
+            healthConcerns: healthConcernsArray,
+            allergies: allergiesArray,
+            createdAt: existingDog.createdAt,
+            updatedAt: Date()
+        )
+        
+        appState.saveDogLocally(updatedDog)
+        print("[EditPetProfileView] Saved dog locally: \(updatedDog.name)")
+        
+        showSaved = true
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+            dismiss()
+        }
+        
         Task {
             do {
-                guard let existingDog = appState.currentDog else { return }
-                
-                let ageInt = Int(age) ?? existingDog.age
-                let weightDouble = Double(weight)
-                let allergiesArray = allergies.split(separator: ",").map { $0.trimmingCharacters(in: .whitespaces) }
-                let healthConcernsArray = healthConditions.split(separator: ",").map { $0.trimmingCharacters(in: .whitespaces) }
-                
-                let updatedDog = Dog(
-                    id: existingDog.id,
-                    name: name,
-                    breed: breed,
-                    age: ageInt,
-                    weight: weightDouble,
-                    imageUrl: existingDog.imageUrl,
-                    healthConcerns: healthConcernsArray,
-                    allergies: allergiesArray,
-                    createdAt: existingDog.createdAt,
-                    updatedAt: Date()
-                )
-                
-                let dog = try await APIService.shared.updateDog(dog: updatedDog)
-                
-                await MainActor.run {
-                    // Save dog locally so it persists across app restarts
-                    // This ensures pet photos can be loaded with the correct dog ID
-                    appState.saveDogLocally(dog)
-                    showSaved = true
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
-                        dismiss()
-                    }
-                }
+                _ = try await APIService.shared.updateDog(dog: updatedDog)
+                print("[EditPetProfileView] API update succeeded")
             } catch {
-                await MainActor.run {
-                    errorMessage = "Failed to save: \(error.localizedDescription)"
-                }
+                print("[EditPetProfileView] API update failed (local save still persists): \(error.localizedDescription)")
             }
         }
     }
