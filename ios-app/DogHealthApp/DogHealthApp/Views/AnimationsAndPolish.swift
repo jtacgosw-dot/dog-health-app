@@ -811,26 +811,36 @@ extension View {
 // MARK: - Loading Dots Animation
 
 struct LoadingDotsView: View {
-    @State private var animatingDots = [false, false, false]
+    @State private var dot1Animating = false
+    @State private var dot2Animating = false
+    @State private var dot3Animating = false
     
     var body: some View {
         HStack(spacing: 6) {
-            ForEach(0..<3, id: \.self) { index in
-                Circle()
-                    .fill(Color.petlyDarkGreen)
-                    .frame(width: 8, height: 8)
-                    .offset(y: animatingDots[index] ? -8 : 0)
-            }
+            Circle()
+                .fill(Color.petlyDarkGreen)
+                .frame(width: 8, height: 8)
+                .offset(y: dot1Animating ? -8 : 0)
+            
+            Circle()
+                .fill(Color.petlyDarkGreen)
+                .frame(width: 8, height: 8)
+                .offset(y: dot2Animating ? -8 : 0)
+            
+            Circle()
+                .fill(Color.petlyDarkGreen)
+                .frame(width: 8, height: 8)
+                .offset(y: dot3Animating ? -8 : 0)
         }
         .onAppear {
-            for i in 0..<3 {
-                withAnimation(
-                    .easeInOut(duration: 0.4)
-                    .repeatForever(autoreverses: true)
-                    .delay(Double(i) * 0.15)
-                ) {
-                    animatingDots[i] = true
-                }
+            withAnimation(.easeInOut(duration: 0.4).repeatForever(autoreverses: true)) {
+                dot1Animating = true
+            }
+            withAnimation(.easeInOut(duration: 0.4).repeatForever(autoreverses: true).delay(0.15)) {
+                dot2Animating = true
+            }
+            withAnimation(.easeInOut(duration: 0.4).repeatForever(autoreverses: true).delay(0.30)) {
+                dot3Animating = true
             }
         }
     }
