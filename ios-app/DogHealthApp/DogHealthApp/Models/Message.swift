@@ -35,14 +35,23 @@ enum MessageFeedback: String, Codable {
 
 struct Conversation: Identifiable, Codable {
     let id: String
-    let userId: String
+    let userId: String?
     var dogId: String?
     let createdAt: Date
     var title: String
     var messages: [Message]
     
+    enum CodingKeys: String, CodingKey {
+        case id
+        case userId = "user_id"
+        case dogId = "dog_id"
+        case createdAt = "created_at"
+        case title
+        case messages
+    }
+    
     init(id: String = UUID().uuidString,
-         userId: String,
+         userId: String? = nil,
          dogId: String? = nil,
          createdAt: Date = Date(),
          title: String = "New Conversation",
@@ -53,5 +62,15 @@ struct Conversation: Identifiable, Codable {
         self.createdAt = createdAt
         self.title = title
         self.messages = messages
+    }
+    
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decode(String.self, forKey: .id)
+        userId = try container.decodeIfPresent(String.self, forKey: .userId)
+        dogId = try container.decodeIfPresent(String.self, forKey: .dogId)
+        createdAt = try container.decode(Date.self, forKey: .createdAt)
+        title = try container.decodeIfPresent(String.self, forKey: .title) ?? "Chat"
+        messages = try container.decodeIfPresent([Message].self, forKey: .messages) ?? []
     }
 }

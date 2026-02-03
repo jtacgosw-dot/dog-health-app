@@ -114,18 +114,20 @@ class AppState: ObservableObject {
                             hasActiveSubscription = true
                 
                             // Create a test user so greeting shows a name
+                            // Use consistent ID so data persists across app launches
                             currentUser = User(
-                                id: "test-user-\(UUID().uuidString)",
+                                id: "test-user-debug",
                                 email: "test@petlyapp.com",
                                 fullName: "Pet Parent",
                                 subscriptionStatus: .active
                             )
             
                             // Create a test dog if none exists
+                            // Use consistent ID so pet photo persists across app launches
                             loadLocalDogs()
                             if dogs.isEmpty {
                                 let testDog = Dog(
-                                    id: "test-dog-\(UUID().uuidString)",
+                                    id: "test-dog-debug",
                                     name: "Arlo",
                                     breed: "Mini Poodle",
                                     age: 3,
