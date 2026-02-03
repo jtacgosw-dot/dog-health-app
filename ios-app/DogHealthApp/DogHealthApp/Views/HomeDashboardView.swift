@@ -176,27 +176,25 @@ struct HomeDashboardView: View {
                                 
                                 Spacer()
                                 
-                                                                if appState.currentDog != nil {
-                                                                    Button(action: { showPetSwitcher = true }) {
-                                                                        if let photoData = appState.petPhotoData,
-                                                                           let uiImage = UIImage(data: photoData) {
-                                            Image(uiImage: uiImage)
-                                                .resizable()
-                                                .scaledToFill()
-                                                .frame(width: min(avatarSize, 80), height: min(avatarSize, 80))
-                                                .clipShape(Circle())
-                                                .glow(color: .petlyDarkGreen, radius: 8)
-                                        } else {
-                                            Circle()
-                                                .fill(Color.petlyLightGreen)
-                                                .frame(width: min(avatarSize, 80), height: min(avatarSize, 80))
-                                                .overlay(
-                                                    Image(systemName: "dog.fill")
-                                                        .font(.system(size: min(avatarIconSize, 36)))
-                                                        .foregroundColor(.petlyDarkGreen)
-                                                )
-                                                .glow(color: .petlyDarkGreen, radius: 8)
-                                        }
+                                Button(action: { showPetSwitcher = true }) {
+                                    if let photoData = appState.petPhotoData,
+                                       let uiImage = UIImage(data: photoData) {
+                                        Image(uiImage: uiImage)
+                                            .resizable()
+                                            .scaledToFill()
+                                            .frame(width: min(avatarSize, 80), height: min(avatarSize, 80))
+                                            .clipShape(Circle())
+                                            .glow(color: .petlyDarkGreen, radius: 8)
+                                    } else {
+                                        Circle()
+                                            .fill(Color.petlyLightGreen)
+                                            .frame(width: min(avatarSize, 80), height: min(avatarSize, 80))
+                                            .overlay(
+                                                Image(systemName: "dog.fill")
+                                                    .font(.system(size: min(avatarIconSize, 36)))
+                                                    .foregroundColor(.petlyDarkGreen)
+                                            )
+                                            .glow(color: .petlyDarkGreen, radius: 8)
                                     }
                                 }
                             }
