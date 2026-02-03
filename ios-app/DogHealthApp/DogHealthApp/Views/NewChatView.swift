@@ -47,6 +47,7 @@ struct NewChatView: View {
     @State private var messageText = ""
     @State private var messages: [Message] = []
     @State private var isLoading = false
+    @State private var isCreatingConversation = false
     @State private var conversationId: String?
     @State private var errorMessage: String?
     @State private var showCloseButton = false
@@ -80,6 +81,7 @@ struct NewChatView: View {
                                 withAnimation {
                                     messages = []
                                     conversationId = nil
+                                    isCreatingConversation = false
                                     showCloseButton = false
                                     attachedImages = []
                                 }
@@ -253,13 +255,13 @@ struct NewChatView: View {
             
             if !attachedImages.isEmpty {
                 ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 8) {
+                    HStack(spacing: 6) {
                         ForEach(attachedImages) { attachment in
                             ZStack(alignment: .topTrailing) {
                                 Image(uiImage: attachment.previewImage)
                                     .resizable()
                                     .scaledToFill()
-                                    .frame(width: min(imagePreviewSize, 80), height: min(imagePreviewSize, 80))
+                                    .frame(width: min(imagePreviewSize, 56), height: min(imagePreviewSize, 56))
                                     .clipped()
                                     .cornerRadius(8)
                                 
@@ -269,18 +271,17 @@ struct NewChatView: View {
                                     }
                                 }) {
                                     Image(systemName: "xmark.circle.fill")
-                                        .font(.system(size: 20))
+                                        .font(.system(size: 16))
                                         .foregroundColor(.white)
                                         .background(Circle().fill(Color.black.opacity(0.6)))
                                 }
-                                .offset(x: 6, y: -6)
+                                .offset(x: 4, y: -4)
                             }
                         }
                     }
-                    .padding(.horizontal)
-                    .padding(.vertical, 8)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 6)
                 }
-                .background(Color.petlyBackground)
             }
             
             HStack(spacing: 8) {
@@ -349,6 +350,13 @@ struct NewChatView: View {
     private func sendMessage() {
         guard !messageText.isEmpty || !attachedImages.isEmpty else { return }
         
+        // Prevent duplicate conversations: if we're already creating a conversation, wait for it
+        // This fixes the issue where rapid message sends create multiple conversations
+        if conversationId == nil && isCreatingConversation {
+            print("[NewChatView] Blocked duplicate conversation creation - already in progress")
+            return
+        }
+        
         // Haptic feedback when sending
         let generator = UIImpactFeedbackGenerator(style: .medium)
         generator.impactOccurred()
@@ -358,23 +366,32 @@ struct NewChatView: View {
             ? "[Sent \(imageCount) image\(imageCount > 1 ? "s" : "")]" 
             : messageText
         
+        let currentImageData = attachedImages.map { $0.imageData }
+        
         let userMessage = Message(
             id: UUID().uuidString,
             conversationId: conversationId ?? "",
             role: .user,
             content: displayContent,
             timestamp: Date(),
-            feedback: nil
+            feedback: nil,
+            imageData: currentImageData.isEmpty ? nil : currentImageData
         )
         
         messages.append(userMessage)
         let currentMessage = messageText
         let currentImages = attachedImages.map { $0.base64String }
+        let currentConversationId = conversationId
         messageText = ""
         attachedImages = []
         isLoading = true
         errorMessage = nil
         showCloseButton = true
+        
+        // Mark that we're creating a conversation if we don't have one yet
+        if currentConversationId == nil {
+            isCreatingConversation = true
+        }
         
         Task {
             do {
@@ -383,7 +400,7 @@ struct NewChatView: View {
                 
                 let response = try await APIService.shared.sendChatMessage(
                     message: currentMessage.isEmpty ? "What do you see in this image?" : currentMessage,
-                    conversationId: conversationId,
+                    conversationId: currentConversationId,
                     dogId: appState.currentDog?.id,
                     dogProfile: dogProfile,
                     healthLogs: healthLogs,
@@ -392,6 +409,7 @@ struct NewChatView: View {
                 
                 await MainActor.run {
                     conversationId = response.conversationId
+                    isCreatingConversation = false
                     
                     let assistantMessage = Message(
                         id: response.message.id,
@@ -408,6 +426,7 @@ struct NewChatView: View {
                 await MainActor.run {
                     errorMessage = "Failed to send message: \(error.localizedDescription)"
                     isLoading = false
+                    isCreatingConversation = false
                 }
             }
         }
@@ -583,9 +602,9 @@ struct NewMessageBubble: View {
     @State private var appeared = false
     @State private var showCopiedFeedback = false
     
-    // Scaled sizes for Dynamic Type support
     @ScaledMetric(relativeTo: .body) private var bubbleMaxWidth: CGFloat = 280
     @ScaledMetric(relativeTo: .body) private var avatarSize: CGFloat = 32
+    @ScaledMetric(relativeTo: .body) private var imageSize: CGFloat = 120
     
     private var isUser: Bool { message.role == .user }
     
@@ -598,7 +617,13 @@ struct NewMessageBubble: View {
             }
             
             VStack(alignment: isUser ? .trailing : .leading, spacing: 4) {
-                messageBubble
+                if let images = message.imageData, !images.isEmpty {
+                    imageGrid(images: images)
+                }
+                
+                if !message.content.isEmpty && !message.content.starts(with: "[Sent") {
+                    messageBubble
+                }
                 
                 HStack(spacing: 4) {
                     Text(message.timestamp, style: .time)
@@ -626,6 +651,33 @@ struct NewMessageBubble: View {
                 appeared = true
             }
         }
+    }
+    
+    @ViewBuilder
+    private func imageGrid(images: [Data]) -> some View {
+        let columns = images.count == 1 ? 1 : 2
+        let gridItems = Array(repeating: GridItem(.flexible(), spacing: 4), count: columns)
+        
+        LazyVGrid(columns: gridItems, spacing: 4) {
+            ForEach(Array(images.enumerated()), id: \.offset) { index, imageData in
+                if let uiImage = UIImage(data: imageData) {
+                    Image(uiImage: uiImage)
+                        .resizable()
+                        .scaledToFill()
+                        .frame(
+                            width: images.count == 1 ? min(imageSize * 1.5, 180) : min(imageSize * 0.8, 90),
+                            height: images.count == 1 ? min(imageSize * 1.5, 180) : min(imageSize * 0.8, 90)
+                        )
+                        .clipped()
+                        .cornerRadius(12)
+                }
+            }
+        }
+        .padding(4)
+        .background(
+            RoundedRectangle(cornerRadius: 16)
+                .fill(Color.petlyDarkGreen.opacity(0.1))
+        )
     }
     
     private var petAvatar: some View {

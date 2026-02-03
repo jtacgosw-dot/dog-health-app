@@ -235,7 +235,7 @@ struct ConversationRow: View {
     
     private var previewText: String {
         if let preview = conversation.lastMessagePreview {
-            let prefix = conversation.lastMessageRole == "assistant" ? "AI: " : ""
+            let prefix = conversation.lastMessageRole == "assistant" ? "Petly: " : ""
             return prefix + preview
         }
         if let lastMessage = conversation.messages.last {
@@ -255,32 +255,45 @@ struct ConversationRow: View {
         } else if title.contains("groom") || title.contains("bath") || title.contains("brush") {
             return "scissors"
         } else {
-            return "bubble.left.fill"
+            return "sparkles"
+        }
+    }
+    
+    private var iconBackgroundColor: Color {
+        let title = conversation.title.lowercased()
+        if title.contains("food") || title.contains("eat") || title.contains("diet") || title.contains("nutrition") {
+            return Color(red: 0.95, green: 0.6, blue: 0.4)
+        } else if title.contains("health") || title.contains("sick") || title.contains("symptom") || title.contains("vet") {
+            return Color(red: 0.9, green: 0.5, blue: 0.5)
+        } else if title.contains("train") || title.contains("behavior") || title.contains("walk") {
+            return Color(red: 0.5, green: 0.7, blue: 0.9)
+        } else if title.contains("groom") || title.contains("bath") || title.contains("brush") {
+            return Color(red: 0.7, green: 0.6, blue: 0.85)
+        } else {
+            return Color.petlyDarkGreen
         }
     }
     
     var body: some View {
-        HStack(spacing: 14) {
+        HStack(spacing: 12) {
             ZStack {
                 Circle()
-                    .fill(
-                        LinearGradient(
-                            colors: [Color.petlyDarkGreen, Color.petlyDarkGreen.opacity(0.8)],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        )
-                    )
-                    .frame(width: 48, height: 48)
+                    .fill(iconBackgroundColor.opacity(0.15))
+                    .frame(width: 52, height: 52)
+                
+                Circle()
+                    .fill(iconBackgroundColor)
+                    .frame(width: 44, height: 44)
                 
                 Image(systemName: conversationIcon)
-                    .font(.system(size: 20, weight: .medium))
+                    .font(.system(size: 18, weight: .semibold))
                     .foregroundColor(.white)
             }
             
-            VStack(alignment: .leading, spacing: 6) {
-                HStack(alignment: .top) {
+            VStack(alignment: .leading, spacing: 4) {
+                HStack(alignment: .center) {
                     Text(conversation.title)
-                        .font(.petlyBody(16))
+                        .font(.petlyBody(15))
                         .fontWeight(.semibold)
                         .foregroundColor(.petlyDarkGreen)
                         .lineLimit(1)
@@ -288,46 +301,48 @@ struct ConversationRow: View {
                     Spacer()
                     
                     Text(formattedDate)
-                        .font(.petlyBody(12))
+                        .font(.petlyBody(11))
                         .foregroundColor(.petlyFormIcon)
                 }
                 
-                HStack(spacing: 4) {
-                    Text(previewText)
-                        .font(.petlyBody(14))
-                        .foregroundColor(.petlyFormIcon)
-                        .lineLimit(2)
-                }
+                Text(previewText)
+                    .font(.petlyBody(13))
+                    .foregroundColor(.petlyFormIcon)
+                    .lineLimit(2)
+                    .lineSpacing(2)
                 
-                HStack(spacing: 8) {
-                    HStack(spacing: 4) {
-                        Image(systemName: "message.fill")
-                            .font(.system(size: 10))
+                HStack(spacing: 6) {
+                    HStack(spacing: 3) {
+                        Image(systemName: "bubble.left.fill")
+                            .font(.system(size: 9))
                         Text("\(conversation.messageCount)")
-                            .font(.petlyBody(11))
+                            .font(.petlyBody(10))
+                            .fontWeight(.medium)
                     }
-                    .foregroundColor(.petlyDarkGreen.opacity(0.7))
+                    .foregroundColor(.petlyDarkGreen)
                     .padding(.horizontal, 8)
                     .padding(.vertical, 4)
-                    .background(Color.petlyLightGreen)
-                    .cornerRadius(8)
+                    .background(
+                        Capsule()
+                            .fill(Color.petlyLightGreen)
+                    )
                 }
+                .padding(.top, 2)
             }
             
             Image(systemName: "chevron.right")
-                .font(.system(size: 14, weight: .medium))
-                .foregroundColor(.petlyFormIcon.opacity(0.6))
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundColor(.petlyFormIcon.opacity(0.4))
         }
-        .padding(16)
+        .padding(.horizontal, 14)
+        .padding(.vertical, 12)
         .background(
             RoundedRectangle(cornerRadius: 16)
                 .fill(Color.white)
-                .shadow(color: .black.opacity(0.06), radius: 8, x: 0, y: 4)
+                .shadow(color: Color.petlyDarkGreen.opacity(0.08), radius: 12, x: 0, y: 4)
         )
-        .overlay(
-            RoundedRectangle(cornerRadius: 16)
-                .stroke(Color.petlyDarkGreen.opacity(0.08), lineWidth: 1)
-        )
+        .padding(.horizontal, 4)
+        .padding(.vertical, 4)
     }
 }
 
