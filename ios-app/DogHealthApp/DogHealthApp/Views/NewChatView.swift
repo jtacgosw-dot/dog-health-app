@@ -163,7 +163,7 @@ struct NewChatView: View {
                                             MessageDateHeader(date: message.timestamp)
                                                 .padding(.vertical, 8)
                                         }
-                                        NewMessageBubble(message: message, petPhotoData: appState.petPhotoData)
+                                        NewMessageBubble(message: message)
                                     }
                                     .id(message.id)
                                 }
@@ -598,7 +598,6 @@ struct ChatQuickActionChip: View {
 
 struct NewMessageBubble: View {
     let message: Message
-    var petPhotoData: Data?
     @State private var appeared = false
     @State private var showCopiedFeedback = false
     
@@ -613,7 +612,7 @@ struct NewMessageBubble: View {
             if isUser {
                 Spacer(minLength: 50)
             } else {
-                petAvatar
+                aiAvatar
             }
             
             VStack(alignment: isUser ? .trailing : .leading, spacing: 4) {
@@ -664,7 +663,6 @@ struct NewMessageBubble: View {
                     .foregroundColor(isUser ? .white : .petlyDarkGreen)
                     .padding(.horizontal, 14)
                     .padding(.vertical, 10)
-                    .frame(maxWidth: .infinity, alignment: .leading)
             }
         }
         .background(bubbleColor)
@@ -698,28 +696,16 @@ struct NewMessageBubble: View {
         .padding(.bottom, hasTextBelow ? 6 : 0)
     }
     
-    private var petAvatar: some View {
-        Group {
-            if let photoData = petPhotoData,
-               let uiImage = UIImage(data: photoData) {
-                Image(uiImage: uiImage)
-                    .resizable()
-                    .scaledToFill()
-                    .frame(width: avatarSize, height: avatarSize)
-                    .clipShape(Circle())
-                    .shadow(color: .black.opacity(0.1), radius: 2, x: 0, y: 1)
-            } else {
-                Circle()
-                    .fill(Color.petlyDarkGreen)
-                    .frame(width: avatarSize, height: avatarSize)
-                    .overlay(
-                        Image(systemName: "sparkles")
-                            .font(.system(size: avatarSize * 0.5))
-                            .foregroundColor(.white)
-                    )
-                    .shadow(color: .black.opacity(0.1), radius: 2, x: 0, y: 1)
-            }
-        }
+    private var aiAvatar: some View {
+        Circle()
+            .fill(Color.petlyDarkGreen)
+            .frame(width: avatarSize, height: avatarSize)
+            .overlay(
+                Image(systemName: "sparkles")
+                    .font(.system(size: avatarSize * 0.5))
+                    .foregroundColor(.white)
+            )
+            .shadow(color: .black.opacity(0.1), radius: 2, x: 0, y: 1)
     }
     
     private var messageBubble: some View {
