@@ -392,23 +392,25 @@ struct ServerConversation: Codable {
         case lastMessageRole
     }
     
-    func toConversation() -> Conversation {
-        let formatter = ISO8601DateFormatter()
-        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-        let date = formatter.date(from: createdAt) ?? Date()
+        func toConversation() -> Conversation {
+            let formatter = ISO8601DateFormatter()
+            formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+            let createdDate = formatter.date(from: createdAt) ?? Date()
+            let updatedDate = updatedAt.flatMap { formatter.date(from: $0) }
         
-        return Conversation(
-            id: id,
-            userId: nil,
-            dogId: dogId,
-            createdAt: date,
-            title: title ?? "Chat",
-            messages: [],
-            messageCount: messageCount ?? 0,
-            lastMessagePreview: lastMessagePreview,
-            lastMessageRole: lastMessageRole
-        )
-    }
+            return Conversation(
+                id: id,
+                userId: nil,
+                dogId: dogId,
+                createdAt: createdDate,
+                updatedAt: updatedDate,
+                title: title ?? "Chat",
+                messages: [],
+                messageCount: messageCount ?? 0,
+                lastMessagePreview: lastMessagePreview,
+                lastMessageRole: lastMessageRole
+            )
+        }
 }
 
 struct ServerDogInfo: Codable {
