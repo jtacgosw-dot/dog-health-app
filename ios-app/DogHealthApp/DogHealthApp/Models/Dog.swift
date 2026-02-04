@@ -24,7 +24,13 @@ struct Dog: Identifiable, Codable {
     var portionSize: String?
     var foodAllergies: String?
     
-    init(id: String = UUID().uuidString, 
+    // Medical fields
+    var sex: String?
+    var isNeutered: Bool?
+    var medicalHistory: String?
+    var currentMedications: String?
+    
+    init(id: String = UUID().uuidString,
          name: String, 
          breed: String, 
          age: Double, 
@@ -41,7 +47,11 @@ struct Dog: Identifiable, Codable {
          feedingSchedule: String? = nil,
          foodType: String? = nil,
          portionSize: String? = nil,
-         foodAllergies: String? = nil) {
+         foodAllergies: String? = nil,
+         sex: String? = nil,
+         isNeutered: Bool? = nil,
+         medicalHistory: String? = nil,
+         currentMedications: String? = nil) {
         self.id = id
         self.name = name
         self.breed = breed
@@ -60,6 +70,10 @@ struct Dog: Identifiable, Codable {
         self.foodType = foodType
         self.portionSize = portionSize
         self.foodAllergies = foodAllergies
+        self.sex = sex
+        self.isNeutered = isNeutered
+        self.medicalHistory = medicalHistory
+        self.currentMedications = currentMedications
     }
     
     // Computed property for display-friendly age string

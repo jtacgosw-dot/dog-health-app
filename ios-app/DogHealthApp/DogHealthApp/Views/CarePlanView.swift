@@ -553,7 +553,11 @@ struct CreateCarePlanView: View {
             feedingSchedule: dog.feedingSchedule,
             foodType: dog.foodType,
             portionSize: dog.portionSize,
-            foodAllergies: dog.foodAllergies
+            foodAllergies: dog.foodAllergies,
+            sex: dog.sex,
+            isNeutered: dog.isNeutered,
+            medicalHistory: dog.medicalHistory,
+            currentMedications: dog.currentMedications
         )
     }
     
