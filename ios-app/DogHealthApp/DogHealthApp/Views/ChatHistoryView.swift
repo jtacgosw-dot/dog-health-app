@@ -359,17 +359,8 @@ struct ChatHistoryView: View {
     }
     
     private func loadAndSwitchToConversation(_ conversation: Conversation) {
-        Task {
-            do {
-                let messages = try await APIService.shared.getConversationMessages(conversationId: conversation.id)
-                await MainActor.run {
-                    onSelectConversation?(conversation.id, messages)
-                    dismiss()
-                }
-            } catch {
-                print("Failed to load conversation: \(error)")
-            }
-        }
+        onSelectConversation?(conversation.id, [])
+        dismiss()
     }
     
     private func loadConversations() async {
@@ -462,12 +453,12 @@ struct SwipeableConversationRow: View {
                         onDelete()
                     }
                 }) {
-                    VStack(spacing: 4) {
-                        Image(systemName: "trash.fill")
-                            .font(.system(size: 20, weight: .medium))
-                            .symbolRenderingMode(.hierarchical)
+                    VStack(spacing: 6) {
+                        DeleteTrashIcon()
+                            .frame(width: 22, height: 24)
                         Text("Delete")
                             .font(.petlyCaption(11))
+                            .fontWeight(.medium)
                     }
                     .foregroundColor(.white)
                     .frame(width: deleteButtonWidth, height: 100)
@@ -794,6 +785,73 @@ struct ConversationDetailView: View {
         let calendar = Calendar.current
         
         return !calendar.isDate(message.timestamp, inSameDayAs: previousMessage.timestamp)
+    }
+}
+
+struct DeleteTrashIcon: View {
+    var body: some View {
+        Canvas { context, size in
+            let width = size.width
+            let height = size.height
+            
+            context.fill(
+                Path { path in
+                    path.move(to: CGPoint(x: width * 0.15, y: height * 0.25))
+                    path.addLine(to: CGPoint(x: width * 0.25, y: height * 0.95))
+                    path.addLine(to: CGPoint(x: width * 0.75, y: height * 0.95))
+                    path.addLine(to: CGPoint(x: width * 0.85, y: height * 0.25))
+                    path.closeSubpath()
+                },
+                with: .color(.white)
+            )
+            
+            context.fill(
+                Path { path in
+                    path.addRoundedRect(
+                        in: CGRect(x: 0, y: height * 0.12, width: width, height: height * 0.1),
+                        cornerSize: CGSize(width: 2, height: 2)
+                    )
+                },
+                with: .color(.white)
+            )
+            
+            context.fill(
+                Path { path in
+                    path.addRoundedRect(
+                        in: CGRect(x: width * 0.35, y: 0, width: width * 0.3, height: height * 0.15),
+                        cornerSize: CGSize(width: 2, height: 2)
+                    )
+                },
+                with: .color(.white)
+            )
+            
+            let lineWidth: CGFloat = 2
+            let lineColor = Color.red
+            context.stroke(
+                Path { path in
+                    path.move(to: CGPoint(x: width * 0.35, y: height * 0.35))
+                    path.addLine(to: CGPoint(x: width * 0.38, y: height * 0.85))
+                },
+                with: .color(lineColor),
+                lineWidth: lineWidth
+            )
+            context.stroke(
+                Path { path in
+                    path.move(to: CGPoint(x: width * 0.5, y: height * 0.35))
+                    path.addLine(to: CGPoint(x: width * 0.5, y: height * 0.85))
+                },
+                with: .color(lineColor),
+                lineWidth: lineWidth
+            )
+            context.stroke(
+                Path { path in
+                    path.move(to: CGPoint(x: width * 0.65, y: height * 0.35))
+                    path.addLine(to: CGPoint(x: width * 0.62, y: height * 0.85))
+                },
+                with: .color(lineColor),
+                lineWidth: lineWidth
+            )
+        }
     }
 }
 
