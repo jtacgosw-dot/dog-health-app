@@ -78,131 +78,135 @@ struct NewChatView: View {
     }
     
     var body: some View {
-        ZStack {
-            Color.petlyBackground
-                .ignoresSafeArea()
-            
-            VStack(spacing: 0) {
-                HStack {
-                    if showCloseButton {
-                        Menu {
-                            Button(action: {
-                                withAnimation {
-                                    messages = []
-                                    conversationId = nil
-                                    isCreatingConversation = false
-                                    showCloseButton = false
-                                    attachedImages = []
-                                }
-                            }) {
-                                Label("New Chat", systemImage: "plus.bubble")
-                            }
-                            
-                            Button(action: { showingChatHistory = true }) {
-                                Label("Switch Chat", systemImage: "bubble.left.and.bubble.right")
-                            }
-                        } label: {
-                            HStack(spacing: 6) {
-                                Image(systemName: "line.3.horizontal")
-                                    .font(.system(size: 14))
-                                Text("Chats")
-                                    .font(.petlyBody(14))
-                            }
-                            .foregroundColor(.petlyDarkGreen)
-                            .padding(.horizontal, 16)
-                            .padding(.vertical, 8)
-                            .background(Color.petlyLightGreen)
-                            .cornerRadius(20)
-                        }
-                    } else {
-                        Button(action: { showingChatHistory = true }) {
-                            HStack(spacing: 6) {
-                                Image(systemName: "clock.arrow.circlepath")
-                                    .font(.system(size: 14))
-                                Text("History")
-                                    .font(.petlyBody(14))
-                            }
-                            .foregroundColor(.petlyDarkGreen)
-                            .padding(.horizontal, 16)
-                            .padding(.vertical, 8)
-                            .background(Color.petlyLightGreen)
-                            .cornerRadius(20)
-                        }
-                    }
-                    
-                    Spacer()
-                    
-                                                                                        if appState.currentDog != nil {
-                                                                                            if let photoData = appState.petPhotoData,
-                                                                                               let uiImage = UIImage(data: photoData) {
-                                                    Image(uiImage: uiImage)
-                                                        .resizable()
-                                                        .scaledToFill()
-                                                        .frame(width: min(avatarSize, 70), height: min(avatarSize, 70))
-                                                        .clipShape(Circle())
-                                                } else {
-                                                    Circle()
-                                                        .fill(Color.petlyLightGreen)
-                                                        .frame(width: min(avatarSize, 70), height: min(avatarSize, 70))
-                                                        .overlay(
-                                                            Image(systemName: "dog.fill")
-                                                                .font(.system(size: min(avatarIconSize, 32)))
-                                                                .foregroundColor(.petlyDarkGreen)
-                                                        )
-                                                }
-                                            }
-                }
-                .padding()
+        GeometryReader { geometry in
+            ZStack(alignment: .bottom) {
+                Color.petlyBackground
+                    .ignoresSafeArea()
                 
-                if messages.isEmpty {
-                    ScrollView {
-                        EmptyStateChatView(onQuickAction: handleQuickAction)
-                    }
-                    .scrollDismissesKeyboard(.interactively)
-                    .onTapGesture {
-                        dismissKeyboard()
-                    }
-                } else {
-                    ScrollViewReader { proxy in
-                        ScrollView {
-                            LazyVStack(spacing: 16) {
-                                ForEach(Array(messages.enumerated()), id: \.element.id) { index, message in
-                                    VStack(spacing: 0) {
-                                        if shouldShowDateHeader(for: index) {
-                                            MessageDateHeader(date: message.timestamp)
-                                                .padding(.vertical, 8)
-                                        }
-                                        NewMessageBubble(message: message)
+                VStack(spacing: 0) {
+                    HStack {
+                        if showCloseButton {
+                            Menu {
+                                Button(action: {
+                                    withAnimation {
+                                        messages = []
+                                        conversationId = nil
+                                        isCreatingConversation = false
+                                        showCloseButton = false
+                                        attachedImages = []
                                     }
-                                    .id(message.id)
+                                }) {
+                                    Label("New Chat", systemImage: "plus.bubble")
                                 }
                                 
-                                if isLoading {
-                                    TypingIndicatorBubble()
-                                        .transition(.opacity.combined(with: .move(edge: .bottom)))
+                                Button(action: { showingChatHistory = true }) {
+                                    Label("Switch Chat", systemImage: "bubble.left.and.bubble.right")
+                                }
+                            } label: {
+                                HStack(spacing: 6) {
+                                    Image(systemName: "line.3.horizontal")
+                                        .font(.system(size: 14))
+                                    Text("Chats")
+                                        .font(.petlyBody(14))
+                                }
+                                .foregroundColor(.petlyDarkGreen)
+                                .padding(.horizontal, 16)
+                                .padding(.vertical, 8)
+                                .background(Color.petlyLightGreen)
+                                .cornerRadius(20)
+                            }
+                        } else {
+                            Button(action: { showingChatHistory = true }) {
+                                HStack(spacing: 6) {
+                                    Image(systemName: "clock.arrow.circlepath")
+                                        .font(.system(size: 14))
+                                    Text("History")
+                                        .font(.petlyBody(14))
+                                }
+                                .foregroundColor(.petlyDarkGreen)
+                                .padding(.horizontal, 16)
+                                .padding(.vertical, 8)
+                                .background(Color.petlyLightGreen)
+                                .cornerRadius(20)
+                            }
+                        }
+                        
+                        Spacer()
+                        
+                        if appState.currentDog != nil {
+                            if let photoData = appState.petPhotoData,
+                               let uiImage = UIImage(data: photoData) {
+                                Image(uiImage: uiImage)
+                                    .resizable()
+                                    .scaledToFill()
+                                    .frame(width: min(avatarSize, 70), height: min(avatarSize, 70))
+                                    .clipShape(Circle())
+                            } else {
+                                Circle()
+                                    .fill(Color.petlyLightGreen)
+                                    .frame(width: min(avatarSize, 70), height: min(avatarSize, 70))
+                                    .overlay(
+                                        Image(systemName: "dog.fill")
+                                            .font(.system(size: min(avatarIconSize, 32)))
+                                            .foregroundColor(.petlyDarkGreen)
+                                    )
+                            }
+                        }
+                    }
+                    .padding()
+                    
+                    if messages.isEmpty {
+                        ScrollView {
+                            EmptyStateChatView(onQuickAction: handleQuickAction)
+                                .padding(.bottom, 150)
+                        }
+                        .scrollDismissesKeyboard(.interactively)
+                        .onTapGesture {
+                            dismissKeyboard()
+                        }
+                    } else {
+                        ScrollViewReader { proxy in
+                            ScrollView {
+                                LazyVStack(spacing: 16) {
+                                    ForEach(Array(messages.enumerated()), id: \.element.id) { index, message in
+                                        VStack(spacing: 0) {
+                                            if shouldShowDateHeader(for: index) {
+                                                MessageDateHeader(date: message.timestamp)
+                                                    .padding(.vertical, 8)
+                                            }
+                                            NewMessageBubble(message: message)
+                                        }
+                                        .id(message.id)
+                                    }
+                                    
+                                    if isLoading {
+                                        TypingIndicatorBubble()
+                                            .transition(.opacity.combined(with: .move(edge: .bottom)))
+                                    }
+                                }
+                                .padding()
+                                .padding(.bottom, 150)
+                            }
+                            .scrollDismissesKeyboard(.interactively)
+                            .scrollBounceBehavior(.basedOnSize)
+                            .onChange(of: messages.count) {
+                                if let lastMessage = messages.last {
+                                    withAnimation {
+                                        proxy.scrollTo(lastMessage.id, anchor: .bottom)
+                                    }
                                 }
                             }
-                            .padding()
-                            .padding(.bottom, 120)
                         }
-                                                .scrollDismissesKeyboard(.interactively)
-                                                                        .scrollBounceBehavior(.basedOnSize)
-                                                                        .onChange(of: messages.count) {
-                                                    if let lastMessage = messages.last {
-                                                        withAnimation {
-                                                            proxy.scrollTo(lastMessage.id, anchor: .bottom)
-                                                        }
-                                                    }
-                                                }
                     }
+                    
+                    Spacer(minLength: 0)
                 }
                 
-                Spacer(minLength: 0)
+                chatInputBar
+                    .padding(.bottom, keyboardObserver.isKeyboardVisible ? keyboardObserver.keyboardHeight - geometry.safeAreaInsets.bottom : inputBarDefaultPadding)
             }
         }
-        .safeAreaInset(edge: .bottom, spacing: 0) {
-            chatInputBar
-        }
+        .ignoresSafeArea(.keyboard, edges: .bottom)
                 .onChange(of: initialPrompt) { oldValue, newValue in
                     if !newValue.isEmpty {
                         messageText = newValue
@@ -326,7 +330,6 @@ struct NewChatView: View {
             }
             .padding(.horizontal)
             .padding(.vertical, 12)
-            .padding(.bottom, keyboardObserver.isKeyboardVisible ? 0 : inputBarDefaultPadding)
             .background(Color.petlyBackground)
         }
     }
