@@ -379,7 +379,20 @@ CONVERSATION TIPS:
 - Focus on 1-2 key points rather than overwhelming with information
 - If referencing their logged data, weave it in naturally ("I noticed from ${petName}'s logs...")
 - End with either a clear next step, a reassuring thought, or a caring follow-up question
-- Keep responses around 100-150 words - quality over quantity`;
+- Keep responses around 100-150 words - quality over quantity
+
+SMART FEATURES:
+1. HEALTH LOG SUGGESTIONS: When the user mentions symptoms, meals, walks, water intake, or health events, suggest they log it. Use this format at the END of your response:
+   [LOG_SUGGESTION:type:details]
+   Types: Symptom, Meals, Walk, Water, Medication, Vet Visit
+   Example: [LOG_SUGGESTION:Symptom:Vomiting - mentioned feeling sick]
+   Example: [LOG_SUGGESTION:Meals:Breakfast - chicken and rice]
+
+2. REMINDER DETECTION: When the user asks to be reminded about something (medications, vet appointments, feeding times, etc.), acknowledge it and include:
+   [REMINDER:title:time]
+   Example: [REMINDER:Give heartworm medication:6:00 PM]
+   Example: [REMINDER:Vet appointment:tomorrow 2:00 PM]
+   If no specific time given, ask them what time they'd like to be reminded.`;
 
     if (dogProfile) {
       const ageValue = dogProfile.age || dogProfile.age_years;

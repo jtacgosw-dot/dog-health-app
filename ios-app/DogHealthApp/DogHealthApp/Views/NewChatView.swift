@@ -182,9 +182,18 @@ struct NewChatView: View {
                                                 MessageDateHeader(date: message.timestamp)
                                                     .padding(.vertical, 8)
                                             }
-                                            NewMessageBubble(message: message, onFeedback: { feedback in
-                                                handleMessageFeedback(messageId: message.id, feedback: feedback)
-                                            })
+                                            NewMessageBubble(
+                                                message: message,
+                                                onFeedback: { feedback in
+                                                    handleMessageFeedback(messageId: message.id, feedback: feedback)
+                                                },
+                                                onLogSuggestion: { logType, details in
+                                                    handleLogSuggestion(logType: logType, details: details)
+                                                },
+                                                onReminderSuggestion: { title, time in
+                                                    handleReminderSuggestion(title: title, time: time)
+                                                }
+                                            )
                                         }
                                         .id(message.id)
                                     }
@@ -548,6 +557,97 @@ struct NewChatView: View {
         }
     }
     
+    private func handleLogSuggestion(logType: String, details: String) {
+        let generator = UIImpactFeedbackGenerator(style: .medium)
+        generator.impactOccurred()
+        
+        guard let dogId = appState.currentDog?.id else { return }
+        
+        let logEntry = HealthLogEntry(
+            dogId: dogId,
+            logType: logType,
+            notes: details,
+            timestamp: Date()
+        )
+        
+        modelContext.insert(logEntry)
+        try? modelContext.save()
+    }
+    
+    private func handleReminderSuggestion(title: String, time: String) {
+        let generator = UIImpactFeedbackGenerator(style: .medium)
+        generator.impactOccurred()
+        
+        guard let dogId = appState.currentDog?.id else { return }
+        
+        let reminderDate = parseReminderTime(time)
+        
+        let reminder = PetReminder(
+            dogId: dogId,
+            title: title,
+            reminderType: "Custom",
+            frequency: "Once",
+            nextDueDate: reminderDate,
+            notes: "Created from chat"
+        )
+        
+        modelContext.insert(reminder)
+        try? modelContext.save()
+        
+        NotificationManager.shared.scheduleReminderNotification(for: reminder)
+    }
+    
+    private func parseReminderTime(_ timeString: String) -> Date {
+        let calendar = Calendar.current
+        let now = Date()
+        
+        let lowercased = timeString.lowercased()
+        if lowercased.contains("tomorrow") {
+            var components = calendar.dateComponents([.year, .month, .day], from: now)
+            components.day! += 1
+            
+            if let timeMatch = lowercased.range(of: #"\d{1,2}:\d{2}"#, options: .regularExpression) {
+                let timePart = String(lowercased[timeMatch])
+                let parts = timePart.split(separator: ":")
+                if parts.count == 2, let hour = Int(parts[0]), let minute = Int(parts[1]) {
+                    var adjustedHour = hour
+                    if lowercased.contains("pm") && hour < 12 { adjustedHour += 12 }
+                    if lowercased.contains("am") && hour == 12 { adjustedHour = 0 }
+                    components.hour = adjustedHour
+                    components.minute = minute
+                }
+            } else {
+                components.hour = 9
+                components.minute = 0
+            }
+            
+            return calendar.date(from: components) ?? now.addingTimeInterval(86400)
+        }
+        
+        if let timeMatch = lowercased.range(of: #"\d{1,2}:\d{2}"#, options: .regularExpression) {
+            let timePart = String(lowercased[timeMatch])
+            let parts = timePart.split(separator: ":")
+            if parts.count == 2, let hour = Int(parts[0]), let minute = Int(parts[1]) {
+                var adjustedHour = hour
+                if lowercased.contains("pm") && hour < 12 { adjustedHour += 12 }
+                if lowercased.contains("am") && hour == 12 { adjustedHour = 0 }
+                
+                var components = calendar.dateComponents([.year, .month, .day], from: now)
+                components.hour = adjustedHour
+                components.minute = minute
+                
+                if let date = calendar.date(from: components), date > now {
+                    return date
+                } else {
+                    components.day! += 1
+                    return calendar.date(from: components) ?? now.addingTimeInterval(3600)
+                }
+            }
+        }
+        
+        return now.addingTimeInterval(3600)
+    }
+    
 }
 
 struct EmptyStateChatView: View {
@@ -662,16 +762,43 @@ struct ChatQuickActionChip: View {
 struct NewMessageBubble: View {
     let message: Message
     var onFeedback: ((MessageFeedback) -> Void)?
+    var onLogSuggestion: ((String, String) -> Void)?
+    var onReminderSuggestion: ((String, String) -> Void)?
     @State private var appeared = false
     @State private var showCopiedFeedback = false
     @State private var showFeedbackThanks = false
     @State private var currentFeedback: MessageFeedback?
+    @State private var logSuggestionDismissed = false
+    @State private var reminderCreated = false
     
     @ScaledMetric(relativeTo: .body) private var bubbleMaxWidth: CGFloat = 280
     @ScaledMetric(relativeTo: .body) private var avatarSize: CGFloat = 32
     @ScaledMetric(relativeTo: .body) private var imageSize: CGFloat = 120
     
     private var isUser: Bool { message.role == .user }
+    
+    private var displayContent: String {
+        var content = message.content
+        content = content.replacingOccurrences(of: #"\[LOG_SUGGESTION:[^\]]+\]"#, with: "", options: .regularExpression)
+        content = content.replacingOccurrences(of: #"\[REMINDER:[^\]]+\]"#, with: "", options: .regularExpression)
+        return content.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+    
+    private var logSuggestion: (type: String, details: String)? {
+        guard let match = message.content.range(of: #"\[LOG_SUGGESTION:([^:]+):([^\]]+)\]"#, options: .regularExpression) else { return nil }
+        let matchStr = String(message.content[match])
+        let parts = matchStr.dropFirst(16).dropLast(1).split(separator: ":", maxSplits: 1)
+        guard parts.count == 2 else { return nil }
+        return (String(parts[0]), String(parts[1]))
+    }
+    
+    private var reminderSuggestion: (title: String, time: String)? {
+        guard let match = message.content.range(of: #"\[REMINDER:([^:]+):([^\]]+)\]"#, options: .regularExpression) else { return nil }
+        let matchStr = String(message.content[match])
+        let parts = matchStr.dropFirst(10).dropLast(1).split(separator: ":", maxSplits: 1)
+        guard parts.count == 2 else { return nil }
+        return (String(parts[0]), String(parts[1]))
+    }
     
     var body: some View {
         HStack(alignment: .bottom, spacing: 8) {
@@ -781,32 +908,62 @@ struct NewMessageBubble: View {
     @ViewBuilder
     private var combinedBubble: some View {
         let hasImages = message.imageData != nil && !message.imageData!.isEmpty
-        let hasText = !message.content.isEmpty && !message.content.starts(with: "[Sent")
+        let hasText = !displayContent.isEmpty && !displayContent.starts(with: "[Sent")
         let bubbleColor = isUser ? Color.petlyDarkGreen : Color.petlyLightGreen
         
-        VStack(alignment: .leading, spacing: 0) {
-            if hasImages, let images = message.imageData {
-                imageContent(images: images, hasTextBelow: hasText, bubbleColor: bubbleColor)
+        VStack(alignment: .leading, spacing: 8) {
+            VStack(alignment: .leading, spacing: 0) {
+                if hasImages, let images = message.imageData {
+                    imageContent(images: images, hasTextBelow: hasText, bubbleColor: bubbleColor)
+                }
+                
+                if hasText {
+                    Text(displayContent)
+                        .font(.petlyBody(15))
+                        .foregroundColor(isUser ? .white : .petlyDarkGreen)
+                        .padding(.horizontal, 14)
+                        .padding(.vertical, 10)
+                }
+            }
+            .background(bubbleColor)
+            .clipShape(RoundedRectangle(cornerRadius: 18))
+            .shadow(color: .black.opacity(0.08), radius: 4, x: 0, y: 2)
+            .contextMenu {
+                Button(action: copyMessage) {
+                    Label("Copy", systemImage: "doc.on.doc")
+                }
+                
+                ShareLink(item: displayContent) {
+                    Label("Share", systemImage: "square.and.arrow.up")
+                }
             }
             
-            if hasText {
-                Text(message.content)
-                    .font(.petlyBody(15))
-                    .foregroundColor(isUser ? .white : .petlyDarkGreen)
-                    .padding(.horizontal, 14)
-                    .padding(.vertical, 10)
-            }
-        }
-        .background(bubbleColor)
-        .clipShape(RoundedRectangle(cornerRadius: 18))
-        .shadow(color: .black.opacity(0.08), radius: 4, x: 0, y: 2)
-        .contextMenu {
-            Button(action: copyMessage) {
-                Label("Copy", systemImage: "doc.on.doc")
+            if !isUser, let suggestion = logSuggestion, !logSuggestionDismissed {
+                LogSuggestionCard(
+                    logType: suggestion.type,
+                    details: suggestion.details,
+                    onLog: {
+                        onLogSuggestion?(suggestion.type, suggestion.details)
+                        withAnimation { logSuggestionDismissed = true }
+                    },
+                    onDismiss: {
+                        withAnimation { logSuggestionDismissed = true }
+                    }
+                )
             }
             
-            ShareLink(item: message.content) {
-                Label("Share", systemImage: "square.and.arrow.up")
+            if !isUser, let reminder = reminderSuggestion, !reminderCreated {
+                ReminderSuggestionCard(
+                    title: reminder.title,
+                    time: reminder.time,
+                    onCreate: {
+                        onReminderSuggestion?(reminder.title, reminder.time)
+                        withAnimation { reminderCreated = true }
+                    },
+                    onDismiss: {
+                        withAnimation { reminderCreated = true }
+                    }
+                )
             }
         }
     }
@@ -997,6 +1154,118 @@ struct ChatCameraView: UIViewControllerRepresentable {
         func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
             parent.dismiss()
         }
+    }
+}
+
+struct LogSuggestionCard: View {
+    let logType: String
+    let details: String
+    let onLog: () -> Void
+    let onDismiss: () -> Void
+    
+    private var icon: String {
+        switch logType.lowercased() {
+        case "symptom": return "heart.text.square"
+        case "meals": return "fork.knife"
+        case "walk": return "figure.walk"
+        case "water": return "drop.fill"
+        case "medication": return "pills.fill"
+        case "vet visit": return "cross.case.fill"
+        default: return "plus.circle.fill"
+        }
+    }
+    
+    var body: some View {
+        HStack(spacing: 12) {
+            Image(systemName: icon)
+                .font(.system(size: 20))
+                .foregroundColor(.petlyDarkGreen)
+                .frame(width: 36, height: 36)
+                .background(Color.petlyLightGreen)
+                .clipShape(Circle())
+            
+            VStack(alignment: .leading, spacing: 2) {
+                Text("Log this?")
+                    .font(.petlyBodyMedium(12))
+                    .foregroundColor(.petlyDarkGreen)
+                Text(details)
+                    .font(.petlyBody(11))
+                    .foregroundColor(.petlyFormIcon)
+                    .lineLimit(1)
+            }
+            
+            Spacer()
+            
+            Button(action: onLog) {
+                Text("Log")
+                    .font(.petlyBodyMedium(12))
+                    .foregroundColor(.white)
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 6)
+                    .background(Color.petlyDarkGreen)
+                    .cornerRadius(14)
+            }
+            
+            Button(action: onDismiss) {
+                Image(systemName: "xmark")
+                    .font(.system(size: 12, weight: .medium))
+                    .foregroundColor(.petlyFormIcon)
+            }
+        }
+        .padding(12)
+        .background(Color.white)
+        .cornerRadius(12)
+        .shadow(color: .black.opacity(0.06), radius: 4, x: 0, y: 2)
+    }
+}
+
+struct ReminderSuggestionCard: View {
+    let title: String
+    let time: String
+    let onCreate: () -> Void
+    let onDismiss: () -> Void
+    
+    var body: some View {
+        HStack(spacing: 12) {
+            Image(systemName: "bell.fill")
+                .font(.system(size: 20))
+                .foregroundColor(.orange)
+                .frame(width: 36, height: 36)
+                .background(Color.orange.opacity(0.15))
+                .clipShape(Circle())
+            
+            VStack(alignment: .leading, spacing: 2) {
+                Text("Set reminder?")
+                    .font(.petlyBodyMedium(12))
+                    .foregroundColor(.petlyDarkGreen)
+                Text("\(title) at \(time)")
+                    .font(.petlyBody(11))
+                    .foregroundColor(.petlyFormIcon)
+                    .lineLimit(1)
+            }
+            
+            Spacer()
+            
+            Button(action: onCreate) {
+                Text("Set")
+                    .font(.petlyBodyMedium(12))
+                    .foregroundColor(.white)
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 6)
+                    .background(Color.orange)
+                    .cornerRadius(14)
+            }
+            
+            Button(action: onDismiss) {
+                Image(systemName: "xmark")
+                    .font(.system(size: 12, weight: .medium))
+                    .foregroundColor(.petlyFormIcon)
+            }
+        }
+        .padding(12)
+        .background(Color.white)
+        .cornerRadius(12)
+        .shadow(color: .black.opacity(0.06), radius: 4, x: 0, y: 2)
     }
 }
 
