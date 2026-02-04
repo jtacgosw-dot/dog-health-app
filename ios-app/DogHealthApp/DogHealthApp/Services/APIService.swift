@@ -343,7 +343,7 @@ struct ChatRequest: Codable {
 struct ChatDogProfile: Codable {
     let name: String
     let breed: String?
-    let age: Int?
+    let age: Double?
     let weight: Double?
     let healthConcerns: [String]?
     let allergies: [String]?
