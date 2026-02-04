@@ -7,6 +7,10 @@ struct PetHealthScoreView: View {
     @EnvironmentObject var appState: AppState
     @State private var score: PetHealthScore = .empty
     @State private var animatedProgress: Double = 0
+    @State private var showActivityDetail = false
+    @State private var showNutritionDetail = false
+    @State private var showWellnessDetail = false
+    @State private var showConsistencyDetail = false
     
     var body: some View {
         NavigationView {
@@ -28,33 +32,41 @@ struct PetHealthScoreView: View {
                                 .font(.petlyTitle(20))
                                 .foregroundColor(.petlyDarkGreen)
                             
-                            ScoreFactorRow(
-                                icon: "figure.walk",
-                                title: "Activity",
-                                score: score.activityScore,
-                                description: "Based on walks and playtime logged"
-                            )
+                            Button(action: { showActivityDetail = true }) {
+                                ScoreFactorRow(
+                                    icon: "figure.walk",
+                                    title: "Activity",
+                                    score: score.activityScore,
+                                    description: "Based on walks and playtime logged"
+                                )
+                            }
                             
-                            ScoreFactorRow(
-                                icon: "fork.knife",
-                                title: "Nutrition",
-                                score: score.nutritionScore,
-                                description: "Based on meals and water logged"
-                            )
+                            Button(action: { showNutritionDetail = true }) {
+                                ScoreFactorRow(
+                                    icon: "fork.knife",
+                                    title: "Nutrition",
+                                    score: score.nutritionScore,
+                                    description: "Based on meals and water logged"
+                                )
+                            }
                             
-                            ScoreFactorRow(
-                                icon: "heart.fill",
-                                title: "Wellness",
-                                score: score.wellnessScore,
-                                description: "Based on symptoms and mood"
-                            )
+                            Button(action: { showWellnessDetail = true }) {
+                                ScoreFactorRow(
+                                    icon: "heart.fill",
+                                    title: "Wellness",
+                                    score: score.wellnessScore,
+                                    description: "Based on symptoms and mood"
+                                )
+                            }
                             
-                            ScoreFactorRow(
-                                icon: "calendar",
-                                title: "Consistency",
-                                score: score.consistencyScore,
-                                description: "Based on logging frequency"
-                            )
+                            Button(action: { showConsistencyDetail = true }) {
+                                ScoreFactorRow(
+                                    icon: "calendar",
+                                    title: "Consistency",
+                                    score: score.consistencyScore,
+                                    description: "Based on logging frequency"
+                                )
+                            }
                         }
                         .padding()
                         .background(Color.petlyLightGreen)
@@ -118,6 +130,66 @@ struct PetHealthScoreView: View {
         .preferredColorScheme(.light)
         .onAppear {
             calculateScore()
+        }
+        .sheet(isPresented: $showActivityDetail) {
+            ScoreDetailSheet(
+                title: "Activity",
+                icon: "figure.walk",
+                score: score.activityScore,
+                description: "Your activity score is based on walks and playtime logged over the past 7 days.",
+                tips: [
+                    "Log daily walks to boost your score",
+                    "Include playtime sessions",
+                    "Aim for at least 30 minutes of activity daily"
+                ],
+                logType: .walk
+            )
+            .environmentObject(appState)
+        }
+        .sheet(isPresented: $showNutritionDetail) {
+            ScoreDetailSheet(
+                title: "Nutrition",
+                icon: "fork.knife",
+                score: score.nutritionScore,
+                description: "Your nutrition score is based on meals and water intake logged over the past 7 days.",
+                tips: [
+                    "Log all meals consistently",
+                    "Track water intake daily",
+                    "Note any dietary changes"
+                ],
+                logType: .meals
+            )
+            .environmentObject(appState)
+        }
+        .sheet(isPresented: $showWellnessDetail) {
+            ScoreDetailSheet(
+                title: "Wellness",
+                icon: "heart.fill",
+                score: score.wellnessScore,
+                description: "Your wellness score is based on symptoms reported and overall mood tracking.",
+                tips: [
+                    "Log any symptoms promptly",
+                    "Track daily mood",
+                    "Note behavioral changes"
+                ],
+                logType: .symptom
+            )
+            .environmentObject(appState)
+        }
+        .sheet(isPresented: $showConsistencyDetail) {
+            ScoreDetailSheet(
+                title: "Consistency",
+                icon: "calendar",
+                score: score.consistencyScore,
+                description: "Your consistency score is based on how regularly you log activities for your pet.",
+                tips: [
+                    "Log something every day",
+                    "Set reminders to log activities",
+                    "Build a daily logging habit"
+                ],
+                logType: nil
+            )
+            .environmentObject(appState)
         }
     }
     
@@ -386,6 +458,339 @@ struct MiniScoreIndicator: View {
                 .font(.petlyBody(10))
                 .foregroundColor(.petlyFormIcon)
         }
+    }
+}
+
+enum ScoreLogType {
+    case walk
+    case meals
+    case symptom
+}
+
+struct ScoreDetailSheet: View {
+    @Environment(\.dismiss) var dismiss
+    @EnvironmentObject var appState: AppState
+    let title: String
+    let icon: String
+    let score: Int
+    let description: String
+    let tips: [String]
+    let logType: ScoreLogType?
+    
+    @State private var showLogSheet = false
+    
+    private var scoreColor: Color {
+        switch score {
+        case 80...100: return .green
+        case 60..<80: return .yellow
+        default: return .red
+        }
+    }
+    
+    var body: some View {
+        NavigationView {
+            ZStack {
+                Color.petlyBackground
+                    .ignoresSafeArea()
+                
+                ScrollView {
+                    VStack(spacing: 24) {
+                        ZStack {
+                            Circle()
+                                .fill(scoreColor.opacity(0.15))
+                                .frame(width: 120, height: 120)
+                            
+                            VStack(spacing: 4) {
+                                Image(systemName: icon)
+                                    .font(.system(size: 32))
+                                    .foregroundColor(scoreColor)
+                                
+                                Text("\(score)")
+                                    .font(.system(size: 32, weight: .bold, design: .rounded))
+                                    .foregroundColor(scoreColor)
+                            }
+                        }
+                        .padding(.top, 20)
+                        
+                        Text(description)
+                            .font(.petlyBody(14))
+                            .foregroundColor(.petlyFormIcon)
+                            .multilineTextAlignment(.center)
+                            .padding(.horizontal)
+                        
+                        VStack(alignment: .leading, spacing: 16) {
+                            Text("Tips to Improve")
+                                .font(.petlyTitle(18))
+                                .foregroundColor(.petlyDarkGreen)
+                            
+                            ForEach(tips, id: \.self) { tip in
+                                HStack(alignment: .top, spacing: 12) {
+                                    Image(systemName: "checkmark.circle.fill")
+                                        .foregroundColor(.petlyDarkGreen)
+                                        .font(.system(size: 16))
+                                    
+                                    Text(tip)
+                                        .font(.petlyBody(14))
+                                        .foregroundColor(.petlyDarkGreen)
+                                }
+                            }
+                        }
+                        .padding()
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .background(Color.petlyLightGreen)
+                        .cornerRadius(16)
+                        .padding(.horizontal)
+                        
+                        if logType != nil {
+                            Button(action: { showLogSheet = true }) {
+                                HStack {
+                                    Image(systemName: "plus.circle.fill")
+                                    Text("Log \(title)")
+                                }
+                                .font(.petlyBodyMedium(16))
+                                .foregroundColor(.white)
+                                .frame(maxWidth: .infinity)
+                                .padding()
+                                .background(Color.petlyDarkGreen)
+                                .cornerRadius(12)
+                            }
+                            .padding(.horizontal)
+                        }
+                        
+                        Spacer(minLength: 40)
+                    }
+                }
+            }
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button(action: { dismiss() }) {
+                        Image(systemName: "xmark")
+                            .foregroundColor(.petlyDarkGreen)
+                    }
+                }
+                ToolbarItem(placement: .principal) {
+                    Text(title)
+                        .font(.petlyTitle(18))
+                        .foregroundColor(.petlyDarkGreen)
+                }
+            }
+        }
+        .buttonStyle(.plain)
+        .preferredColorScheme(.light)
+        .sheet(isPresented: $showLogSheet) {
+            if let logType = logType {
+                LogEntrySheet(logType: logType)
+                    .environmentObject(appState)
+            }
+        }
+    }
+}
+
+struct LogEntrySheet: View {
+    @Environment(\.dismiss) var dismiss
+    @Environment(\.modelContext) private var modelContext
+    @EnvironmentObject var appState: AppState
+    let logType: ScoreLogType
+    
+    @State private var duration: String = ""
+    @State private var notes: String = ""
+    @State private var mealType: String = "Breakfast"
+    @State private var symptomType: String = ""
+    
+    var body: some View {
+        NavigationView {
+            ZStack {
+                Color.petlyBackground
+                    .ignoresSafeArea()
+                
+                VStack(spacing: 20) {
+                    switch logType {
+                    case .walk:
+                        walkForm
+                    case .meals:
+                        mealsForm
+                    case .symptom:
+                        symptomForm
+                    }
+                    
+                    Button(action: saveLog) {
+                        Text("Save")
+                            .font(.petlyBodyMedium(16))
+                            .foregroundColor(.white)
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                            .background(Color.petlyDarkGreen)
+                            .cornerRadius(12)
+                    }
+                    .padding(.horizontal)
+                    
+                    Spacer()
+                }
+                .padding(.top, 20)
+            }
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button(action: { dismiss() }) {
+                        Image(systemName: "xmark")
+                            .foregroundColor(.petlyDarkGreen)
+                    }
+                }
+                ToolbarItem(placement: .principal) {
+                    Text(logTypeTitle)
+                        .font(.petlyTitle(18))
+                        .foregroundColor(.petlyDarkGreen)
+                }
+            }
+        }
+        .buttonStyle(.plain)
+        .preferredColorScheme(.light)
+    }
+    
+    private var logTypeTitle: String {
+        switch logType {
+        case .walk: return "Log Activity"
+        case .meals: return "Log Meal"
+        case .symptom: return "Log Symptom"
+        }
+    }
+    
+    private var walkForm: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            Text("Duration (minutes)")
+                .font(.petlyBodyMedium(14))
+                .foregroundColor(.petlyDarkGreen)
+            
+            TextField("30", text: $duration)
+                .keyboardType(.numberPad)
+                .padding()
+                .background(Color.white)
+                .cornerRadius(12)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 12)
+                        .stroke(Color.petlyLightGreen, lineWidth: 1)
+                )
+            
+            Text("Notes (optional)")
+                .font(.petlyBodyMedium(14))
+                .foregroundColor(.petlyDarkGreen)
+            
+            TextEditor(text: $notes)
+                .scrollContentBackground(.hidden)
+                .frame(minHeight: 80)
+                .padding(8)
+                .background(Color.white)
+                .cornerRadius(12)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 12)
+                        .stroke(Color.petlyLightGreen, lineWidth: 1)
+                )
+        }
+        .padding(.horizontal)
+    }
+    
+    private var mealsForm: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            Text("Meal Type")
+                .font(.petlyBodyMedium(14))
+                .foregroundColor(.petlyDarkGreen)
+            
+            Picker("Meal Type", selection: $mealType) {
+                Text("Breakfast").tag("Breakfast")
+                Text("Lunch").tag("Lunch")
+                Text("Dinner").tag("Dinner")
+                Text("Snack").tag("Snack")
+            }
+            .pickerStyle(.segmented)
+            
+            Text("Notes (optional)")
+                .font(.petlyBodyMedium(14))
+                .foregroundColor(.petlyDarkGreen)
+            
+            TextEditor(text: $notes)
+                .scrollContentBackground(.hidden)
+                .frame(minHeight: 80)
+                .padding(8)
+                .background(Color.white)
+                .cornerRadius(12)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 12)
+                        .stroke(Color.petlyLightGreen, lineWidth: 1)
+                )
+        }
+        .padding(.horizontal)
+    }
+    
+    private var symptomForm: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            Text("Symptom")
+                .font(.petlyBodyMedium(14))
+                .foregroundColor(.petlyDarkGreen)
+            
+            TextField("e.g., Lethargy, Loss of appetite", text: $symptomType)
+                .padding()
+                .background(Color.white)
+                .cornerRadius(12)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 12)
+                        .stroke(Color.petlyLightGreen, lineWidth: 1)
+                )
+            
+            Text("Notes (optional)")
+                .font(.petlyBodyMedium(14))
+                .foregroundColor(.petlyDarkGreen)
+            
+            TextEditor(text: $notes)
+                .scrollContentBackground(.hidden)
+                .frame(minHeight: 80)
+                .padding(8)
+                .background(Color.white)
+                .cornerRadius(12)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 12)
+                        .stroke(Color.petlyLightGreen, lineWidth: 1)
+                )
+        }
+        .padding(.horizontal)
+    }
+    
+    private func saveLog() {
+        let dogId = appState.currentDog?.id ?? "default"
+        
+        switch logType {
+        case .walk:
+            let log = HealthLogEntry(
+                id: UUID().uuidString,
+                dogId: dogId,
+                type: .walk,
+                notes: notes.isEmpty ? nil : notes,
+                timestamp: Date(),
+                duration: duration.isEmpty ? nil : duration
+            )
+            modelContext.insert(log)
+        case .meals:
+            let log = HealthLogEntry(
+                id: UUID().uuidString,
+                dogId: dogId,
+                type: .meals,
+                notes: notes.isEmpty ? "\(mealType)" : "\(mealType): \(notes)",
+                timestamp: Date()
+            )
+            modelContext.insert(log)
+        case .symptom:
+            let log = HealthLogEntry(
+                id: UUID().uuidString,
+                dogId: dogId,
+                type: .symptom,
+                notes: symptomType.isEmpty ? notes : "\(symptomType): \(notes)",
+                timestamp: Date()
+            )
+            modelContext.insert(log)
+        }
+        
+        try? modelContext.save()
+        dismiss()
     }
 }
 
