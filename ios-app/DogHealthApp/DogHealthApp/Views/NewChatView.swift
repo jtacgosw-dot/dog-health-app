@@ -160,10 +160,15 @@ struct NewChatView: View {
                             EmptyStateChatView(onQuickAction: handleQuickAction)
                                 .padding(.bottom, keyboardObserver.isKeyboardVisible ? max(keyboardObserver.keyboardHeight - geometry.safeAreaInsets.bottom, 0) + 80 : 150)
                         }
-                        .scrollDismissesKeyboard(.interactively)
-                        .onTapGesture {
-                            dismissKeyboard()
-                        }
+                        .scrollDismissesKeyboard(.immediately)
+                        .simultaneousGesture(
+                            DragGesture(minimumDistance: 10, coordinateSpace: .local)
+                                .onChanged { value in
+                                    if value.translation.height > 20 {
+                                        dismissKeyboard()
+                                    }
+                                }
+                        )
                     } else {
                         ScrollViewReader { proxy in
                             ScrollView {
@@ -187,11 +192,16 @@ struct NewChatView: View {
                                 .padding()
                                 .padding(.bottom, keyboardObserver.isKeyboardVisible ? max(keyboardObserver.keyboardHeight - geometry.safeAreaInsets.bottom, 0) + 80 : 150)
                             }
-                            .scrollDismissesKeyboard(.interactively)
+                            .scrollDismissesKeyboard(.immediately)
                             .scrollBounceBehavior(.basedOnSize)
-                            .onTapGesture {
-                                dismissKeyboard()
-                            }
+                            .simultaneousGesture(
+                                DragGesture(minimumDistance: 10, coordinateSpace: .local)
+                                    .onChanged { value in
+                                        if value.translation.height > 20 {
+                                            dismissKeyboard()
+                                        }
+                                    }
+                            )
                             .onChange(of: messages.count) {
                                 if let lastMessage = messages.last {
                                     proxy.scrollTo(lastMessage.id, anchor: .bottom)
