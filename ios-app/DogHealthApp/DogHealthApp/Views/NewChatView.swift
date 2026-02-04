@@ -609,11 +609,62 @@ struct NewChatView: View {
         // AI may generate "meals" or "Meals" - normalize to match the app's LogType enum
         let normalizedLogType = logType.prefix(1).uppercased() + logType.dropFirst().lowercased()
         
+        // Parse duration from details for Walk/Playtime logs (e.g., "30 min walk", "20 minute walk")
+        var duration: String? = nil
+        if normalizedLogType == "Walk" || normalizedLogType == "Playtime" {
+            // Try to extract duration from details (e.g., "30 min", "20 minutes", "1 hour")
+            let durationPattern = #"(\d+)\s*(min|minute|minutes|hr|hour|hours)"#
+            if let regex = try? NSRegularExpression(pattern: durationPattern, options: .caseInsensitive),
+               let match = regex.firstMatch(in: details, options: [], range: NSRange(details.startIndex..., in: details)),
+               let numberRange = Range(match.range(at: 1), in: details),
+               let unitRange = Range(match.range(at: 2), in: details) {
+                let number = Int(details[numberRange]) ?? 0
+                let unit = details[unitRange].lowercased()
+                // Convert hours to minutes
+                let minutes = unit.contains("hr") || unit.contains("hour") ? number * 60 : number
+                duration = "\(minutes)"
+            } else {
+                // Default to 30 minutes if no duration specified
+                duration = "30"
+            }
+        }
+        
+        // Set type-specific fields based on log type
+        var groomingType: String? = nil
+        var moodLevel: Int? = nil
+        var activityType: String? = nil
+        
+        if normalizedLogType == "Grooming" {
+            groomingType = details
+        } else if normalizedLogType == "Mood" {
+            // Try to determine mood level from details
+            let lowercasedDetails = details.lowercased()
+            if lowercasedDetails.contains("great") || lowercasedDetails.contains("amazing") || lowercasedDetails.contains("excellent") || lowercasedDetails.contains("super") {
+                moodLevel = 4 // Great
+            } else if lowercasedDetails.contains("good") || lowercasedDetails.contains("happy") || lowercasedDetails.contains("energetic") {
+                moodLevel = 3 // Good
+            } else if lowercasedDetails.contains("okay") || lowercasedDetails.contains("normal") || lowercasedDetails.contains("fine") {
+                moodLevel = 2 // Okay
+            } else if lowercasedDetails.contains("down") || lowercasedDetails.contains("tired") || lowercasedDetails.contains("low") {
+                moodLevel = 1 // Down
+            } else if lowercasedDetails.contains("sad") || lowercasedDetails.contains("lethargic") || lowercasedDetails.contains("depressed") {
+                moodLevel = 0 // Sad
+            } else {
+                moodLevel = 3 // Default to Good
+            }
+        } else if normalizedLogType == "Playtime" {
+            activityType = details
+        }
+        
         let logEntry = HealthLogEntry(
             dogId: dogId,
             logType: normalizedLogType,
             timestamp: Date(),
-            notes: details
+            notes: details,
+            duration: duration,
+            moodLevel: moodLevel,
+            activityType: activityType,
+            groomingType: groomingType
         )
         
         modelContext.insert(logEntry)
