@@ -13,30 +13,45 @@ struct ChatHistoryView: View {
     @State private var showingDeleteAlert = false
     @State private var showingRenameAlert = false
     @State private var searchText: String = ""
+    @State private var showArchived = false
+    @State private var showingExportSheet = false
+    @State private var conversationToExport: Conversation?
+    @State private var exportedText: String = ""
     
     var onSelectConversation: ((String, [Message]) -> Void)?
     
     private var filteredConversations: [Conversation] {
-        if searchText.isEmpty {
-            return conversations
+        var filtered = conversations.filter { !$0.isArchived || showArchived }
+        
+        if !searchText.isEmpty {
+            filtered = filtered.filter { conversation in
+                conversation.title.localizedCaseInsensitiveContains(searchText) ||
+                (conversation.lastMessagePreview?.localizedCaseInsensitiveContains(searchText) ?? false)
+            }
         }
-        return conversations.filter { conversation in
-            conversation.title.localizedCaseInsensitiveContains(searchText) ||
-            (conversation.lastMessagePreview?.localizedCaseInsensitiveContains(searchText) ?? false)
-        }
+        return filtered
+    }
+    
+    private var pinnedConversations: [Conversation] {
+        filteredConversations.filter { $0.isPinned }
+    }
+    
+    private var unpinnedConversations: [Conversation] {
+        filteredConversations.filter { !$0.isPinned }
     }
     
     private var groupedConversations: [(String, [Conversation])] {
         let calendar = Calendar.current
         let now = Date()
         
+        var pinned: [Conversation] = pinnedConversations
         var today: [Conversation] = []
         var yesterday: [Conversation] = []
         var thisWeek: [Conversation] = []
         var thisMonth: [Conversation] = []
         var older: [Conversation] = []
         
-        for conversation in filteredConversations {
+        for conversation in unpinnedConversations {
             let date = conversation.lastMessageCreatedAt ?? conversation.updatedAt ?? conversation.createdAt
             
             if calendar.isDateInToday(date) {
@@ -53,6 +68,7 @@ struct ChatHistoryView: View {
         }
         
         var result: [(String, [Conversation])] = []
+        if !pinned.isEmpty { result.append(("Pinned", pinned)) }
         if !today.isEmpty { result.append(("Today", today)) }
         if !yesterday.isEmpty { result.append(("Yesterday", yesterday)) }
         if !thisWeek.isEmpty { result.append(("This Week", thisWeek)) }
@@ -187,34 +203,36 @@ struct ChatHistoryView: View {
                                     ForEach(groupedConversations, id: \.0) { section, convos in
                                         Section {
                                             ForEach(convos) { conversation in
-                                                ConversationRow(
+                                                SwipeableConversationRow(
                                                     conversation: conversation,
-                                                    showContinueButton: onSelectConversation != nil
-                                                )
-                                                .onTapGesture {
-                                                    HapticFeedback.light()
-                                                    if onSelectConversation != nil {
-                                                        loadAndSwitchToConversation(conversation)
-                                                    } else {
-                                                        selectedConversationForDetail = conversation
-                                                    }
-                                                }
-                                                .contextMenu {
-                                                    Button {
+                                                    showContinueButton: onSelectConversation != nil,
+                                                    onDelete: {
+                                                        conversationToDelete = conversation
+                                                        showingDeleteAlert = true
+                                                    },
+                                                    onRename: {
                                                         conversationToRename = conversation
                                                         newTitle = conversation.title
                                                         showingRenameAlert = true
-                                                    } label: {
-                                                        Label("Rename", systemImage: "pencil")
+                                                    },
+                                                    onPin: {
+                                                        togglePin(conversation)
+                                                    },
+                                                    onArchive: {
+                                                        toggleArchive(conversation)
+                                                    },
+                                                    onExport: {
+                                                        exportConversation(conversation)
+                                                    },
+                                                    onTap: {
+                                                        HapticFeedback.light()
+                                                        if onSelectConversation != nil {
+                                                            loadAndSwitchToConversation(conversation)
+                                                        } else {
+                                                            selectedConversationForDetail = conversation
+                                                        }
                                                     }
-                                                    
-                                                    Button(role: .destructive) {
-                                                        conversationToDelete = conversation
-                                                        showingDeleteAlert = true
-                                                    } label: {
-                                                        Label("Delete", systemImage: "trash")
-                                                    }
-                                                }
+                                                )
                                             }
                                         } header: {
                                             HStack {
@@ -252,16 +270,33 @@ struct ChatHistoryView: View {
                 }
                 
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    if !conversations.isEmpty {
-                        Text("\(conversations.count) chat\(conversations.count == 1 ? "" : "s")")
-                            .font(.petlyCaption(12))
-                            .foregroundColor(.petlyFormIcon)
+                    HStack(spacing: 12) {
+                        Button(action: {
+                            withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                                showArchived.toggle()
+                            }
+                        }) {
+                            Image(systemName: showArchived ? "archivebox.fill" : "archivebox")
+                                .font(.system(size: 16, weight: .medium))
+                                .foregroundColor(showArchived ? .petlyDarkGreen : .petlyFormIcon)
+                        }
+                        
+                        if !conversations.isEmpty {
+                            Text("\(filteredConversations.count) chat\(filteredConversations.count == 1 ? "" : "s")")
+                                .font(.petlyCaption(12))
+                                .foregroundColor(.petlyFormIcon)
+                        }
                     }
                 }
             }
             .sheet(item: $selectedConversationForDetail) { conversation in
                 ConversationDetailView(conversation: conversation)
                     .environmentObject(appState)
+            }
+            .sheet(isPresented: $showingExportSheet) {
+                if !exportedText.isEmpty {
+                    ShareSheet(items: [exportedText])
+                }
             }
             .alert("Delete Chat", isPresented: $showingDeleteAlert) {
                 Button("Cancel", role: .cancel) { }
@@ -343,12 +378,170 @@ struct ChatHistoryView: View {
         
         do {
             let allConversations = try await APIService.shared.getConversations()
-            // Client-side filter: only show conversations with messages (messageCount > 0)
             conversations = allConversations.filter { $0.messageCount > 0 }
             isLoading = false
         } catch {
             errorMessage = "Failed to load conversations: \(error.localizedDescription)"
             isLoading = false
+        }
+    }
+    
+    private func togglePin(_ conversation: Conversation) {
+        HapticFeedback.light()
+        if let index = conversations.firstIndex(where: { $0.id == conversation.id }) {
+            withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                conversations[index].isPinned.toggle()
+            }
+        }
+    }
+    
+    private func toggleArchive(_ conversation: Conversation) {
+        HapticFeedback.light()
+        if let index = conversations.firstIndex(where: { $0.id == conversation.id }) {
+            withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                conversations[index].isArchived.toggle()
+            }
+        }
+    }
+    
+    private func exportConversation(_ conversation: Conversation) {
+        conversationToExport = conversation
+        Task {
+            do {
+                let messages = try await APIService.shared.getConversationMessages(conversationId: conversation.id)
+                await MainActor.run {
+                    let dateFormatter = DateFormatter()
+                    dateFormatter.dateStyle = .medium
+                    dateFormatter.timeStyle = .short
+                    
+                    var text = "Chat Export: \(conversation.title)\n"
+                    text += "Exported on: \(dateFormatter.string(from: Date()))\n"
+                    text += String(repeating: "-", count: 40) + "\n\n"
+                    
+                    for message in messages {
+                        let role = message.role == .user ? "You" : "Petly AI"
+                        let time = dateFormatter.string(from: message.timestamp)
+                        text += "[\(time)] \(role):\n\(message.content)\n\n"
+                    }
+                    
+                    exportedText = text
+                    showingExportSheet = true
+                }
+            } catch {
+                print("Failed to export conversation: \(error)")
+            }
+        }
+    }
+}
+
+struct SwipeableConversationRow: View {
+    let conversation: Conversation
+    var showContinueButton: Bool = false
+    var onDelete: () -> Void
+    var onRename: () -> Void
+    var onPin: () -> Void
+    var onArchive: () -> Void
+    var onExport: () -> Void
+    var onTap: () -> Void
+    
+    @State private var offset: CGFloat = 0
+    @State private var showingDeleteButton = false
+    
+    private let deleteButtonWidth: CGFloat = 80
+    
+    var body: some View {
+        ZStack(alignment: .trailing) {
+            HStack(spacing: 0) {
+                Spacer()
+                Button(action: {
+                    HapticFeedback.medium()
+                    withAnimation(.easeOut(duration: 0.2)) {
+                        offset = -500
+                    }
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                        onDelete()
+                    }
+                }) {
+                    VStack(spacing: 4) {
+                        Image(systemName: "trash.fill")
+                            .font(.system(size: 20))
+                        Text("Delete")
+                            .font(.petlyCaption(11))
+                    }
+                    .foregroundColor(.white)
+                    .frame(width: deleteButtonWidth, height: 100)
+                    .background(Color.red)
+                }
+            }
+            
+            ConversationRow(
+                conversation: conversation,
+                showContinueButton: showContinueButton
+            )
+            .offset(x: offset)
+            .gesture(
+                DragGesture()
+                    .onChanged { value in
+                        if value.translation.width < 0 {
+                            offset = max(value.translation.width, -deleteButtonWidth - 20)
+                        } else if showingDeleteButton {
+                            offset = min(-deleteButtonWidth + value.translation.width, 0)
+                        }
+                    }
+                    .onEnded { value in
+                        withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                            if value.translation.width < -40 {
+                                offset = -deleteButtonWidth
+                                showingDeleteButton = true
+                            } else {
+                                offset = 0
+                                showingDeleteButton = false
+                            }
+                        }
+                    }
+            )
+            .onTapGesture {
+                if showingDeleteButton {
+                    withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                        offset = 0
+                        showingDeleteButton = false
+                    }
+                } else {
+                    onTap()
+                }
+            }
+        }
+        .clipped()
+        .contextMenu {
+            Button {
+                onPin()
+            } label: {
+                Label(conversation.isPinned ? "Unpin" : "Pin", systemImage: conversation.isPinned ? "pin.slash" : "pin")
+            }
+            
+            Button {
+                onRename()
+            } label: {
+                Label("Rename", systemImage: "pencil")
+            }
+            
+            Button {
+                onExport()
+            } label: {
+                Label("Export", systemImage: "square.and.arrow.up")
+            }
+            
+            Button {
+                onArchive()
+            } label: {
+                Label(conversation.isArchived ? "Unarchive" : "Archive", systemImage: conversation.isArchived ? "tray.and.arrow.up" : "archivebox")
+            }
+            
+            Button(role: .destructive) {
+                onDelete()
+            } label: {
+                Label("Delete", systemImage: "trash")
+            }
         }
     }
 }
@@ -438,6 +631,12 @@ struct ConversationRow: View {
             
             VStack(alignment: .leading, spacing: 4) {
                 HStack(alignment: .center) {
+                    if conversation.isPinned {
+                        Image(systemName: "pin.fill")
+                            .font(.system(size: 10))
+                            .foregroundColor(.petlyDarkGreen)
+                    }
+                    
                     Text(conversation.title)
                         .font(.petlyBody(15))
                         .fontWeight(.semibold)
@@ -595,6 +794,16 @@ struct ConversationDetailView: View {
         
         return !calendar.isDate(message.timestamp, inSameDayAs: previousMessage.timestamp)
     }
+}
+
+struct ShareSheet: UIViewControllerRepresentable {
+    let items: [Any]
+    
+    func makeUIViewController(context: Context) -> UIActivityViewController {
+        UIActivityViewController(activityItems: items, applicationActivities: nil)
+    }
+    
+    func updateUIViewController(_ uiViewController: UIActivityViewController, context: Context) {}
 }
 
 #Preview {
