@@ -159,7 +159,7 @@ struct NewPetAccountView: View {
                             }
                         }
                         
-                        Text("\(appState.currentDog?.name ?? "Arlo"), \(appState.currentDog?.age ?? 1) Year")
+                        Text("\(appState.currentDog?.name ?? "Arlo"), \(appState.currentDog?.ageDisplayString ?? "1 year") old")
                             .font(.petlyTitle(24))
                             .foregroundColor(.petlyDarkGreen)
                         
@@ -1439,7 +1439,7 @@ struct EditPetProfileView: View {
             return
         }
         
-        let ageInt = Int(age) ?? 1
+        let ageDouble = Double(age) ?? 1.0
         let weightDouble = Double(weight)
         let allergiesArray = allergies.split(separator: ",").map { $0.trimmingCharacters(in: .whitespaces) }
         let healthConcernsArray = healthConditions.split(separator: ",").map { $0.trimmingCharacters(in: .whitespaces) }
@@ -1448,7 +1448,7 @@ struct EditPetProfileView: View {
             id: dogId,
             name: name,
             breed: breed,
-            age: ageInt,
+            age: ageDouble,
             weight: weightDouble,
             imageUrl: appState.currentDog?.imageUrl,
             healthConcerns: healthConcernsArray,

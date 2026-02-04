@@ -195,7 +195,7 @@ class AppState: ObservableObject {
                     id: "00000000-0000-4000-8000-000000000001",
                     name: "Arlo",
                     breed: "Mini Poodle",
-                    age: 3,
+                    age: 3.0,
                     weight: 15.0,
                     imageUrl: nil,
                     healthConcerns: [],
