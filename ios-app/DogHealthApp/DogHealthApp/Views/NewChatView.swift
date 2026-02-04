@@ -203,7 +203,7 @@ struct NewChatView: View {
                 }
                 
                 chatInputBar
-                    .padding(.bottom, keyboardObserver.isKeyboardVisible ? keyboardObserver.keyboardHeight - geometry.safeAreaInsets.bottom : inputBarDefaultPadding)
+                    .padding(.bottom, keyboardObserver.isKeyboardVisible ? keyboardObserver.keyboardHeight : inputBarDefaultPadding)
             }
         }
         .ignoresSafeArea(.keyboard, edges: .bottom)
