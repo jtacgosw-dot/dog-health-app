@@ -107,6 +107,9 @@ struct ChatHistoryView: View {
                     }
                     .listStyle(.plain)
                     .scrollContentBackground(.hidden)
+                    .refreshable {
+                        await loadConversations()
+                    }
                 }
             }
             .navigationTitle("Chat History")
