@@ -761,30 +761,26 @@ struct LogEntrySheet: View {
         switch logType {
         case .walk:
             let log = HealthLogEntry(
-                id: UUID().uuidString,
                 dogId: dogId,
-                type: .walk,
-                notes: notes.isEmpty ? nil : notes,
-                timestamp: Date(),
+                logType: "walk",
+                notes: notes,
                 duration: duration.isEmpty ? nil : duration
             )
             modelContext.insert(log)
         case .meals:
             let log = HealthLogEntry(
-                id: UUID().uuidString,
                 dogId: dogId,
-                type: .meals,
-                notes: notes.isEmpty ? "\(mealType)" : "\(mealType): \(notes)",
-                timestamp: Date()
+                logType: "meals",
+                notes: notes.isEmpty ? mealType : "\(mealType): \(notes)",
+                mealType: mealType
             )
             modelContext.insert(log)
         case .symptom:
             let log = HealthLogEntry(
-                id: UUID().uuidString,
                 dogId: dogId,
-                type: .symptom,
+                logType: "symptom",
                 notes: symptomType.isEmpty ? notes : "\(symptomType): \(notes)",
-                timestamp: Date()
+                symptomType: symptomType.isEmpty ? nil : symptomType
             )
             modelContext.insert(log)
         }
