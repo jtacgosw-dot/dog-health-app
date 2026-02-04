@@ -63,6 +63,7 @@ struct NewChatView: View {
     @State private var showingCamera = false
     @State private var selectedPhotoItem: PhotosPickerItem?
     @State private var showingChatHistory = false
+    @State private var suggestedFollowUps: [String] = []
     @FocusState private var isTextFieldFocused: Bool
         @StateObject private var keyboardObserver = KeyboardObserver()
     
@@ -174,7 +175,9 @@ struct NewChatView: View {
                                                 MessageDateHeader(date: message.timestamp)
                                                     .padding(.vertical, 8)
                                             }
-                                            NewMessageBubble(message: message)
+                                            NewMessageBubble(message: message, onFeedback: { feedback in
+                                                handleMessageFeedback(messageId: message.id, feedback: feedback)
+                                            })
                                         }
                                         .id(message.id)
                                     }
@@ -182,6 +185,16 @@ struct NewChatView: View {
                                     if isLoading {
                                         TypingIndicatorBubble()
                                             .transition(.opacity.combined(with: .move(edge: .bottom)))
+                                    }
+                                    
+                                    if !suggestedFollowUps.isEmpty && !isLoading {
+                                        SuggestedFollowUpsView(suggestions: suggestedFollowUps, onSelect: { suggestion in
+                                            messageText = suggestion
+                                            suggestedFollowUps = []
+                                            sendMessage()
+                                        })
+                                        .transition(.opacity.combined(with: .move(edge: .bottom)))
+                                        .id("suggestions")
                                     }
                                 }
                                 .padding()
@@ -195,6 +208,13 @@ struct NewChatView: View {
                             .onChange(of: messages.count) {
                                 if let lastMessage = messages.last {
                                     proxy.scrollTo(lastMessage.id, anchor: .bottom)
+                                }
+                            }
+                            .onChange(of: suggestedFollowUps) {
+                                if !suggestedFollowUps.isEmpty {
+                                    withAnimation {
+                                        proxy.scrollTo("suggestions", anchor: .bottom)
+                                    }
                                 }
                             }
                         }
@@ -454,6 +474,8 @@ struct NewChatView: View {
                     )
                     messages.append(assistantMessage)
                     isLoading = false
+                    
+                    generateSuggestedFollowUps(from: response.message.content)
                 }
             } catch {
                 await MainActor.run {
@@ -520,6 +542,55 @@ struct NewChatView: View {
         let calendar = Calendar.current
         
         return !calendar.isDate(message.timestamp, inSameDayAs: previousMessage.timestamp)
+    }
+    
+    private func handleMessageFeedback(messageId: String, feedback: MessageFeedback) {
+        if let index = messages.firstIndex(where: { $0.id == messageId }) {
+            messages[index].feedback = feedback
+        }
+    }
+    
+    private func generateSuggestedFollowUps(from response: String) {
+        let petName = appState.currentDog?.name ?? "your pet"
+        
+        let suggestions: [String]
+        let lowercased = response.lowercased()
+        
+        if lowercased.contains("food") || lowercased.contains("diet") || lowercased.contains("eat") {
+            suggestions = [
+                "What foods should I avoid?",
+                "How much should \(petName) eat daily?",
+                "Any healthy treat recommendations?"
+            ]
+        } else if lowercased.contains("exercise") || lowercased.contains("walk") || lowercased.contains("activity") {
+            suggestions = [
+                "How long should walks be?",
+                "Best time of day for exercise?",
+                "Indoor activities for rainy days?"
+            ]
+        } else if lowercased.contains("symptom") || lowercased.contains("sick") || lowercased.contains("vet") {
+            suggestions = [
+                "Should I see a vet?",
+                "How can I monitor this at home?",
+                "What warning signs should I watch for?"
+            ]
+        } else if lowercased.contains("train") || lowercased.contains("behavior") || lowercased.contains("command") {
+            suggestions = [
+                "How long will training take?",
+                "Best rewards for training?",
+                "Common mistakes to avoid?"
+            ]
+        } else {
+            suggestions = [
+                "Tell me more about this",
+                "What else should I know?",
+                "Any tips for \(petName)?"
+            ]
+        }
+        
+        withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+            suggestedFollowUps = suggestions
+        }
     }
 }
 
@@ -634,8 +705,10 @@ struct ChatQuickActionChip: View {
 
 struct NewMessageBubble: View {
     let message: Message
+    var onFeedback: ((MessageFeedback) -> Void)?
     @State private var appeared = false
     @State private var showCopiedFeedback = false
+    @State private var currentFeedback: MessageFeedback?
     
     @ScaledMetric(relativeTo: .body) private var bubbleMaxWidth: CGFloat = 280
     @ScaledMetric(relativeTo: .body) private var avatarSize: CGFloat = 32
@@ -654,7 +727,7 @@ struct NewMessageBubble: View {
             VStack(alignment: isUser ? .trailing : .leading, spacing: 4) {
                 combinedBubble
                 
-                HStack(spacing: 4) {
+                HStack(spacing: 8) {
                     Text(message.timestamp, style: .time)
                         .font(.petlyBody(10))
                         .foregroundColor(.petlyFormIcon)
@@ -664,6 +737,29 @@ struct NewMessageBubble: View {
                             .font(.petlyBody(10))
                             .foregroundColor(.petlyDarkGreen)
                             .transition(.opacity.combined(with: .scale))
+                    }
+                    
+                    if !isUser {
+                        HStack(spacing: 4) {
+                            Button(action: copyMessage) {
+                                Image(systemName: "doc.on.doc")
+                                    .font(.system(size: 12))
+                                    .foregroundColor(.petlyFormIcon)
+                            }
+                            
+                            Button(action: { toggleFeedback(.positive) }) {
+                                Image(systemName: currentFeedback == .positive ? "hand.thumbsup.fill" : "hand.thumbsup")
+                                    .font(.system(size: 12))
+                                    .foregroundColor(currentFeedback == .positive ? .petlyDarkGreen : .petlyFormIcon)
+                            }
+                            
+                            Button(action: { toggleFeedback(.negative) }) {
+                                Image(systemName: currentFeedback == .negative ? "hand.thumbsdown.fill" : "hand.thumbsdown")
+                                    .font(.system(size: 12))
+                                    .foregroundColor(currentFeedback == .negative ? .red : .petlyFormIcon)
+                            }
+                        }
+                        .padding(.leading, 4)
                     }
                 }
             }
@@ -679,6 +775,24 @@ struct NewMessageBubble: View {
             withAnimation(.spring(response: 0.35, dampingFraction: 0.75)) {
                 appeared = true
             }
+            currentFeedback = message.feedback
+        }
+    }
+    
+    private func toggleFeedback(_ feedback: MessageFeedback) {
+        let generator = UIImpactFeedbackGenerator(style: .light)
+        generator.impactOccurred()
+        
+        withAnimation(.spring(response: 0.2, dampingFraction: 0.7)) {
+            if currentFeedback == feedback {
+                currentFeedback = nil
+            } else {
+                currentFeedback = feedback
+            }
+        }
+        
+        if let newFeedback = currentFeedback {
+            onFeedback?(newFeedback)
         }
     }
     
@@ -853,6 +967,44 @@ struct TypingIndicatorBubble: View {
                     .foregroundColor(.white)
             )
             .shadow(color: .black.opacity(0.1), radius: 2, x: 0, y: 1)
+    }
+}
+
+struct SuggestedFollowUpsView: View {
+    let suggestions: [String]
+    let onSelect: (String) -> Void
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Suggested questions")
+                .font(.petlyBody(12))
+                .foregroundColor(.petlyFormIcon)
+                .padding(.leading, 40)
+            
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 8) {
+                    ForEach(suggestions, id: \.self) { suggestion in
+                        Button(action: {
+                            let generator = UIImpactFeedbackGenerator(style: .light)
+                            generator.impactOccurred()
+                            onSelect(suggestion)
+                        }) {
+                            Text(suggestion)
+                                .font(.petlyBody(13))
+                                .foregroundColor(.petlyDarkGreen)
+                                .padding(.horizontal, 14)
+                                .padding(.vertical, 8)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 16)
+                                        .fill(Color.petlyLightGreen)
+                                )
+                        }
+                    }
+                }
+                .padding(.horizontal, 40)
+            }
+        }
+        .padding(.vertical, 8)
     }
 }
 
