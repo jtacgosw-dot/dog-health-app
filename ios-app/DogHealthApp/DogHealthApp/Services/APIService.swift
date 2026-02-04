@@ -168,6 +168,14 @@ class APIService {
         let _: ConversationUpdateResponse = try await makeRequest(endpoint: "/chat/conversations/\(conversationId)", method: "PATCH", body: data)
     }
     
+    func updateConversation(conversationId: String, isPinned: Bool? = nil, isArchived: Bool? = nil) async throws {
+        var body: [String: Any] = [:]
+        if let isPinned = isPinned { body["is_pinned"] = isPinned }
+        if let isArchived = isArchived { body["is_archived"] = isArchived }
+        let data = try JSONSerialization.data(withJSONObject: body)
+        let _: ConversationUpdateResponse = try await makeRequest(endpoint: "/chat/conversations/\(conversationId)", method: "PATCH", body: data)
+    }
+    
     func getDogs() async throws -> [Dog] {
         let response: DogsResponse = try await makeRequest(endpoint: "/dogs")
         return response.dogs

@@ -169,12 +169,17 @@ struct PetCard: View {
     }
     
     private func loadPetPhoto() {
-        // Load from the same file location that AppState uses
+        // Load per-pet photo from Documents directory
         let documentsDirectory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
-        let petPhotoURL = documentsDirectory.appendingPathComponent("petPhoto.jpg")
+        let perPetPhotoURL = documentsDirectory.appendingPathComponent("petPhoto_\(dog.id).jpg")
+        let legacyPhotoURL = documentsDirectory.appendingPathComponent("petPhoto.jpg")
         
-        if FileManager.default.fileExists(atPath: petPhotoURL.path) {
-            petPhotoData = try? Data(contentsOf: petPhotoURL)
+        if FileManager.default.fileExists(atPath: perPetPhotoURL.path) {
+            // Use per-pet photo if available
+            petPhotoData = try? Data(contentsOf: perPetPhotoURL)
+        } else if FileManager.default.fileExists(atPath: legacyPhotoURL.path) {
+            // Fallback to legacy single photo for migration
+            petPhotoData = try? Data(contentsOf: legacyPhotoURL)
         } else {
             // Fallback to legacy UserDefaults storage
             let key = "petPhoto_\(dog.id)"

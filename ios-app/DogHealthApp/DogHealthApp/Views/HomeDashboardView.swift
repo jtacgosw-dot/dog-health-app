@@ -296,6 +296,9 @@ struct HomeDashboardView: View {
                         .appearAnimation(delay: 0.35)
                     }
                 }
+                .refreshable {
+                    await refreshData()
+                }
             .sheet(isPresented: $showDailyLog) {
                 DailyLogEntryView()
                     .presentationDetents([.medium, .large])
@@ -389,6 +392,21 @@ struct HomeDashboardView: View {
             message: "Tap the + button below to log your pet's daily activities like meals, walks, and more!",
             icon: "plus.circle.fill"
         )
+    }
+    
+    private func refreshData() async {
+        // Trigger a sync of health logs from the server
+        if let dogId = appState.currentDog?.id {
+            do {
+                let response = try await APIService.shared.getHealthLogs(dogId: dogId)
+                // The SwiftData query will automatically update when new data is available
+                print("Refreshed \(response.logs.count) health logs")
+            } catch {
+                print("Failed to refresh health logs: \(error)")
+            }
+        }
+        // Add a small delay for visual feedback
+        try? await Task.sleep(nanoseconds: 500_000_000)
     }
     
         private func checkWelcomeCard(){

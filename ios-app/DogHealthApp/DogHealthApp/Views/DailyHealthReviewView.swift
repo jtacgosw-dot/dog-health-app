@@ -277,7 +277,7 @@ struct DailyHealthReviewView: View {
                     VStack(spacing: 12) {
                         ForEach(todaysActivity, id: \.id) { activity in
                             loggedItemRow(
-                                icon: activity.logType == "walk" ? "figure.walk" : "sportscourt",
+                                icon: activity.logType == "Walk" ? "figure.walk" : "sportscourt",
                                 title: activity.displayTitle,
                                 subtitle: activity.displaySubtitle,
                                 time: activity.timestamp

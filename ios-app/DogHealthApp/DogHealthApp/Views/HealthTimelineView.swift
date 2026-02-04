@@ -14,6 +14,8 @@ struct HealthTimelineView: View {
     @State private var entriesVisible = false
     @State private var isRefreshing = false
     @State private var entryToEdit: HealthLogEntry?
+    @State private var showingExportSheet = false
+    @State private var exportedPDFURL: URL?
     
     enum TimeRange: String, CaseIterable {
         case today = "Today"
@@ -128,6 +130,11 @@ struct HealthTimelineView: View {
                 .presentationDragIndicator(.visible)
                 .buttonStyle(.plain)
         }
+        .sheet(isPresented: $showingExportSheet) {
+            if let url = exportedPDFURL {
+                ShareSheet(items: [url])
+            }
+        }
         .buttonStyle(.plain)
         .preferredColorScheme(.light)
         .onboardingTooltip(
@@ -156,13 +163,24 @@ struct HealthTimelineView: View {
             
             Spacer()
             
-            Button(action: { showingAddEntry = true }) {
-                Image(systemName: "plus")
-                    .font(.system(size: 16, weight: .medium))
-                    .foregroundColor(.white)
-                    .padding(12)
-                    .background(Color.petlyDarkGreen)
-                    .clipShape(Circle())
+            HStack(spacing: 8) {
+                Button(action: { exportHealthData() }) {
+                    Image(systemName: "square.and.arrow.up")
+                        .font(.system(size: 16, weight: .medium))
+                        .foregroundColor(.petlyDarkGreen)
+                        .padding(12)
+                        .background(Color.petlyLightGreen)
+                        .clipShape(Circle())
+                }
+                
+                Button(action: { showingAddEntry = true }) {
+                    Image(systemName: "plus")
+                        .font(.system(size: 16, weight: .medium))
+                        .foregroundColor(.white)
+                        .padding(12)
+                        .background(Color.petlyDarkGreen)
+                        .clipShape(Circle())
+                }
             }
         }
         .padding(.horizontal)
@@ -330,6 +348,127 @@ struct HealthTimelineView: View {
         withAnimation {
             modelContext.delete(entry)
             try? modelContext.save()
+        }
+    }
+    
+    private func exportHealthData() {
+        let dogName = appState.currentDog?.name ?? "Pet"
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateStyle = .medium
+        dateFormatter.timeStyle = .short
+        
+        // Build PDF content
+        let pdfMetaData = [
+            kCGPDFContextCreator: "Petly App",
+            kCGPDFContextAuthor: "Petly",
+            kCGPDFContextTitle: "\(dogName)'s Health Report"
+        ]
+        let format = UIGraphicsPDFRendererFormat()
+        format.documentInfo = pdfMetaData as [String: Any]
+        
+        let pageWidth: CGFloat = 612 // US Letter
+        let pageHeight: CGFloat = 792
+        let margin: CGFloat = 50
+        let contentWidth = pageWidth - (margin * 2)
+        
+        let renderer = UIGraphicsPDFRenderer(bounds: CGRect(x: 0, y: 0, width: pageWidth, height: pageHeight), format: format)
+        
+        let data = renderer.pdfData { context in
+            context.beginPage()
+            
+            var yPosition: CGFloat = margin
+            
+            // Title
+            let titleFont = UIFont.boldSystemFont(ofSize: 24)
+            let titleAttributes: [NSAttributedString.Key: Any] = [.font: titleFont, .foregroundColor: UIColor.black]
+            let title = "\(dogName)'s Health Report"
+            title.draw(at: CGPoint(x: margin, y: yPosition), withAttributes: titleAttributes)
+            yPosition += 40
+            
+            // Date range
+            let subtitleFont = UIFont.systemFont(ofSize: 14)
+            let subtitleAttributes: [NSAttributedString.Key: Any] = [.font: subtitleFont, .foregroundColor: UIColor.gray]
+            let dateRange = "Generated on \(dateFormatter.string(from: Date()))"
+            dateRange.draw(at: CGPoint(x: margin, y: yPosition), withAttributes: subtitleAttributes)
+            yPosition += 30
+            
+            // Stats summary
+            let statsFont = UIFont.systemFont(ofSize: 12)
+            let statsAttributes: [NSAttributedString.Key: Any] = [.font: statsFont, .foregroundColor: UIColor.darkGray]
+            let statsText = "Total Logs: \(stats.total) | This Week: \(stats.thisWeek) | Day Streak: \(stats.streak)"
+            statsText.draw(at: CGPoint(x: margin, y: yPosition), withAttributes: statsAttributes)
+            yPosition += 40
+            
+            // Divider line
+            context.cgContext.setStrokeColor(UIColor.lightGray.cgColor)
+            context.cgContext.setLineWidth(1)
+            context.cgContext.move(to: CGPoint(x: margin, y: yPosition))
+            context.cgContext.addLine(to: CGPoint(x: pageWidth - margin, y: yPosition))
+            context.cgContext.strokePath()
+            yPosition += 20
+            
+            // Entries
+            let entryTitleFont = UIFont.boldSystemFont(ofSize: 12)
+            let entryBodyFont = UIFont.systemFont(ofSize: 11)
+            let entryDateFont = UIFont.systemFont(ofSize: 10)
+            
+            for group in groupedEntries {
+                // Check if we need a new page
+                if yPosition > pageHeight - 100 {
+                    context.beginPage()
+                    yPosition = margin
+                }
+                
+                // Date header
+                let dateHeader = formatDateHeader(group.date)
+                let dateHeaderAttributes: [NSAttributedString.Key: Any] = [.font: entryTitleFont, .foregroundColor: UIColor.black]
+                dateHeader.draw(at: CGPoint(x: margin, y: yPosition), withAttributes: dateHeaderAttributes)
+                yPosition += 25
+                
+                for entry in group.entries {
+                    if yPosition > pageHeight - 80 {
+                        context.beginPage()
+                        yPosition = margin
+                    }
+                    
+                    // Entry type and title
+                    let entryTitle = "[\(entry.logType)] \(entry.displayTitle)"
+                    let entryTitleAttributes: [NSAttributedString.Key: Any] = [.font: entryBodyFont, .foregroundColor: UIColor.black]
+                    entryTitle.draw(at: CGPoint(x: margin + 20, y: yPosition), withAttributes: entryTitleAttributes)
+                    
+                    // Time
+                    let timeString = dateFormatter.string(from: entry.timestamp)
+                    let timeAttributes: [NSAttributedString.Key: Any] = [.font: entryDateFont, .foregroundColor: UIColor.gray]
+                    let timeSize = timeString.size(withAttributes: timeAttributes)
+                    timeString.draw(at: CGPoint(x: pageWidth - margin - timeSize.width, y: yPosition), withAttributes: timeAttributes)
+                    yPosition += 18
+                    
+                    // Notes if any
+                    if !entry.notes.isEmpty {
+                        let notesAttributes: [NSAttributedString.Key: Any] = [.font: entryDateFont, .foregroundColor: UIColor.darkGray]
+                        let notesRect = CGRect(x: margin + 20, y: yPosition, width: contentWidth - 20, height: 30)
+                        entry.notes.draw(in: notesRect, withAttributes: notesAttributes)
+                        yPosition += 20
+                    }
+                    
+                    yPosition += 10
+                }
+                
+                yPosition += 15
+            }
+        }
+        
+        // Save to temp file
+        let tempDir = FileManager.default.temporaryDirectory
+        let fileName = "\(dogName)_Health_Report_\(Date().timeIntervalSince1970).pdf"
+        let fileURL = tempDir.appendingPathComponent(fileName)
+        
+        do {
+            try data.write(to: fileURL)
+            exportedPDFURL = fileURL
+            showingExportSheet = true
+        } catch {
+            print("Failed to save PDF: \(error)")
         }
     }
 }
