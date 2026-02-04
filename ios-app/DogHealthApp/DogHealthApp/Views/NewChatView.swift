@@ -63,6 +63,7 @@ struct NewChatView: View {
     @ScaledMetric(relativeTo: .body) private var avatarSize: CGFloat = 50
     @ScaledMetric(relativeTo: .body) private var avatarIconSize: CGFloat = 25
     @ScaledMetric(relativeTo: .body) private var imagePreviewSize: CGFloat = 60
+    @ScaledMetric(relativeTo: .body) private var inputBarBottomPadding: CGFloat = 34
     
     init(initialPrompt: Binding<String> = .constant("")) {
         self._initialPrompt = initialPrompt
@@ -317,7 +318,7 @@ struct NewChatView: View {
             }
             .padding(.horizontal)
             .padding(.vertical, 12)
-            .padding(.bottom, keyboardObserver.keyboardHeight > 0 ? keyboardObserver.keyboardHeight - 34 : 100)
+            .padding(.bottom, keyboardObserver.keyboardHeight > 0 ? max(keyboardObserver.keyboardHeight - inputBarBottomPadding, 0) : 0)
             .background(Color.petlyBackground)
         }
     }
