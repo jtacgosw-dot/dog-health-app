@@ -294,6 +294,7 @@ router.get('/conversations',
             messageCount: conv.messages.length,
             lastMessagePreview: lastMessage ? lastMessage.content.substring(0, 100) : null,
             lastMessageRole: lastMessage ? lastMessage.role : null,
+            lastMessageCreatedAt: lastMessage ? lastMessage.created_at : null,
             messages: undefined // Remove the messages array to reduce payload
           };
         });
