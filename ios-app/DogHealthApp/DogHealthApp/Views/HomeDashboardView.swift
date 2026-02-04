@@ -87,10 +87,24 @@ struct HomeDashboardView: View {
             ("Dinner", nil)
         ]
         for log in mealLogs {
-            if let mealType = log.mealType {
-                if mealType == "Breakfast" { meals[0].time = log.timestamp }
-                else if mealType == "Lunch" { meals[1].time = log.timestamp }
-                else if mealType == "Dinner" { meals[2].time = log.timestamp }
+            // Check mealType field first, then fall back to notes
+            let mealTypeText = (log.mealType ?? log.notes).lowercased()
+            if mealTypeText.contains("breakfast") { 
+                meals[0].time = log.timestamp 
+            } else if mealTypeText.contains("lunch") { 
+                meals[1].time = log.timestamp 
+            } else if mealTypeText.contains("dinner") { 
+                meals[2].time = log.timestamp 
+            } else {
+                // If no specific meal type, assign based on time of day
+                let hour = Calendar.current.component(.hour, from: log.timestamp)
+                if hour < 11 && meals[0].time == nil {
+                    meals[0].time = log.timestamp
+                } else if hour < 16 && meals[1].time == nil {
+                    meals[1].time = log.timestamp
+                } else if meals[2].time == nil {
+                    meals[2].time = log.timestamp
+                }
             }
         }
         return meals
