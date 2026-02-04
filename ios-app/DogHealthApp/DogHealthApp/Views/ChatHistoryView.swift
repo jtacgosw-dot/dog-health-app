@@ -198,59 +198,56 @@ struct ChatHistoryView: View {
                             }
                             .frame(maxHeight: .infinity)
                         } else {
-                            ScrollView {
-                                LazyVStack(spacing: 0, pinnedViews: [.sectionHeaders]) {
-                                    ForEach(groupedConversations, id: \.0) { section, convos in
-                                        Section {
-                                            ForEach(convos) { conversation in
-                                                SwipeableConversationRow(
-                                                    conversation: conversation,
-                                                    showContinueButton: onSelectConversation != nil,
-                                                    onDelete: {
-                                                        conversationToDelete = conversation
-                                                        showingDeleteAlert = true
-                                                    },
-                                                    onRename: {
-                                                        conversationToRename = conversation
-                                                        newTitle = conversation.title
-                                                        showingRenameAlert = true
-                                                    },
-                                                    onPin: {
-                                                        togglePin(conversation)
-                                                    },
-                                                    onArchive: {
-                                                        toggleArchive(conversation)
-                                                    },
-                                                    onExport: {
-                                                        exportConversation(conversation)
-                                                    },
-                                                    onTap: {
-                                                        HapticFeedback.light()
-                                                        if onSelectConversation != nil {
-                                                            loadAndSwitchToConversation(conversation)
-                                                        } else {
-                                                            selectedConversationForDetail = conversation
-                                                        }
+                            List {
+                                ForEach(groupedConversations, id: \.0) { section, convos in
+                                    Section {
+                                        ForEach(convos) { conversation in
+                                            SwipeableConversationRow(
+                                                conversation: conversation,
+                                                showContinueButton: onSelectConversation != nil,
+                                                onDelete: {
+                                                    conversationToDelete = conversation
+                                                    showingDeleteAlert = true
+                                                },
+                                                onRename: {
+                                                    conversationToRename = conversation
+                                                    newTitle = conversation.title
+                                                    showingRenameAlert = true
+                                                },
+                                                onPin: {
+                                                    togglePin(conversation)
+                                                },
+                                                onArchive: {
+                                                    toggleArchive(conversation)
+                                                },
+                                                onExport: {
+                                                    exportConversation(conversation)
+                                                },
+                                                onTap: {
+                                                    HapticFeedback.light()
+                                                    if onSelectConversation != nil {
+                                                        loadAndSwitchToConversation(conversation)
+                                                    } else {
+                                                        selectedConversationForDetail = conversation
                                                     }
-                                                )
-                                            }
-                                        } header: {
-                                            HStack {
-                                                Text(section)
-                                                    .font(.petlyBody(13))
-                                                    .fontWeight(.semibold)
-                                                    .foregroundColor(.petlyFormIcon)
-                                                    .textCase(nil)
-                                                Spacer()
-                                            }
-                                            .padding(.horizontal, 20)
-                                            .padding(.vertical, 10)
-                                            .background(Color.petlyBackground)
+                                                }
+                                            )
+                                            .listRowInsets(EdgeInsets(top: 4, leading: 16, bottom: 4, trailing: 16))
+                                            .listRowSeparator(.hidden)
+                                            .listRowBackground(Color.petlyBackground)
                                         }
+                                    } header: {
+                                        Text(section)
+                                            .font(.petlyBody(13))
+                                            .fontWeight(.semibold)
+                                            .foregroundColor(.petlyFormIcon)
+                                            .textCase(nil)
                                     }
                                 }
-                                .padding(.bottom, 20)
                             }
+                            .listStyle(.plain)
+                            .scrollContentBackground(.hidden)
+                            .background(Color.petlyBackground)
                             .refreshable {
                                 await loadConversations()
                             }
