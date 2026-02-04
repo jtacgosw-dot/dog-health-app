@@ -633,10 +633,21 @@ struct NewChatView: View {
         var groomingType: String? = nil
         var moodLevel: Int? = nil
         var activityType: String? = nil
+        var symptomType: String? = nil
+        var severityLevel: Int? = nil
+        var waterAmount: String? = nil
+        var digestionQuality: String? = nil
+        var supplementName: String? = nil
+        var dosage: String? = nil
+        var appointmentType: String? = nil
+        var treatName: String? = nil
+        var mealType: String? = nil
+        var amount: String? = nil
         
-        if normalizedLogType == "Grooming" {
+        switch normalizedLogType {
+        case "Grooming":
             groomingType = details
-        } else if normalizedLogType == "Mood" {
+        case "Mood":
             // Try to determine mood level from details
             let lowercasedDetails = details.lowercased()
             if lowercasedDetails.contains("great") || lowercasedDetails.contains("amazing") || lowercasedDetails.contains("excellent") || lowercasedDetails.contains("super") {
@@ -652,8 +663,35 @@ struct NewChatView: View {
             } else {
                 moodLevel = 3 // Default to Good
             }
-        } else if normalizedLogType == "Playtime" {
+        case "Playtime":
             activityType = details
+        case "Symptom":
+            symptomType = details
+            // Try to determine severity from details
+            let lowercasedDetails = details.lowercased()
+            if lowercasedDetails.contains("severe") || lowercasedDetails.contains("serious") || lowercasedDetails.contains("emergency") {
+                severityLevel = 5
+            } else if lowercasedDetails.contains("moderate") || lowercasedDetails.contains("concerning") {
+                severityLevel = 3
+            } else if lowercasedDetails.contains("mild") || lowercasedDetails.contains("minor") || lowercasedDetails.contains("slight") {
+                severityLevel = 1
+            } else {
+                severityLevel = 2 // Default to mild-moderate
+            }
+        case "Water":
+            waterAmount = details
+        case "Digestion":
+            digestionQuality = details
+        case "Supplements":
+            supplementName = details
+        case "Appointments":
+            appointmentType = details
+        case "Treat":
+            treatName = details
+        case "Meals":
+            mealType = details
+        default:
+            break
         }
         
         let logEntry = HealthLogEntry(
@@ -661,10 +699,20 @@ struct NewChatView: View {
             logType: normalizedLogType,
             timestamp: Date(),
             notes: details,
+            mealType: mealType,
+            amount: amount,
             duration: duration,
             moodLevel: moodLevel,
+            symptomType: symptomType,
+            severityLevel: severityLevel,
+            digestionQuality: digestionQuality,
             activityType: activityType,
-            groomingType: groomingType
+            supplementName: supplementName,
+            dosage: dosage,
+            appointmentType: appointmentType,
+            groomingType: groomingType,
+            treatName: treatName,
+            waterAmount: waterAmount
         )
         
         modelContext.insert(logEntry)
