@@ -454,15 +454,19 @@ struct SwipeableConversationRow: View {
                     }
                 }) {
                     VStack(spacing: 6) {
-                        DeleteTrashIcon()
-                            .frame(width: 22, height: 24)
+                        Image(systemName: "trash.fill")
+                            .font(.system(size: 20, weight: .semibold))
                         Text("Delete")
                             .font(.petlyCaption(11))
                             .fontWeight(.medium)
                     }
                     .foregroundColor(.white)
-                    .frame(width: deleteButtonWidth, height: 100)
-                    .background(Color.red)
+                    .frame(width: deleteButtonWidth - 8, height: 80)
+                    .background(
+                        RoundedRectangle(cornerRadius: 12)
+                            .fill(Color.red)
+                    )
+                    .padding(.trailing, 4)
                 }
             }
             
