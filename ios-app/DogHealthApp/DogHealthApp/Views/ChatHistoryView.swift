@@ -258,7 +258,7 @@ struct ChatHistoryView: View {
                     }
                 }
             }
-            .navigationTitle("Chats")
+            .navigationTitle("Chat History")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
@@ -455,14 +455,17 @@ struct SwipeableConversationRow: View {
                 }) {
                     VStack(spacing: 6) {
                         Image(systemName: "trash.fill")
-                            .font(.system(size: 20, weight: .semibold))
+                            .font(.system(size: 18, weight: .medium))
                         Text("Delete")
-                            .font(.petlyCaption(11))
+                            .font(.petlyCaption(10))
                             .fontWeight(.medium)
                     }
                     .foregroundColor(.white)
-                    .frame(width: deleteButtonWidth, height: 100)
-                    .background(Color.red)
+                    .frame(width: deleteButtonWidth - 8, height: 88)
+                    .background(
+                        RoundedRectangle(cornerRadius: 12)
+                            .fill(Color.red)
+                    )
                 }
             }
             
@@ -676,7 +679,6 @@ struct ConversationRow: View {
         .background(
             RoundedRectangle(cornerRadius: 16)
                 .fill(Color.white)
-                .shadow(color: Color.petlyDarkGreen.opacity(0.08), radius: 12, x: 0, y: 4)
         )
         .padding(.horizontal, 4)
         .padding(.vertical, 4)
