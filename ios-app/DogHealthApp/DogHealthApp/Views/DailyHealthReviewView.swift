@@ -91,7 +91,7 @@ struct DailyHealthReviewView: View {
                         navigationButtons
                     }
                 }
-                .background(Color(.systemGroupedBackground))
+                .background(Color.petlyBackground)
                 .navigationTitle("Daily Health Review")
                 .navigationBarTitleDisplayMode(.inline)
                 .toolbar {
@@ -119,15 +119,15 @@ struct DailyHealthReviewView: View {
             HStack(spacing: 4) {
                 ForEach(0..<totalSteps, id: \.self) { step in
                     RoundedRectangle(cornerRadius: 2)
-                        .fill(step <= currentStep ? Color.petlyDarkGreen : Color.gray.opacity(0.3))
+                        .fill(step <= currentStep ? Color.petlyDarkGreen : Color.petlyLightGreen)
                         .frame(height: 4)
                 }
             }
             .padding(.horizontal)
             
             Text("Step \(currentStep + 1) of \(totalSteps)")
-                .font(.caption)
-                .foregroundColor(.secondary)
+                .font(.petlyBody(12))
+                .foregroundColor(.petlyFormIcon)
         }
         .padding(.vertical)
     }
@@ -137,12 +137,12 @@ struct DailyHealthReviewView: View {
             VStack(alignment: .leading, spacing: 24) {
                 VStack(alignment: .leading, spacing: 8) {
                     Text("Any symptoms today?")
-                        .font(.title2)
-                        .fontWeight(.semibold)
+                        .font(.petlyTitle(22))
+                        .foregroundColor(.petlyDarkGreen)
                     
                     Text("Note any changes in \(dogName)'s health or behavior")
-                        .font(.subheadline)
-                        .foregroundColor(.secondary)
+                        .font(.petlyBody(14))
+                        .foregroundColor(.petlyFormIcon)
                 }
                 
                 HStack(spacing: 16) {
@@ -158,19 +158,19 @@ struct DailyHealthReviewView: View {
                 if hasSymptoms {
                     VStack(alignment: .leading, spacing: 8) {
                         Text("What did you notice?")
-                            .font(.subheadline)
-                            .fontWeight(.medium)
+                            .font(.petlyBodyMedium(14))
+                            .foregroundColor(.petlyDarkGreen)
                         
                         TextEditor(text: $symptomsNotes)
                             .scrollContentBackground(.hidden)
-                            .foregroundColor(.primary)
+                            .foregroundColor(.petlyDarkGreen)
                             .frame(minHeight: 100)
                             .padding(8)
-                            .background(Color(.systemBackground))
+                            .background(Color.petlyLightGreen.opacity(0.5))
                             .cornerRadius(12)
                             .overlay(
                                 RoundedRectangle(cornerRadius: 12)
-                                    .stroke(Color.gray.opacity(0.2), lineWidth: 1)
+                                    .stroke(Color.petlyDarkGreen.opacity(0.2), lineWidth: 1)
                             )
                     }
                 }
@@ -186,20 +186,19 @@ struct DailyHealthReviewView: View {
             VStack(spacing: 8) {
                 Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
                     .font(.title)
-                    .foregroundColor(isSelected ? .petlyDarkGreen : .gray)
+                    .foregroundColor(isSelected ? .petlyDarkGreen : .petlyFormIcon)
                 
                 Text(title)
-                    .font(.subheadline)
-                    .fontWeight(.medium)
-                    .foregroundColor(isSelected ? .petlyDarkGreen : .primary)
+                    .font(.petlyBodyMedium(14))
+                    .foregroundColor(isSelected ? .petlyDarkGreen : .petlyFormIcon)
             }
             .frame(maxWidth: .infinity)
             .padding()
-            .background(isSelected ? Color.petlyLightGreen : Color(.systemBackground))
+            .background(isSelected ? Color.petlyLightGreen : Color.white)
             .cornerRadius(12)
             .overlay(
                 RoundedRectangle(cornerRadius: 12)
-                    .stroke(isSelected ? Color.petlyDarkGreen : Color.gray.opacity(0.2), lineWidth: isSelected ? 2 : 1)
+                    .stroke(isSelected ? Color.petlyDarkGreen : Color.petlyLightGreen, lineWidth: isSelected ? 2 : 1)
             )
         }
         .buttonStyle(PlainButtonStyle())
@@ -210,12 +209,12 @@ struct DailyHealthReviewView: View {
             VStack(alignment: .leading, spacing: 24) {
                 VStack(alignment: .leading, spacing: 8) {
                     Text("Meals today")
-                        .font(.title2)
-                        .fontWeight(.semibold)
+                        .font(.petlyTitle(22))
+                        .foregroundColor(.petlyDarkGreen)
                     
                     Text("Review \(dogName)'s eating today")
-                        .font(.subheadline)
-                        .foregroundColor(.secondary)
+                        .font(.petlyBody(14))
+                        .foregroundColor(.petlyFormIcon)
                 }
                 
                 if todaysMeals.isEmpty {
@@ -238,14 +237,14 @@ struct DailyHealthReviewView: View {
                     
                     HStack {
                         Image(systemName: "checkmark.circle.fill")
-                            .foregroundColor(.green)
+                            .foregroundColor(.petlyDarkGreen)
                         Text("\(todaysMeals.count) meal\(todaysMeals.count == 1 ? "" : "s") logged today")
-                            .font(.subheadline)
-                            .foregroundColor(.secondary)
+                            .font(.petlyBody(14))
+                            .foregroundColor(.petlyDarkGreen)
                     }
                     .padding()
                     .frame(maxWidth: .infinity)
-                    .background(Color.green.opacity(0.1))
+                    .background(Color.petlyLightGreen)
                     .cornerRadius(12)
                 }
                 
@@ -260,12 +259,12 @@ struct DailyHealthReviewView: View {
             VStack(alignment: .leading, spacing: 24) {
                 VStack(alignment: .leading, spacing: 8) {
                     Text("Activity today")
-                        .font(.title2)
-                        .fontWeight(.semibold)
+                        .font(.petlyTitle(22))
+                        .foregroundColor(.petlyDarkGreen)
                     
                     Text("Review \(dogName)'s exercise and playtime")
-                        .font(.subheadline)
-                        .foregroundColor(.secondary)
+                        .font(.petlyBody(14))
+                        .foregroundColor(.petlyFormIcon)
                 }
                 
                 if todaysActivity.isEmpty {
@@ -289,14 +288,14 @@ struct DailyHealthReviewView: View {
                     let totalMinutes = todaysActivity.compactMap { Int($0.duration ?? "0") }.reduce(0, +)
                     HStack {
                         Image(systemName: "checkmark.circle.fill")
-                            .foregroundColor(.green)
+                            .foregroundColor(.petlyDarkGreen)
                         Text("\(totalMinutes) minutes of activity today")
-                            .font(.subheadline)
-                            .foregroundColor(.secondary)
+                            .font(.petlyBody(14))
+                            .foregroundColor(.petlyDarkGreen)
                     }
                     .padding()
                     .frame(maxWidth: .infinity)
-                    .background(Color.green.opacity(0.1))
+                    .background(Color.petlyLightGreen)
                     .cornerRadius(12)
                 }
                 
@@ -311,12 +310,12 @@ struct DailyHealthReviewView: View {
             VStack(alignment: .leading, spacing: 24) {
                 VStack(alignment: .leading, spacing: 8) {
                     Text("Overall mood")
-                        .font(.title2)
-                        .fontWeight(.semibold)
+                        .font(.petlyTitle(22))
+                        .foregroundColor(.petlyDarkGreen)
                     
                     Text("How is \(dogName) doing overall today?")
-                        .font(.subheadline)
-                        .foregroundColor(.secondary)
+                        .font(.petlyBody(14))
+                        .foregroundColor(.petlyFormIcon)
                 }
                 
                 VStack(spacing: 16) {
@@ -327,28 +326,28 @@ struct DailyHealthReviewView: View {
                     }
                     
                     Text(moodDescription(for: overallMood))
-                        .font(.subheadline)
-                        .foregroundColor(.secondary)
+                        .font(.petlyBody(14))
+                        .foregroundColor(.petlyFormIcon)
                 }
                 .padding()
-                .background(Color(.systemBackground))
+                .background(Color.white)
                 .cornerRadius(16)
                 
                 VStack(alignment: .leading, spacing: 8) {
                     Text("Any additional notes?")
-                        .font(.subheadline)
-                        .fontWeight(.medium)
+                        .font(.petlyBodyMedium(14))
+                        .foregroundColor(.petlyDarkGreen)
                     
                     TextEditor(text: $additionalNotes)
                         .scrollContentBackground(.hidden)
-                        .foregroundColor(.primary)
+                        .foregroundColor(.petlyDarkGreen)
                         .frame(minHeight: 80)
                         .padding(8)
-                        .background(Color(.systemBackground))
+                        .background(Color.petlyLightGreen.opacity(0.5))
                         .cornerRadius(12)
                         .overlay(
                             RoundedRectangle(cornerRadius: 12)
-                                .stroke(Color.gray.opacity(0.2), lineWidth: 1)
+                                .stroke(Color.petlyDarkGreen.opacity(0.2), lineWidth: 1)
                         )
                 }
                 
@@ -370,8 +369,8 @@ struct DailyHealthReviewView: View {
                     .font(.title)
                 
                 Text("\(level)")
-                    .font(.caption)
-                    .foregroundColor(isSelected ? .petlyDarkGreen : .gray)
+                    .font(.petlyBody(12))
+                    .foregroundColor(isSelected ? .petlyDarkGreen : .petlyFormIcon)
             }
             .frame(maxWidth: .infinity)
             .padding(.vertical, 12)
@@ -405,7 +404,7 @@ struct DailyHealthReviewView: View {
                     }
                 } label: {
                     Text("Back")
-                        .font(.headline)
+                        .font(.petlyBodyMedium(16))
                         .foregroundColor(.petlyDarkGreen)
                         .frame(maxWidth: .infinity)
                         .padding()
@@ -424,7 +423,7 @@ struct DailyHealthReviewView: View {
                 }
             } label: {
                 Text(currentStep < totalSteps - 1 ? "Next" : "Complete Review")
-                    .font(.headline)
+                    .font(.petlyBodyMedium(16))
                     .foregroundColor(.white)
                     .frame(maxWidth: .infinity)
                     .padding()
@@ -445,28 +444,28 @@ struct DailyHealthReviewView: View {
             
             VStack(spacing: 8) {
                 Text("Health Review Complete")
-                    .font(.title2)
-                    .fontWeight(.semibold)
+                    .font(.petlyTitle(22))
+                    .foregroundColor(.petlyDarkGreen)
                 
                 Text("Great job keeping track of \(dogName)'s health!")
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
+                    .font(.petlyBody(14))
+                    .foregroundColor(.petlyFormIcon)
                     .multilineTextAlignment(.center)
             }
             
             VStack(alignment: .leading, spacing: 16) {
                 Text("Care Consistency")
-                    .font(.headline)
+                    .font(.petlyBodyMedium(16))
+                    .foregroundColor(.petlyDarkGreen)
                 
                 HStack {
                     VStack(alignment: .leading, spacing: 4) {
                         Text(careConsistency.consistencyDescription)
-                            .font(.subheadline)
-                            .foregroundColor(.secondary)
+                            .font(.petlyBody(14))
+                            .foregroundColor(.petlyFormIcon)
                         
                         Text(careConsistency.consistencyLevel)
-                            .font(.title3)
-                            .fontWeight(.semibold)
+                            .font(.petlyBodyMedium(18))
                             .foregroundColor(.petlyDarkGreen)
                     }
                     
@@ -474,7 +473,7 @@ struct DailyHealthReviewView: View {
                     
                     ZStack {
                         Circle()
-                            .stroke(Color.gray.opacity(0.2), lineWidth: 8)
+                            .stroke(Color.petlyLightGreen, lineWidth: 8)
                             .frame(width: 60, height: 60)
                         
                         Circle()
@@ -484,19 +483,19 @@ struct DailyHealthReviewView: View {
                             .rotationEffect(.degrees(-90))
                         
                         Text("\(Int(careConsistency.weeklyPercentage))%")
-                            .font(.caption)
-                            .fontWeight(.semibold)
+                            .font(.petlyBodyMedium(12))
+                            .foregroundColor(.petlyDarkGreen)
                     }
                 }
             }
             .padding()
-            .background(Color(.systemBackground))
+            .background(Color.white)
             .cornerRadius(16)
             .padding(.horizontal)
             
             Text("Consistency helps you spot health changes early")
-                .font(.caption)
-                .foregroundColor(.secondary)
+                .font(.petlyBody(12))
+                .foregroundColor(.petlyFormIcon)
             
             Spacer()
             
@@ -504,7 +503,7 @@ struct DailyHealthReviewView: View {
                 dismiss()
             } label: {
                 Text("Done")
-                    .font(.headline)
+                    .font(.petlyBodyMedium(16))
                     .foregroundColor(.white)
                     .frame(maxWidth: .infinity)
                     .padding()
@@ -519,19 +518,20 @@ struct DailyHealthReviewView: View {
         VStack(spacing: 12) {
             Image(systemName: icon)
                 .font(.largeTitle)
-                .foregroundColor(.gray)
+                .foregroundColor(.petlyFormIcon)
             
             Text(title)
-                .font(.headline)
+                .font(.petlyBodyMedium(16))
+                .foregroundColor(.petlyDarkGreen)
             
             Text(subtitle)
-                .font(.subheadline)
-                .foregroundColor(.secondary)
+                .font(.petlyBody(14))
+                .foregroundColor(.petlyFormIcon)
                 .multilineTextAlignment(.center)
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, 32)
-        .background(Color(.systemBackground))
+        .background(Color.white)
         .cornerRadius(16)
     }
     
@@ -546,24 +546,24 @@ struct DailyHealthReviewView: View {
             
             VStack(alignment: .leading, spacing: 2) {
                 Text(title)
-                    .font(.subheadline)
-                    .fontWeight(.medium)
+                    .font(.petlyBodyMedium(14))
+                    .foregroundColor(.petlyDarkGreen)
                 
                 if !subtitle.isEmpty {
                     Text(subtitle)
-                        .font(.caption)
-                        .foregroundColor(.secondary)
+                        .font(.petlyBody(12))
+                        .foregroundColor(.petlyFormIcon)
                 }
             }
             
             Spacer()
             
             Text(time, style: .time)
-                .font(.caption)
-                .foregroundColor(.secondary)
+                .font(.petlyBody(12))
+                .foregroundColor(.petlyFormIcon)
         }
         .padding()
-        .background(Color(.systemBackground))
+        .background(Color.white)
         .cornerRadius(12)
     }
     

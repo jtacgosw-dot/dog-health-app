@@ -200,35 +200,6 @@ struct HomeDashboardView: View {
                         .padding(.horizontal)
                         .padding(.top, 10)
                         
-                        // Streak counter card
-                        if streakDays > 0 {
-                            HStack {
-                                StreakCounterView(streakDays: streakDays)
-                                Spacer()
-                                Button(action: { showShareSheet = true }) {
-                                    HStack(spacing: 4) {
-                                        Image(systemName: "square.and.arrow.up")
-                                            .font(.system(size: 14))
-                                        Text("Share")
-                                            .font(.petlyBodyMedium(12))
-                                    }
-                                    .foregroundColor(.petlyDarkGreen)
-                                    .padding(.horizontal, 12)
-                                    .padding(.vertical, 8)
-                                    .background(Color.petlyLightGreen)
-                                    .cornerRadius(16)
-                                }
-                                .buttonStyle(PetlyPressButtonStyle())
-                            }
-                            .padding()
-                            .background(
-                                GradientCardBackground(colors: [Color.orange.opacity(0.1), Color.yellow.opacity(0.1)])
-                            )
-                            .cornerRadius(16)
-                            .padding(.horizontal)
-                            .appearAnimation(delay: 0.05)
-                        }
-                        
                         DailyHealthReviewCard(onStartReview: { showDailyHealthReview = true })
                         .padding(.horizontal)
                         .appearAnimation(delay: 0.08)
