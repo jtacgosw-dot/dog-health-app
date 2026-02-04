@@ -629,23 +629,39 @@ struct NewChatView: View {
             normalizedLogType = inferLogTypeFromDetails(details)
         }
         
-        // Parse duration from details for Walk/Playtime logs (e.g., "30 min walk", "20 minute walk", "3-hour walk")
+        // Parse duration from details for Walk/Playtime logs (e.g., "30 min walk", "2 hour 20 min walk", "3-hour walk")
         var duration: String? = nil
         if normalizedLogType == "Walk" || normalizedLogType == "Playtime" {
-            // Try to extract duration from details (e.g., "30 min", "20 minutes", "1 hour", "3-hour")
-            // Pattern matches: "30 min", "30min", "3-hour", "3 hour", "3hour"
+            // Try to extract duration from details - supports combined formats like "2 hour 20 min"
+            // Pattern matches: "30 min", "30min", "3-hour", "3 hour", "3hour", "2 hour 20 min"
             let durationPattern = #"(\d+)[\s\-]*(min|minute|minutes|hr|hour|hours)"#
-            if let regex = try? NSRegularExpression(pattern: durationPattern, options: .caseInsensitive),
-               let match = regex.firstMatch(in: details, options: [], range: NSRange(details.startIndex..., in: details)),
-               let numberRange = Range(match.range(at: 1), in: details),
-               let unitRange = Range(match.range(at: 2), in: details) {
-                let number = Int(details[numberRange]) ?? 0
-                let unit = details[unitRange].lowercased()
-                // Convert hours to minutes
-                let minutes = unit.contains("hr") || unit.contains("hour") ? number * 60 : number
-                duration = "\(minutes)"
+            if let regex = try? NSRegularExpression(pattern: durationPattern, options: .caseInsensitive) {
+                let matches = regex.matches(in: details, options: [], range: NSRange(details.startIndex..., in: details))
+                
+                if !matches.isEmpty {
+                    var totalMinutes = 0
+                    
+                    for match in matches {
+                        if let numberRange = Range(match.range(at: 1), in: details),
+                           let unitRange = Range(match.range(at: 2), in: details) {
+                            let number = Int(details[numberRange]) ?? 0
+                            let unit = details[unitRange].lowercased()
+                            // Convert hours to minutes, add minutes directly
+                            if unit.contains("hr") || unit.contains("hour") {
+                                totalMinutes += number * 60
+                            } else {
+                                totalMinutes += number
+                            }
+                        }
+                    }
+                    
+                    duration = "\(totalMinutes)"
+                } else {
+                    // Default to 30 minutes if no duration specified
+                    duration = "30"
+                }
             } else {
-                // Default to 30 minutes if no duration specified
+                // Default to 30 minutes if regex fails
                 duration = "30"
             }
         }
