@@ -377,8 +377,17 @@ struct ChatHistoryView: View {
     private func togglePin(_ conversation: Conversation) {
         HapticFeedback.light()
         if let index = conversations.firstIndex(where: { $0.id == conversation.id }) {
+            let newPinnedState = !conversations[index].isPinned
             withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-                conversations[index].isPinned.toggle()
+                conversations[index].isPinned = newPinnedState
+            }
+            // Persist to server
+            Task {
+                do {
+                    try await APIService.shared.updateConversation(conversationId: conversation.id, isPinned: newPinnedState)
+                } catch {
+                    print("Failed to update pin state: \(error)")
+                }
             }
         }
     }
@@ -386,8 +395,17 @@ struct ChatHistoryView: View {
     private func toggleArchive(_ conversation: Conversation) {
         HapticFeedback.light()
         if let index = conversations.firstIndex(where: { $0.id == conversation.id }) {
+            let newArchivedState = !conversations[index].isArchived
             withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-                conversations[index].isArchived.toggle()
+                conversations[index].isArchived = newArchivedState
+            }
+            // Persist to server
+            Task {
+                do {
+                    try await APIService.shared.updateConversation(conversationId: conversation.id, isArchived: newArchivedState)
+                } catch {
+                    print("Failed to update archive state: \(error)")
+                }
             }
         }
     }

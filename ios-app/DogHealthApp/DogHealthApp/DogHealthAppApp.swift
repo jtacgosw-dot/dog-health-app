@@ -260,20 +260,43 @@ class AppState: ObservableObject {
     
     // MARK: - Pet Photo Management
     // Using FileManager for robust photo storage (avoids UserDefaults size limits)
-    private var petPhotoURL: URL {
+    // Now supports per-pet photos using the dog's ID in the filename
+    
+    private func petPhotoURL(for dogId: String) -> URL {
+        let documentsDirectory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+        return documentsDirectory.appendingPathComponent("petPhoto_\(dogId).jpg")
+    }
+    
+    // Legacy single photo URL for migration
+    private var legacyPetPhotoURL: URL {
         let documentsDirectory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
         return documentsDirectory.appendingPathComponent("petPhoto.jpg")
     }
     
     func loadPetPhoto() {
+        guard let dogId = currentDog?.id else {
+            petPhotoData = nil
+            print("[AppState] loadPetPhoto: No current dog")
+            return
+        }
+        
+        let photoURL = petPhotoURL(for: dogId)
+        
         do {
-            if FileManager.default.fileExists(atPath: petPhotoURL.path) {
-                let data = try Data(contentsOf: petPhotoURL)
+            if FileManager.default.fileExists(atPath: photoURL.path) {
+                let data = try Data(contentsOf: photoURL)
                 petPhotoData = data
-                print("[AppState] loadPetPhoto: Loaded \(data.count) bytes from \(petPhotoURL.lastPathComponent)")
+                print("[AppState] loadPetPhoto: Loaded \(data.count) bytes for dog \(dogId)")
+            } else if FileManager.default.fileExists(atPath: legacyPetPhotoURL.path) {
+                // Migration: if per-pet photo doesn't exist but legacy photo does, use it
+                let data = try Data(contentsOf: legacyPetPhotoURL)
+                petPhotoData = data
+                // Migrate to per-pet storage
+                try data.write(to: photoURL, options: .atomic)
+                print("[AppState] loadPetPhoto: Migrated legacy photo to dog \(dogId)")
             } else {
                 petPhotoData = nil
-                print("[AppState] loadPetPhoto: No photo file exists")
+                print("[AppState] loadPetPhoto: No photo file exists for dog \(dogId)")
             }
         } catch {
             print("[AppState] loadPetPhoto ERROR: \(error.localizedDescription)")
@@ -282,21 +305,45 @@ class AppState: ObservableObject {
     }
     
     func savePetPhoto(_ data: Data?) {
+        guard let dogId = currentDog?.id else {
+            print("[AppState] savePetPhoto: No current dog")
+            return
+        }
+        
+        let photoURL = petPhotoURL(for: dogId)
+        
         do {
             if let data = data {
-                try data.write(to: petPhotoURL, options: .atomic)
+                try data.write(to: photoURL, options: .atomic)
                 petPhotoData = data
-                print("[AppState] savePetPhoto: Saved \(data.count) bytes to \(petPhotoURL.lastPathComponent)")
+                print("[AppState] savePetPhoto: Saved \(data.count) bytes for dog \(dogId)")
             } else {
-                if FileManager.default.fileExists(atPath: petPhotoURL.path) {
-                    try FileManager.default.removeItem(at: petPhotoURL)
+                if FileManager.default.fileExists(atPath: photoURL.path) {
+                    try FileManager.default.removeItem(at: photoURL)
                 }
                 petPhotoData = nil
-                print("[AppState] savePetPhoto: Removed photo file")
+                print("[AppState] savePetPhoto: Removed photo for dog \(dogId)")
             }
             NotificationCenter.default.post(name: .petPhotoDidChange, object: nil)
         } catch {
             print("[AppState] savePetPhoto ERROR: \(error.localizedDescription)")
         }
+    }
+    
+    // Load photo for a specific dog (used by PetCard in My Pets view)
+    func loadPetPhoto(for dogId: String) -> Data? {
+        let photoURL = petPhotoURL(for: dogId)
+        
+        do {
+            if FileManager.default.fileExists(atPath: photoURL.path) {
+                return try Data(contentsOf: photoURL)
+            } else if FileManager.default.fileExists(atPath: legacyPetPhotoURL.path) {
+                // Fallback to legacy photo for migration
+                return try Data(contentsOf: legacyPetPhotoURL)
+            }
+        } catch {
+            print("[AppState] loadPetPhoto(for:) ERROR: \(error.localizedDescription)")
+        }
+        return nil
     }
 }
