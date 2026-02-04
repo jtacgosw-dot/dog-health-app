@@ -566,8 +566,8 @@ struct NewChatView: View {
         let logEntry = HealthLogEntry(
             dogId: dogId,
             logType: logType,
-            notes: details,
-            timestamp: Date()
+            timestamp: Date(),
+            notes: details
         )
         
         modelContext.insert(logEntry)
@@ -585,8 +585,8 @@ struct NewChatView: View {
         let reminder = PetReminder(
             dogId: dogId,
             title: title,
-            reminderType: "Custom",
-            frequency: "Once",
+            reminderType: .other,
+            frequency: .once,
             nextDueDate: reminderDate,
             notes: "Created from chat"
         )
