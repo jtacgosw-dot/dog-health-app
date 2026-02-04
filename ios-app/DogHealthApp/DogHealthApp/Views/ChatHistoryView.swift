@@ -12,8 +12,55 @@ struct ChatHistoryView: View {
     @State private var newTitle: String = ""
     @State private var showingDeleteAlert = false
     @State private var showingRenameAlert = false
+    @State private var searchText: String = ""
     
     var onSelectConversation: ((String, [Message]) -> Void)?
+    
+    private var filteredConversations: [Conversation] {
+        if searchText.isEmpty {
+            return conversations
+        }
+        return conversations.filter { conversation in
+            conversation.title.localizedCaseInsensitiveContains(searchText) ||
+            (conversation.lastMessagePreview?.localizedCaseInsensitiveContains(searchText) ?? false)
+        }
+    }
+    
+    private var groupedConversations: [(String, [Conversation])] {
+        let calendar = Calendar.current
+        let now = Date()
+        
+        var today: [Conversation] = []
+        var yesterday: [Conversation] = []
+        var thisWeek: [Conversation] = []
+        var thisMonth: [Conversation] = []
+        var older: [Conversation] = []
+        
+        for conversation in filteredConversations {
+            let date = conversation.lastMessageCreatedAt ?? conversation.updatedAt ?? conversation.createdAt
+            
+            if calendar.isDateInToday(date) {
+                today.append(conversation)
+            } else if calendar.isDateInYesterday(date) {
+                yesterday.append(conversation)
+            } else if let daysAgo = calendar.dateComponents([.day], from: date, to: now).day, daysAgo < 7 {
+                thisWeek.append(conversation)
+            } else if let daysAgo = calendar.dateComponents([.day], from: date, to: now).day, daysAgo < 30 {
+                thisMonth.append(conversation)
+            } else {
+                older.append(conversation)
+            }
+        }
+        
+        var result: [(String, [Conversation])] = []
+        if !today.isEmpty { result.append(("Today", today)) }
+        if !yesterday.isEmpty { result.append(("Yesterday", yesterday)) }
+        if !thisWeek.isEmpty { result.append(("This Week", thisWeek)) }
+        if !thisMonth.isEmpty { result.append(("This Month", thisMonth)) }
+        if !older.isEmpty { result.append(("Earlier", older)) }
+        
+        return result
+    }
     
     var body: some View {
         NavigationStack {
@@ -21,27 +68,51 @@ struct ChatHistoryView: View {
                 Color.petlyBackground.ignoresSafeArea()
                 
                 if isLoading {
-                    VStack(spacing: 16) {
-                        ProgressView()
-                            .scaleEffect(1.2)
-                        Text("Loading conversations...")
-                            .font(.petlyBody(14))
+                    VStack(spacing: 20) {
+                        ZStack {
+                            Circle()
+                                .fill(Color.petlyLightGreen)
+                                .frame(width: 80, height: 80)
+                            
+                            Image(systemName: "bubble.left.and.bubble.right")
+                                .font(.system(size: 32))
+                                .foregroundColor(.petlyDarkGreen)
+                                .symbolEffect(.pulse)
+                        }
+                        
+                        Text("Loading chats...")
+                            .font(.petlyBody(15))
                             .foregroundColor(.petlyFormIcon)
                     }
                 } else if let error = errorMessage {
-                    VStack(spacing: 16) {
-                        Image(systemName: "exclamationmark.triangle")
-                            .font(.system(size: 40))
-                            .foregroundColor(.petlyFormIcon)
+                    VStack(spacing: 20) {
+                        ZStack {
+                            Circle()
+                                .fill(Color.red.opacity(0.1))
+                                .frame(width: 80, height: 80)
+                            
+                            Image(systemName: "exclamationmark.triangle.fill")
+                                .font(.system(size: 32))
+                                .foregroundColor(.red.opacity(0.7))
+                        }
+                        
                         Text(error)
                             .font(.petlyBody(14))
                             .foregroundColor(.petlyFormIcon)
                             .multilineTextAlignment(.center)
-                        Button("Try Again") {
+                        
+                        Button(action: {
                             Task { await loadConversations() }
+                        }) {
+                            Text("Try Again")
+                                .font(.petlyBody(14))
+                                .fontWeight(.semibold)
+                                .foregroundColor(.white)
+                                .padding(.horizontal, 24)
+                                .padding(.vertical, 12)
+                                .background(Color.petlyDarkGreen)
+                                .cornerRadius(12)
                         }
-                        .font(.petlyBody(14))
-                        .foregroundColor(.petlyDarkGreen)
                     }
                     .padding()
                 } else if conversations.isEmpty {
@@ -71,44 +142,101 @@ struct ChatHistoryView: View {
                     .padding(.horizontal, 32)
                     .padding(.vertical, 40)
                 } else {
-                    List {
-                        ForEach(conversations) { conversation in
-                            ConversationRow(
-                                conversation: conversation,
-                                showContinueButton: onSelectConversation != nil
-                            )
-                            .listRowBackground(Color.petlyBackground)
-                            .listRowSeparator(.hidden)
-                            .onTapGesture {
-                                if onSelectConversation != nil {
-                                    loadAndSwitchToConversation(conversation)
-                                } else {
-                                    selectedConversationForDetail = conversation
+                    VStack(spacing: 0) {
+                        HStack(spacing: 10) {
+                            Image(systemName: "magnifyingglass")
+                                .font(.system(size: 16))
+                                .foregroundColor(.petlyFormIcon)
+                            
+                            TextField("Search conversations...", text: $searchText)
+                                .font(.petlyBody(15))
+                                .foregroundColor(.petlyDarkGreen)
+                            
+                            if !searchText.isEmpty {
+                                Button(action: { searchText = "" }) {
+                                    Image(systemName: "xmark.circle.fill")
+                                        .font(.system(size: 16))
+                                        .foregroundColor(.petlyFormIcon)
                                 }
-                            }
-                            .swipeActions(edge: .trailing, allowsFullSwipe: false) {
-                                Button(role: .destructive) {
-                                    conversationToDelete = conversation
-                                    showingDeleteAlert = true
-                                } label: {
-                                    Label("Delete", systemImage: "trash")
-                                }
-                                
-                                Button {
-                                    conversationToRename = conversation
-                                    newTitle = conversation.title
-                                    showingRenameAlert = true
-                                } label: {
-                                    Label("Rename", systemImage: "pencil")
-                                }
-                                .tint(.petlyDarkGreen)
                             }
                         }
-                    }
-                    .listStyle(.plain)
-                    .scrollContentBackground(.hidden)
-                    .refreshable {
-                        await loadConversations()
+                        .padding(.horizontal, 14)
+                        .padding(.vertical, 12)
+                        .background(
+                            RoundedRectangle(cornerRadius: 12)
+                                .fill(Color.white)
+                                .shadow(color: Color.petlyDarkGreen.opacity(0.05), radius: 8, x: 0, y: 2)
+                        )
+                        .padding(.horizontal, 16)
+                        .padding(.top, 8)
+                        .padding(.bottom, 12)
+                        
+                        if filteredConversations.isEmpty {
+                            VStack(spacing: 16) {
+                                Image(systemName: "magnifyingglass")
+                                    .font(.system(size: 40))
+                                    .foregroundColor(.petlyFormIcon.opacity(0.5))
+                                Text("No results for \"\(searchText)\"")
+                                    .font(.petlyBody(15))
+                                    .foregroundColor(.petlyFormIcon)
+                            }
+                            .frame(maxHeight: .infinity)
+                        } else {
+                            ScrollView {
+                                LazyVStack(spacing: 0, pinnedViews: [.sectionHeaders]) {
+                                    ForEach(groupedConversations, id: \.0) { section, convos in
+                                        Section {
+                                            ForEach(convos) { conversation in
+                                                ConversationRow(
+                                                    conversation: conversation,
+                                                    showContinueButton: onSelectConversation != nil
+                                                )
+                                                .onTapGesture {
+                                                    HapticFeedback.light()
+                                                    if onSelectConversation != nil {
+                                                        loadAndSwitchToConversation(conversation)
+                                                    } else {
+                                                        selectedConversationForDetail = conversation
+                                                    }
+                                                }
+                                                .contextMenu {
+                                                    Button {
+                                                        conversationToRename = conversation
+                                                        newTitle = conversation.title
+                                                        showingRenameAlert = true
+                                                    } label: {
+                                                        Label("Rename", systemImage: "pencil")
+                                                    }
+                                                    
+                                                    Button(role: .destructive) {
+                                                        conversationToDelete = conversation
+                                                        showingDeleteAlert = true
+                                                    } label: {
+                                                        Label("Delete", systemImage: "trash")
+                                                    }
+                                                }
+                                            }
+                                        } header: {
+                                            HStack {
+                                                Text(section)
+                                                    .font(.petlyBody(13))
+                                                    .fontWeight(.semibold)
+                                                    .foregroundColor(.petlyFormIcon)
+                                                    .textCase(nil)
+                                                Spacer()
+                                            }
+                                            .padding(.horizontal, 20)
+                                            .padding(.vertical, 10)
+                                            .background(Color.petlyBackground)
+                                        }
+                                    }
+                                }
+                                .padding(.bottom, 20)
+                            }
+                            .refreshable {
+                                await loadConversations()
+                            }
+                        }
                     }
                 }
             }
@@ -120,6 +248,14 @@ struct ChatHistoryView: View {
                         Image(systemName: "xmark")
                             .font(.system(size: 16, weight: .medium))
                             .foregroundColor(.petlyDarkGreen)
+                    }
+                }
+                
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    if !conversations.isEmpty {
+                        Text("\(conversations.count) chat\(conversations.count == 1 ? "" : "s")")
+                            .font(.petlyCaption(12))
+                            .foregroundColor(.petlyFormIcon)
                     }
                 }
             }
@@ -221,27 +357,27 @@ struct ConversationRow: View {
     let conversation: Conversation
     var showContinueButton: Bool = false
     
-        private var formattedDate: String {
-            let calendar = Calendar.current
-            let now = Date()
-            let dateToShow = conversation.updatedAt ?? conversation.createdAt
+    private var formattedDate: String {
+        let calendar = Calendar.current
+        let now = Date()
+        let dateToShow = conversation.lastMessageCreatedAt ?? conversation.updatedAt ?? conversation.createdAt
         
-            if calendar.isDateInToday(dateToShow) {
-                let formatter = DateFormatter()
-                formatter.dateFormat = "h:mm a"
-                return formatter.string(from: dateToShow)
-            } else if calendar.isDateInYesterday(dateToShow) {
-                return "Yesterday"
-            } else if let daysAgo = calendar.dateComponents([.day], from: dateToShow, to: now).day, daysAgo < 7 {
-                let formatter = DateFormatter()
-                formatter.dateFormat = "EEEE"
-                return formatter.string(from: dateToShow)
-            } else {
-                let formatter = DateFormatter()
-                formatter.dateFormat = "MMM d"
-                return formatter.string(from: dateToShow)
-            }
+        if calendar.isDateInToday(dateToShow) {
+            let formatter = DateFormatter()
+            formatter.dateFormat = "h:mm a"
+            return formatter.string(from: dateToShow)
+        } else if calendar.isDateInYesterday(dateToShow) {
+            return "Yesterday"
+        } else if let daysAgo = calendar.dateComponents([.day], from: dateToShow, to: now).day, daysAgo < 7 {
+            let formatter = DateFormatter()
+            formatter.dateFormat = "EEEE"
+            return formatter.string(from: dateToShow)
+        } else {
+            let formatter = DateFormatter()
+            formatter.dateFormat = "MMM d"
+            return formatter.string(from: dateToShow)
         }
+    }
     
     private var previewText: String {
         if let preview = conversation.lastMessagePreview {
