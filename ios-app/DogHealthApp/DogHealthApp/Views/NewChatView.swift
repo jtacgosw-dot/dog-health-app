@@ -8,12 +8,27 @@ class KeyboardObserver: ObservableObject {
     @Published var isKeyboardVisible: Bool = false
     private var cancellables = Set<AnyCancellable>()
     
+    var safeAreaBottom: CGFloat {
+        UIApplication.shared.connectedScenes
+            .compactMap { $0 as? UIWindowScene }
+            .flatMap { $0.windows }
+            .first { $0.isKeyWindow }?
+            .safeAreaInsets.bottom ?? 34
+    }
+    
     init() {
         NotificationCenter.default.publisher(for: UIResponder.keyboardWillShowNotification)
             .merge(with: NotificationCenter.default.publisher(for: UIResponder.keyboardWillChangeFrameNotification))
+            .compactMap { notification -> CGFloat? in
+                guard let frame = notification.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect else {
+                    return nil
+                }
+                return frame.height
+            }
             .receive(on: DispatchQueue.main)
-            .sink { [weak self] _ in
+            .sink { [weak self] height in
                 withAnimation(.spring(response: 0.25, dampingFraction: 1.0)) {
+                    self?.keyboardHeight = height
                     self?.isKeyboardVisible = true
                 }
             }
@@ -23,6 +38,7 @@ class KeyboardObserver: ObservableObject {
             .receive(on: DispatchQueue.main)
             .sink { [weak self] _ in
                 withAnimation(.spring(response: 0.25, dampingFraction: 1.0)) {
+                    self?.keyboardHeight = 0
                     self?.isKeyboardVisible = false
                 }
             }
@@ -187,7 +203,6 @@ struct NewChatView: View {
         .safeAreaInset(edge: .bottom, spacing: 0) {
             chatInputBar
         }
-        .ignoresSafeArea(.keyboard, edges: .bottom)
                 .onChange(of: initialPrompt) { oldValue, newValue in
                     if !newValue.isEmpty {
                         messageText = newValue
