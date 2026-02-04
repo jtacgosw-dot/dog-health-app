@@ -1768,6 +1768,18 @@ struct WelcomeCard: View {
     let onDismiss: () -> Void
     
     @State private var isVisible = false
+    @State private var dragOffset: CGFloat = 0
+    
+    private func dismissCard() {
+        HapticFeedback.light()
+        withAnimation(.easeOut(duration: 0.2)) {
+            isVisible = false
+            dragOffset = -200
+        }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+            onDismiss()
+        }
+    }
     
     var body: some View {
         VStack(spacing: 16) {
@@ -1782,15 +1794,7 @@ struct WelcomeCard: View {
                 
                 Spacer()
                 
-                Button(action: {
-                    HapticFeedback.light()
-                    withAnimation {
-                        isVisible = false
-                    }
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                        onDismiss()
-                    }
-                }) {
+                Button(action: dismissCard) {
                     Image(systemName: "xmark.circle.fill")
                         .foregroundColor(.petlyFormIcon)
                 }
@@ -1805,6 +1809,14 @@ struct WelcomeCard: View {
                 QuickTipItem(icon: "figure.walk", text: "Track walks")
                 QuickTipItem(icon: "heart.fill", text: "Monitor health")
             }
+            
+            HStack(spacing: 4) {
+                Image(systemName: "chevron.up")
+                    .font(.system(size: 10))
+                Text("Swipe up to dismiss")
+                    .font(.petlyCaption(10))
+            }
+            .foregroundColor(.petlyFormIcon.opacity(0.6))
         }
         .padding()
         .background(
@@ -1812,8 +1824,26 @@ struct WelcomeCard: View {
                 .fill(Color.petlyLightGreen)
                 .shadow(color: .black.opacity(0.1), radius: 8, x: 0, y: 4)
         )
+        .offset(y: dragOffset)
         .scaleEffect(isVisible ? 1 : 0.9)
         .opacity(isVisible ? 1 : 0)
+        .gesture(
+            DragGesture()
+                .onChanged { value in
+                    if value.translation.height < 0 {
+                        dragOffset = value.translation.height
+                    }
+                }
+                .onEnded { value in
+                    if value.translation.height < -50 {
+                        dismissCard()
+                    } else {
+                        withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                            dragOffset = 0
+                        }
+                    }
+                }
+        )
         .onAppear {
             withAnimation(.spring(response: 0.4, dampingFraction: 0.7)) {
                 isVisible = true
