@@ -1094,6 +1094,7 @@ struct MembershipStatusView: View {
                                 BenefitRow(icon: "bell.fill", title: "Smart Reminders", description: "Never miss vaccinations or medications")
                             }
                             .padding()
+                            .frame(maxWidth: .infinity)
                             .background(Color.white)
                             .cornerRadius(16)
                             
@@ -1137,6 +1138,7 @@ struct MembershipStatusView: View {
                                 BenefitRow(icon: "bell.fill", title: "Smart Reminders", description: "Set unlimited reminders")
                             }
                             .padding()
+                            .frame(maxWidth: .infinity)
                             .background(Color.white)
                             .cornerRadius(16)
                             

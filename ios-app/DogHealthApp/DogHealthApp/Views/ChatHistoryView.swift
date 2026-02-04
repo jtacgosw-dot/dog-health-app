@@ -113,10 +113,11 @@ struct ChatHistoryView: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
-                    Button("Close") {
-                        dismiss()
+                    Button(action: { dismiss() }) {
+                        Image(systemName: "xmark")
+                            .font(.system(size: 16, weight: .medium))
+                            .foregroundColor(.petlyDarkGreen)
                     }
-                    .foregroundColor(.petlyDarkGreen)
                 }
             }
             .sheet(item: $selectedConversationForDetail) { conversation in
