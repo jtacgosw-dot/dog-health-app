@@ -32,7 +32,7 @@ struct DailyHealthReviewView: View {
         let today = calendar.startOfDay(for: Date())
         return todayLogs.filter { log in
             log.dogId == dogId &&
-            log.logType == "meals" &&
+            log.logType == "Meals" &&
             calendar.isDate(log.timestamp, inSameDayAs: today)
         }
     }
@@ -42,7 +42,7 @@ struct DailyHealthReviewView: View {
         let today = calendar.startOfDay(for: Date())
         return todayLogs.filter { log in
             log.dogId == dogId &&
-            (log.logType == "walk" || log.logType == "playtime") &&
+            (log.logType == "Walk" || log.logType == "Playtime") &&
             calendar.isDate(log.timestamp, inSameDayAs: today)
         }
     }
@@ -52,7 +52,7 @@ struct DailyHealthReviewView: View {
         let today = calendar.startOfDay(for: Date())
         return todayLogs.filter { log in
             log.dogId == dogId &&
-            log.logType == "water" &&
+            log.logType == "Water" &&
             calendar.isDate(log.timestamp, inSameDayAs: today)
         }
     }

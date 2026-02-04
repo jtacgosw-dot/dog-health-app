@@ -605,9 +605,13 @@ struct NewChatView: View {
         
         guard let dogId = appState.currentDog?.id else { return }
         
+        // Capitalize first letter to match LogType enum values (e.g., "Meals", "Walk", "Water")
+        // AI may generate "meals" or "Meals" - normalize to match the app's LogType enum
+        let normalizedLogType = logType.prefix(1).uppercased() + logType.dropFirst().lowercased()
+        
         let logEntry = HealthLogEntry(
             dogId: dogId,
-            logType: logType,
+            logType: normalizedLogType,
             timestamp: Date(),
             notes: details
         )
