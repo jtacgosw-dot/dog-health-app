@@ -7,6 +7,14 @@ class KeyboardObserver: ObservableObject {
     @Published var keyboardHeight: CGFloat = 0
     private var cancellables = Set<AnyCancellable>()
     
+    var safeAreaBottom: CGFloat {
+        UIApplication.shared.connectedScenes
+            .compactMap { $0 as? UIWindowScene }
+            .flatMap { $0.windows }
+            .first { $0.isKeyWindow }?
+            .safeAreaInsets.bottom ?? 34
+    }
+    
     init() {
         NotificationCenter.default.publisher(for: UIResponder.keyboardWillShowNotification)
             .merge(with: NotificationCenter.default.publisher(for: UIResponder.keyboardWillChangeFrameNotification))
@@ -319,7 +327,7 @@ struct NewChatView: View {
             }
             .padding(.horizontal)
             .padding(.vertical, 12)
-            .padding(.bottom, keyboardObserver.keyboardHeight > 0 ? 8 : inputBarDefaultPadding)
+            .padding(.bottom, keyboardObserver.keyboardHeight > 0 ? max(keyboardObserver.keyboardHeight - keyboardObserver.safeAreaBottom, 0) : inputBarDefaultPadding)
             .background(Color.petlyBackground)
         }
     }
