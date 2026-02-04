@@ -467,6 +467,8 @@ struct SwipeableConversationRow: View {
                             .fill(Color.red)
                     )
                 }
+                .frame(width: deleteButtonWidth, height: 100)
+                .background(Color.petlyBackground)
             }
             
             ConversationRow(
