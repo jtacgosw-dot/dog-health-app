@@ -438,6 +438,25 @@ struct NutritionEditView: View {
     let foodTypes = ["Dry kibble", "Wet food", "Raw diet", "Home cooked", "Mixed"]
     let portionSizes = ["1/2 cup", "1 cup", "1.5 cups", "2 cups", "Custom"]
     
+    private func loadExistingData() {
+        if let dog = appState.currentDog {
+            feedingSchedule = dog.feedingSchedule ?? "Twice daily"
+            foodType = dog.foodType ?? "Dry kibble"
+            portionSize = dog.portionSize ?? "1 cup"
+            allergies = dog.foodAllergies ?? ""
+        }
+    }
+    
+    private func saveNutrition() {
+        guard var dog = appState.currentDog else { return }
+        dog.feedingSchedule = feedingSchedule
+        dog.foodType = foodType
+        dog.portionSize = portionSize
+        dog.foodAllergies = allergies.isEmpty ? nil : allergies
+        dog.updatedAt = Date()
+        appState.saveDogLocally(dog)
+    }
+    
     var body: some View {
         NavigationView {
             ZStack {
@@ -509,6 +528,7 @@ struct NutritionEditView: View {
                         }
                         
                         Button(action: {
+                            saveNutrition()
                             showSaved = true
                             DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
                                 dismiss()
@@ -536,6 +556,9 @@ struct NutritionEditView: View {
                             .foregroundColor(.petlyDarkGreen)
                     }
                 }
+            }
+            .onAppear {
+                loadExistingData()
             }
             .overlay {
                 if showSaved {
@@ -567,6 +590,27 @@ struct PersonalityEditView: View {
     @State private var showSaved = false
     
     let traits = ["Playful", "Calm", "Curious", "Protective", "Affectionate", "Independent", "Social", "Shy", "Energetic", "Lazy"]
+    
+    private func loadExistingData() {
+        if let dog = appState.currentDog {
+            energyLevel = dog.energyLevel ?? 3
+            friendliness = dog.friendliness ?? 4
+            trainability = dog.trainability ?? 3
+            if let traits = dog.personalityTraits {
+                selectedTraits = Set(traits)
+            }
+        }
+    }
+    
+    private func savePersonality() {
+        guard var dog = appState.currentDog else { return }
+        dog.energyLevel = energyLevel
+        dog.friendliness = friendliness
+        dog.trainability = trainability
+        dog.personalityTraits = Array(selectedTraits)
+        dog.updatedAt = Date()
+        appState.saveDogLocally(dog)
+    }
     
     var body: some View {
         NavigationView {
@@ -664,6 +708,7 @@ struct PersonalityEditView: View {
                         }
                         
                         Button(action: {
+                            savePersonality()
                             showSaved = true
                             DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
                                 dismiss()
@@ -691,6 +736,9 @@ struct PersonalityEditView: View {
                             .foregroundColor(.petlyDarkGreen)
                     }
                 }
+            }
+            .onAppear {
+                loadExistingData()
             }
             .overlay {
                 if showSaved {

@@ -452,7 +452,19 @@ DOG PROFILE - ${dogProfile.name.toUpperCase()}:
 - Neutered/Spayed: ${dogProfile.is_neutered !== null ? (dogProfile.is_neutered ? 'Yes' : 'No') : 'Unknown'}
 ${dogProfile.medical_history ? `- Medical History: ${dogProfile.medical_history} (IMPORTANT: factor this into all advice)` : ''}
 ${allergiesValue && allergiesValue.length > 0 ? `- Known Allergies/Health Concerns: ${Array.isArray(allergiesValue) ? allergiesValue.join(', ') : allergiesValue} (IMPORTANT: always consider when discussing food/medications)` : ''}
-${dogProfile.current_medications ? `- Current Medications: ${dogProfile.current_medications} (IMPORTANT: consider drug interactions)` : ''}`;
+${dogProfile.current_medications ? `- Current Medications: ${dogProfile.current_medications} (IMPORTANT: consider drug interactions)` : ''}
+
+PERSONALITY PROFILE:
+${dogProfile.energyLevel ? `- Energy Level: ${dogProfile.energyLevel}/5 ${dogProfile.energyLevel >= 4 ? '(high energy - needs plenty of exercise)' : dogProfile.energyLevel <= 2 ? '(low energy - may prefer calm activities)' : '(moderate energy)'}` : ''}
+${dogProfile.friendliness ? `- Friendliness: ${dogProfile.friendliness}/5 ${dogProfile.friendliness >= 4 ? '(very social)' : dogProfile.friendliness <= 2 ? '(may be shy or reserved)' : '(moderately social)'}` : ''}
+${dogProfile.trainability ? `- Trainability: ${dogProfile.trainability}/5 ${dogProfile.trainability >= 4 ? '(quick learner)' : dogProfile.trainability <= 2 ? '(may need extra patience with training)' : '(average trainability)'}` : ''}
+${dogProfile.personalityTraits && dogProfile.personalityTraits.length > 0 ? `- Personality Traits: ${dogProfile.personalityTraits.join(', ')} (tailor advice to these traits)` : ''}
+
+NUTRITION INFO:
+${dogProfile.feedingSchedule ? `- Feeding Schedule: ${dogProfile.feedingSchedule}` : ''}
+${dogProfile.foodType ? `- Food Type: ${dogProfile.foodType}` : ''}
+${dogProfile.portionSize ? `- Portion Size: ${dogProfile.portionSize}` : ''}
+${dogProfile.foodAllergies ? `- Food Allergies/Sensitivities: ${dogProfile.foodAllergies} (IMPORTANT: always consider when discussing food)` : ''}`;
     }
 
     if (patterns.length > 0) {
