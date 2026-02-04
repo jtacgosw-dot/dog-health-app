@@ -463,8 +463,8 @@ struct SwipeableConversationRow: View {
                     }
                 }) {
                     VStack(spacing: 4) {
-                        Image(systemName: "trash.fill")
-                            .font(.system(size: 20))
+                        Image(systemName: "trash")
+                            .font(.system(size: 20, weight: .medium))
                         Text("Delete")
                             .font(.petlyCaption(11))
                     }
