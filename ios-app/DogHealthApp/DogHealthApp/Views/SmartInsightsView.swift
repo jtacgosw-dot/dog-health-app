@@ -201,10 +201,10 @@ struct SmartInsightsView: View {
             return daysAgo <= 14
         }
         
-        let thisWeekActivity = last7Days.filter { $0.logType == "walk" || $0.logType == "playtime" }
+        let thisWeekActivity = last7Days.filter { $0.logType == "Walk" || $0.logType == "Playtime" }
         let lastWeekActivity = last14Days.filter { log in
             guard let daysAgo = calendar.dateComponents([.day], from: log.timestamp, to: now).day else { return false }
-            return daysAgo > 7 && daysAgo <= 14 && (log.logType == "walk" || log.logType == "playtime")
+            return daysAgo > 7 && daysAgo <= 14 && (log.logType == "Walk" || log.logType == "Playtime")
         }
         
         if !thisWeekActivity.isEmpty && !lastWeekActivity.isEmpty {
@@ -228,7 +228,7 @@ struct SmartInsightsView: View {
             }
         }
         
-        let symptoms = last7Days.filter { $0.logType == "symptom" }
+        let symptoms = last7Days.filter { $0.logType == "Symptom" }
         if symptoms.count >= 2 {
             let symptomTypes = Dictionary(grouping: symptoms, by: { $0.symptomType ?? "Unknown" })
             if let mostCommon = symptomTypes.max(by: { $0.value.count < $1.value.count }) {
@@ -245,7 +245,7 @@ struct SmartInsightsView: View {
             }
         }
         
-        let meals = last7Days.filter { $0.logType == "meals" }
+        let meals = last7Days.filter { $0.logType == "Meals" }
         let mealsByDay = Dictionary(grouping: meals) { meal in
             calendar.startOfDay(for: meal.timestamp)
         }
@@ -321,9 +321,9 @@ struct SmartInsightsView: View {
         
         return DataStats(
             daysTracked: uniqueDays.count,
-            mealsLogged: monthLogs.filter { $0.logType == "meals" }.count,
-            activitiesLogged: monthLogs.filter { $0.logType == "walk" || $0.logType == "playtime" }.count,
-            symptomsLogged: monthLogs.filter { $0.logType == "symptom" }.count
+            mealsLogged: monthLogs.filter { $0.logType == "Meals" }.count,
+            activitiesLogged: monthLogs.filter { $0.logType == "Walk" || $0.logType == "Playtime" }.count,
+            symptomsLogged: monthLogs.filter { $0.logType == "Symptom" }.count
         )
     }
 }
@@ -489,14 +489,14 @@ struct SmartInsightsCard: View {
             return daysAgo <= 7
         }
         
-        let activities = last7Days.filter { $0.logType == "walk" || $0.logType == "playtime" }
+        let activities = last7Days.filter { $0.logType == "Walk" || $0.logType == "Playtime" }
         let totalMinutes = activities.compactMap { Int($0.duration ?? "0") }.reduce(0, +)
         
         if totalMinutes > 0 {
             return "\(totalMinutes) min activity this week"
         }
         
-        let meals = last7Days.filter { $0.logType == "meals" }
+        let meals = last7Days.filter { $0.logType == "Meals" }
         if !meals.isEmpty {
             return "\(meals.count) meals logged this week"
         }
