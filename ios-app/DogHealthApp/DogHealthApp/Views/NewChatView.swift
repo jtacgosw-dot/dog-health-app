@@ -63,9 +63,8 @@ struct NewChatView: View {
     @ScaledMetric(relativeTo: .body) private var avatarSize: CGFloat = 50
     @ScaledMetric(relativeTo: .body) private var avatarIconSize: CGFloat = 25
     @ScaledMetric(relativeTo: .body) private var imagePreviewSize: CGFloat = 60
-    @ScaledMetric(relativeTo: .body) private var inputBarDefaultPadding: CGFloat = 90
-    // Fixed value for keyboard offset - safe area doesn't scale with Dynamic Type
-    private let inputBarKeyboardOffset: CGFloat = 34
+    // Fixed padding for tab bar when keyboard is hidden
+    private let inputBarDefaultPadding: CGFloat = 90
     
     init(initialPrompt: Binding<String> = .constant("")) {
         self._initialPrompt = initialPrompt
@@ -320,7 +319,7 @@ struct NewChatView: View {
             }
             .padding(.horizontal)
             .padding(.vertical, 12)
-            .padding(.bottom, keyboardObserver.keyboardHeight > 0 ? max(keyboardObserver.keyboardHeight - inputBarKeyboardOffset, 0) : inputBarDefaultPadding)
+            .padding(.bottom, keyboardObserver.keyboardHeight > 0 ? 8 : inputBarDefaultPadding)
             .background(Color.petlyBackground)
         }
     }
