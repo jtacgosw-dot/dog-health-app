@@ -170,7 +170,7 @@ struct PetProfileView: View {
         
         Task {
             do {
-                let ageInt = Int(age) ?? 0
+                let ageDouble = Double(age) ?? 0
                 let weightDouble = Double(weight)
                 let healthConcernsArray = healthConcerns.split(separator: ",").map { $0.trimmingCharacters(in: .whitespaces) }
                 let allergiesArray = allergies.split(separator: ",").map { $0.trimmingCharacters(in: .whitespaces) }
@@ -181,7 +181,7 @@ struct PetProfileView: View {
                         id: existingDog.id,
                         name: name,
                         breed: breed,
-                        age: ageInt,
+                        age: ageDouble,
                         weight: weightDouble,
                         imageUrl: existingDog.imageUrl,
                         healthConcerns: healthConcernsArray,
@@ -194,7 +194,7 @@ struct PetProfileView: View {
                     let newDog = Dog(
                         name: name,
                         breed: breed,
-                        age: ageInt,
+                        age: ageDouble,
                         weight: weightDouble,
                         healthConcerns: healthConcernsArray,
                         allergies: allergiesArray
