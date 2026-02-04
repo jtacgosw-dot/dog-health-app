@@ -63,6 +63,7 @@ struct NewChatView: View {
     @State private var showingCamera = false
     @State private var selectedPhotoItem: PhotosPickerItem?
     @State private var showingChatHistory = false
+    @State private var showingPetSwitcher = false
     @FocusState private var isTextFieldFocused: Bool
         @StateObject private var keyboardObserver = KeyboardObserver()
     
@@ -134,22 +135,24 @@ struct NewChatView: View {
                         Spacer()
                         
                         if appState.currentDog != nil {
-                            if let photoData = appState.petPhotoData,
-                               let uiImage = UIImage(data: photoData) {
-                                Image(uiImage: uiImage)
-                                    .resizable()
-                                    .scaledToFill()
-                                    .frame(width: min(avatarSize, 70), height: min(avatarSize, 70))
-                                    .clipShape(Circle())
-                            } else {
-                                Circle()
-                                    .fill(Color.petlyLightGreen)
-                                    .frame(width: min(avatarSize, 70), height: min(avatarSize, 70))
-                                    .overlay(
-                                        Image(systemName: "dog.fill")
-                                            .font(.system(size: min(avatarIconSize, 32)))
-                                            .foregroundColor(.petlyDarkGreen)
-                                    )
+                            Button(action: { showingPetSwitcher = true }) {
+                                if let photoData = appState.petPhotoData,
+                                   let uiImage = UIImage(data: photoData) {
+                                    Image(uiImage: uiImage)
+                                        .resizable()
+                                        .scaledToFill()
+                                        .frame(width: min(avatarSize, 70), height: min(avatarSize, 70))
+                                        .clipShape(Circle())
+                                } else {
+                                    Circle()
+                                        .fill(Color.petlyLightGreen)
+                                        .frame(width: min(avatarSize, 70), height: min(avatarSize, 70))
+                                        .overlay(
+                                            Image(systemName: "dog.fill")
+                                                .font(.system(size: min(avatarIconSize, 32)))
+                                                .foregroundColor(.petlyDarkGreen)
+                                        )
+                                }
                             }
                         }
                     }
@@ -260,6 +263,10 @@ struct NewChatView: View {
                     attachedImages = []
                 }
             })
+                .environmentObject(appState)
+        }
+        .sheet(isPresented: $showingPetSwitcher) {
+            PetSwitcherView()
                 .environmentObject(appState)
         }
                 .buttonStyle(.plain)
