@@ -167,14 +167,9 @@ struct HomeDashboardView: View {
                                         .font(.petlyTitle(28))
                                         .foregroundColor(.petlyDarkGreen)
                                     
-                                    HStack(spacing: 4) {
-                                        Text("Here's how \(dogName)'s doing today")
-                                            .font(.petlyBody(16))
-                                            .foregroundColor(.petlyDarkGreen)
-                                        Image(systemName: "pawprint.fill")
-                                            .font(.system(size: pawprintIconSize))
-                                            .foregroundColor(.petlyDarkGreen)
-                                    }
+                                    Text("Here's how \(dogName)'s doing today")
+                                        .font(.petlyBody(16))
+                                        .foregroundColor(.petlyDarkGreen)
                                 }
                                 
                                 Spacer()
