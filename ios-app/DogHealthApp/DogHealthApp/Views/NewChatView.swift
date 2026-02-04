@@ -709,7 +709,25 @@ struct NewChatView: View {
         case "Treat":
             treatName = details
         case "Meals":
-            mealType = details
+            // Extract meal type (Breakfast/Lunch/Dinner) from details
+            let lowercasedDetails = details.lowercased()
+            if lowercasedDetails.contains("breakfast") {
+                mealType = "Breakfast"
+            } else if lowercasedDetails.contains("lunch") {
+                mealType = "Lunch"
+            } else if lowercasedDetails.contains("dinner") {
+                mealType = "Dinner"
+            } else {
+                // Default based on time of day
+                let hour = Calendar.current.component(.hour, from: Date())
+                if hour < 11 {
+                    mealType = "Breakfast"
+                } else if hour < 16 {
+                    mealType = "Lunch"
+                } else {
+                    mealType = "Dinner"
+                }
+            }
         default:
             break
         }
