@@ -435,75 +435,24 @@ struct SwipeableConversationRow: View {
     var onExport: () -> Void
     var onTap: () -> Void
     
-    @State private var offset: CGFloat = 0
-    @State private var showingDeleteButton = false
-    
-    private let deleteButtonWidth: CGFloat = 80
-    
     var body: some View {
-        ZStack(alignment: .trailing) {
-            HStack(spacing: 0) {
-                Spacer()
-                Button(action: {
-                    HapticFeedback.medium()
-                    withAnimation(.easeOut(duration: 0.2)) {
-                        offset = -500
-                    }
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-                        onDelete()
-                    }
-                }) {
-                    VStack(spacing: 6) {
-                        Image(systemName: "trash.fill")
-                            .font(.system(size: 18, weight: .medium))
-                        Text("Delete")
-                            .font(.petlyCaption(10))
-                            .fontWeight(.medium)
-                    }
-                    .foregroundColor(.white)
-                    .frame(width: deleteButtonWidth, height: 100)
-                    .background(Color.red)
-                }
-            }
-            
+        Button(action: {
+            onTap()
+        }) {
             ConversationRow(
                 conversation: conversation,
                 showContinueButton: showContinueButton
             )
-            .offset(x: offset)
-            .gesture(
-                DragGesture()
-                    .onChanged { value in
-                        if value.translation.width < 0 {
-                            offset = max(value.translation.width, -deleteButtonWidth - 20)
-                        } else if showingDeleteButton {
-                            offset = min(-deleteButtonWidth + value.translation.width, 0)
-                        }
-                    }
-                    .onEnded { value in
-                        withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-                            if value.translation.width < -40 {
-                                offset = -deleteButtonWidth
-                                showingDeleteButton = true
-                            } else {
-                                offset = 0
-                                showingDeleteButton = false
-                            }
-                        }
-                    }
-            )
-            .onTapGesture {
-                if showingDeleteButton {
-                    withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-                        offset = 0
-                        showingDeleteButton = false
-                    }
-                } else {
-                    onTap()
-                }
+        }
+        .buttonStyle(PlainButtonStyle())
+        .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+            Button(role: .destructive) {
+                HapticFeedback.medium()
+                onDelete()
+            } label: {
+                Label("Delete", systemImage: "trash.fill")
             }
         }
-        .clipped()
         .contextMenu {
             Button {
                 onPin()
@@ -532,7 +481,7 @@ struct SwipeableConversationRow: View {
             Button(role: .destructive) {
                 onDelete()
             } label: {
-                Label("Delete", systemImage: "minus.circle")
+                Label("Delete", systemImage: "trash.fill")
             }
         }
     }
