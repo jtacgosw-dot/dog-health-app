@@ -258,7 +258,7 @@ struct ChatHistoryView: View {
                     }
                 }
             }
-            .navigationTitle("Chat History")
+            .navigationTitle("Chats")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
@@ -461,12 +461,8 @@ struct SwipeableConversationRow: View {
                             .fontWeight(.medium)
                     }
                     .foregroundColor(.white)
-                    .frame(width: deleteButtonWidth - 8, height: 80)
-                    .background(
-                        RoundedRectangle(cornerRadius: 12)
-                            .fill(Color.red)
-                    )
-                    .padding(.trailing, 4)
+                    .frame(width: deleteButtonWidth, height: 100)
+                    .background(Color.red)
                 }
             }
             
