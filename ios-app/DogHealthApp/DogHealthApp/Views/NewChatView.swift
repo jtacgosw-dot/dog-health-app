@@ -158,7 +158,7 @@ struct NewChatView: View {
                     if messages.isEmpty {
                         ScrollView {
                             EmptyStateChatView(onQuickAction: handleQuickAction)
-                                .padding(.bottom, 150)
+                                .padding(.bottom, keyboardObserver.isKeyboardVisible ? max(keyboardObserver.keyboardHeight - geometry.safeAreaInsets.bottom, 0) + 80 : 150)
                         }
                         .scrollDismissesKeyboard(.interactively)
                         .onTapGesture {
@@ -185,15 +185,16 @@ struct NewChatView: View {
                                     }
                                 }
                                 .padding()
-                                .padding(.bottom, 150)
+                                .padding(.bottom, keyboardObserver.isKeyboardVisible ? max(keyboardObserver.keyboardHeight - geometry.safeAreaInsets.bottom, 0) + 80 : 150)
                             }
                             .scrollDismissesKeyboard(.interactively)
                             .scrollBounceBehavior(.basedOnSize)
+                            .onTapGesture {
+                                dismissKeyboard()
+                            }
                             .onChange(of: messages.count) {
                                 if let lastMessage = messages.last {
-                                    withAnimation {
-                                        proxy.scrollTo(lastMessage.id, anchor: .bottom)
-                                    }
+                                    proxy.scrollTo(lastMessage.id, anchor: .bottom)
                                 }
                             }
                         }
