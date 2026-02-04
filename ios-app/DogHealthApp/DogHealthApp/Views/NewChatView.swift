@@ -607,7 +607,12 @@ struct NewChatView: View {
         
         // Capitalize first letter to match LogType enum values (e.g., "Meals", "Walk", "Water")
         // AI may generate "meals" or "Meals" - normalize to match the app's LogType enum
-        let normalizedLogType = logType.prefix(1).uppercased() + logType.dropFirst().lowercased()
+        var normalizedLogType = logType.prefix(1).uppercased() + logType.dropFirst().lowercased()
+        
+        // FALLBACK CATEGORIZATION: If AI outputs "Note" or "Notes", try to auto-categorize based on keywords in details
+        if normalizedLogType == "Note" || normalizedLogType == "Notes" {
+            normalizedLogType = inferLogTypeFromDetails(details)
+        }
         
         // Parse duration from details for Walk/Playtime logs (e.g., "30 min walk", "20 minute walk")
         var duration: String? = nil
@@ -791,6 +796,90 @@ struct NewChatView: View {
         }
         
         return now.addingTimeInterval(3600)
+    }
+    
+    /// Infers the proper log type from details when AI outputs "Note" instead of a specific type
+    private func inferLogTypeFromDetails(_ details: String) -> String {
+        let lowercased = details.lowercased()
+        
+        // Grooming keywords
+        if lowercased.contains("bath") || lowercased.contains("brush") || lowercased.contains("groom") ||
+           lowercased.contains("nail") || lowercased.contains("haircut") || lowercased.contains("ear clean") ||
+           lowercased.contains("teeth clean") || lowercased.contains("fur") || lowercased.contains("coat") {
+            return "Grooming"
+        }
+        
+        // Mood keywords
+        if lowercased.contains("mood") || lowercased.contains("happy") || lowercased.contains("sad") ||
+           lowercased.contains("energetic") || lowercased.contains("energized") || lowercased.contains("tired") ||
+           lowercased.contains("anxious") || lowercased.contains("calm") || lowercased.contains("playful") ||
+           lowercased.contains("excited") || lowercased.contains("lethargic") || lowercased.contains("depressed") {
+            return "Mood"
+        }
+        
+        // Walk keywords
+        if lowercased.contains("walk") || lowercased.contains("stroll") || lowercased.contains("hike") {
+            return "Walk"
+        }
+        
+        // Playtime keywords
+        if lowercased.contains("play") || lowercased.contains("fetch") || lowercased.contains("tug") ||
+           lowercased.contains("zoomies") || lowercased.contains("running around") {
+            return "Playtime"
+        }
+        
+        // Treat keywords
+        if lowercased.contains("treat") || lowercased.contains("snack") || lowercased.contains("reward") ||
+           lowercased.contains("biscuit") || lowercased.contains("chew") {
+            return "Treat"
+        }
+        
+        // Meals keywords
+        if lowercased.contains("food") || lowercased.contains("fed") || lowercased.contains("feeding") ||
+           lowercased.contains("breakfast") || lowercased.contains("lunch") || lowercased.contains("dinner") ||
+           lowercased.contains("ate") || lowercased.contains("eating") || lowercased.contains("meal") {
+            return "Meals"
+        }
+        
+        // Water keywords
+        if lowercased.contains("water") || lowercased.contains("drinking") || lowercased.contains("hydration") ||
+           lowercased.contains("drank") {
+            return "Water"
+        }
+        
+        // Symptom keywords
+        if lowercased.contains("vomit") || lowercased.contains("diarrhea") || lowercased.contains("cough") ||
+           lowercased.contains("sneez") || lowercased.contains("limp") || lowercased.contains("scratch") ||
+           lowercased.contains("sick") || lowercased.contains("pain") || lowercased.contains("swell") {
+            return "Symptom"
+        }
+        
+        // Digestion keywords
+        if lowercased.contains("poop") || lowercased.contains("pee") || lowercased.contains("bowel") ||
+           lowercased.contains("urination") || lowercased.contains("stool") || lowercased.contains("potty") {
+            return "Digestion"
+        }
+        
+        // Supplements keywords
+        if lowercased.contains("vitamin") || lowercased.contains("supplement") || lowercased.contains("probiotic") ||
+           lowercased.contains("fish oil") || lowercased.contains("joint supplement") {
+            return "Supplements"
+        }
+        
+        // Medication keywords
+        if lowercased.contains("medicine") || lowercased.contains("medication") || lowercased.contains("pill") ||
+           lowercased.contains("dose") || lowercased.contains("prescription") {
+            return "Medication"
+        }
+        
+        // Appointments keywords
+        if lowercased.contains("vet") || lowercased.contains("appointment") || lowercased.contains("checkup") ||
+           lowercased.contains("vaccination") {
+            return "Appointments"
+        }
+        
+        // Default to Notes if no match found
+        return "Notes"
     }
     
 }
