@@ -5,42 +5,25 @@ import Combine
 
 class KeyboardObserver: ObservableObject {
     @Published var keyboardHeight: CGFloat = 0
+    @Published var isKeyboardVisible: Bool = false
     private var cancellables = Set<AnyCancellable>()
-    
-    var safeAreaBottom: CGFloat {
-        UIApplication.shared.connectedScenes
-            .compactMap { $0 as? UIWindowScene }
-            .flatMap { $0.windows }
-            .first { $0.isKeyWindow }?
-            .safeAreaInsets.bottom ?? 34
-    }
     
     init() {
         NotificationCenter.default.publisher(for: UIResponder.keyboardWillShowNotification)
             .merge(with: NotificationCenter.default.publisher(for: UIResponder.keyboardWillChangeFrameNotification))
-            .compactMap { notification -> (CGFloat, Double)? in
-                guard let frame = notification.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect,
-                      let duration = notification.userInfo?[UIResponder.keyboardAnimationDurationUserInfoKey] as? Double else {
-                    return nil
-                }
-                return (frame.height, duration)
-            }
             .receive(on: DispatchQueue.main)
-            .sink { [weak self] height, _ in
+            .sink { [weak self] _ in
                 withAnimation(.spring(response: 0.25, dampingFraction: 1.0)) {
-                    self?.keyboardHeight = height
+                    self?.isKeyboardVisible = true
                 }
             }
             .store(in: &cancellables)
         
         NotificationCenter.default.publisher(for: UIResponder.keyboardWillHideNotification)
-            .compactMap { notification -> Double? in
-                notification.userInfo?[UIResponder.keyboardAnimationDurationUserInfoKey] as? Double
-            }
             .receive(on: DispatchQueue.main)
             .sink { [weak self] _ in
                 withAnimation(.spring(response: 0.25, dampingFraction: 1.0)) {
-                    self?.keyboardHeight = 0
+                    self?.isKeyboardVisible = false
                 }
             }
             .store(in: &cancellables)
@@ -201,9 +184,10 @@ struct NewChatView: View {
                 Spacer(minLength: 0)
             }
         }
-        .safeAreaInset(edge: .bottom) {
+        .safeAreaInset(edge: .bottom, spacing: 0) {
             chatInputBar
         }
+        .ignoresSafeArea(.keyboard, edges: .bottom)
                 .onChange(of: initialPrompt) { oldValue, newValue in
                     if !newValue.isEmpty {
                         messageText = newValue
@@ -327,7 +311,7 @@ struct NewChatView: View {
             }
             .padding(.horizontal)
             .padding(.vertical, 12)
-            .padding(.bottom, keyboardObserver.keyboardHeight > 0 ? max((keyboardObserver.keyboardHeight - keyboardObserver.safeAreaBottom) * 0.3, 0) : inputBarDefaultPadding)
+            .padding(.bottom, keyboardObserver.isKeyboardVisible ? 0 : inputBarDefaultPadding)
             .background(Color.petlyBackground)
         }
     }
