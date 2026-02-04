@@ -379,20 +379,39 @@ CONVERSATION TIPS:
 - Focus on 1-2 key points rather than overwhelming with information
 - If referencing their logged data, weave it in naturally ("I noticed from ${petName}'s logs...")
 - End with either a clear next step, a reassuring thought, or a caring follow-up question
-- Keep responses around 100-150 words - quality over quantity`;
+- Keep responses around 100-150 words - quality over quantity
+
+SMART FEATURES:
+1. HEALTH LOG SUGGESTIONS: When the user mentions symptoms, meals, walks, water intake, or health events, suggest they log it. Use this format at the END of your response:
+   [LOG_SUGGESTION:type:details]
+   Types: Symptom, Meals, Walk, Water, Medication, Vet Visit
+   Example: [LOG_SUGGESTION:Symptom:Vomiting - mentioned feeling sick]
+   Example: [LOG_SUGGESTION:Meals:Breakfast - chicken and rice]
+
+2. REMINDER DETECTION: When the user asks to be reminded about something (medications, vet appointments, feeding times, etc.), acknowledge it and include:
+   [REMINDER:title:time]
+   Example: [REMINDER:Give heartworm medication:6:00 PM]
+   Example: [REMINDER:Vet appointment:tomorrow 2:00 PM]
+   If no specific time given, ask them what time they'd like to be reminded.`;
 
     if (dogProfile) {
+      const ageValue = dogProfile.age || dogProfile.age_years;
+      const ageDisplay = ageValue ? `${ageValue} years` : 'Unknown';
+      const weightValue = dogProfile.weight || dogProfile.weight_lbs;
+      const weightDisplay = weightValue ? `${weightValue} lbs` : 'Unknown';
+      const allergiesValue = dogProfile.allergies || dogProfile.health_concerns;
+      
       systemPrompt += `
 
 DOG PROFILE - ${dogProfile.name.toUpperCase()}:
 - Name: ${dogProfile.name}
 - Breed: ${dogProfile.breed || 'Unknown'} ${dogProfile.breed ? `(consider breed-specific health tendencies)` : ''}
-- Age: ${dogProfile.age_years ? `${dogProfile.age_years} years` : 'Unknown'}${dogProfile.age_months ? ` ${dogProfile.age_months} months` : ''} ${dogProfile.age_years >= 7 ? '(senior dog - be mindful of age-related concerns)' : dogProfile.age_years <= 1 ? '(puppy - consider developmental needs)' : ''}
-- Weight: ${dogProfile.weight_lbs ? `${dogProfile.weight_lbs} lbs` : 'Unknown'}
+- Age: ${ageDisplay}${dogProfile.age_months ? ` ${dogProfile.age_months} months` : ''} ${ageValue >= 7 ? '(senior dog - be mindful of age-related concerns)' : ageValue <= 1 ? '(puppy - consider developmental needs)' : ''}
+- Weight: ${weightDisplay}
 - Sex: ${dogProfile.sex || 'Unknown'}
 - Neutered/Spayed: ${dogProfile.is_neutered !== null ? (dogProfile.is_neutered ? 'Yes' : 'No') : 'Unknown'}
 ${dogProfile.medical_history ? `- Medical History: ${dogProfile.medical_history} (IMPORTANT: factor this into all advice)` : ''}
-${dogProfile.allergies ? `- Known Allergies: ${dogProfile.allergies} (IMPORTANT: always consider when discussing food/medications)` : ''}
+${allergiesValue && allergiesValue.length > 0 ? `- Known Allergies/Health Concerns: ${Array.isArray(allergiesValue) ? allergiesValue.join(', ') : allergiesValue} (IMPORTANT: always consider when discussing food/medications)` : ''}
 ${dogProfile.current_medications ? `- Current Medications: ${dogProfile.current_medications} (IMPORTANT: consider drug interactions)` : ''}`;
     }
 
