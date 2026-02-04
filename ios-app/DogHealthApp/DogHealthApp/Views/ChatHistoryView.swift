@@ -249,7 +249,7 @@ struct ChatHistoryView: View {
                             .scrollContentBackground(.hidden)
                             .background(Color.petlyBackground)
                             .refreshable {
-                                await loadConversations()
+                                await loadConversations(isRefresh: true)
                             }
                         }
                     }
@@ -360,8 +360,12 @@ struct ChatHistoryView: View {
         dismiss()
     }
     
-    private func loadConversations() async {
-        isLoading = true
+    private func loadConversations(isRefresh: Bool = false) async {
+        // Only show loading state on initial load, not on refresh
+        // Pull-to-refresh has its own indicator
+        if !isRefresh {
+            isLoading = true
+        }
         errorMessage = nil
         
         do {
@@ -369,7 +373,11 @@ struct ChatHistoryView: View {
             conversations = allConversations.filter { $0.messageCount > 0 }
             isLoading = false
         } catch {
-            errorMessage = "Failed to load conversations: \(error.localizedDescription)"
+            // Only show error state if we have no conversations
+            // If refreshing with existing data, silently fail to keep showing current data
+            if conversations.isEmpty {
+                errorMessage = "Failed to load conversations: \(error.localizedDescription)"
+            }
             isLoading = false
         }
     }
