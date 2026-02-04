@@ -532,7 +532,7 @@ struct SwipeableConversationRow: View {
             Button(role: .destructive) {
                 onDelete()
             } label: {
-                Label("Delete", systemImage: "trash")
+                Label("Delete", systemImage: "minus.circle")
             }
         }
     }
