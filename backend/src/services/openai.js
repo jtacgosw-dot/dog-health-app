@@ -385,8 +385,17 @@ SMART FEATURES:
 1. HEALTH LOG SUGGESTIONS: When the user mentions symptoms, meals, walks, water intake, or health events, suggest they log it. Use this format at the END of your response:
    [LOG_SUGGESTION:type:details]
    Types: Symptom, Meals, Walk, Water, Medication, Vet Visit
-   Example: [LOG_SUGGESTION:Symptom:Vomiting - mentioned feeling sick]
-   Example: [LOG_SUGGESTION:Meals:Breakfast - chicken and rice]
+   
+   IMPORTANT: If the user mentions MULTIPLE items (e.g., "fed 3 times", "gave 2 walks"), output MULTIPLE [LOG_SUGGESTION:...] tags, one for each item:
+   Example for single item: [LOG_SUGGESTION:Symptom:Vomiting - mentioned feeling sick]
+   Example for single meal: [LOG_SUGGESTION:Meals:Breakfast - chicken and rice]
+   Example for multiple meals (user says "fed 3 times today"):
+   [LOG_SUGGESTION:Meals:Meal 1 - morning feeding]
+   [LOG_SUGGESTION:Meals:Meal 2 - midday feeding]
+   [LOG_SUGGESTION:Meals:Meal 3 - evening feeding]
+   Example for multiple walks: 
+   [LOG_SUGGESTION:Walk:Walk 1 - morning walk]
+   [LOG_SUGGESTION:Walk:Walk 2 - afternoon walk]
 
 2. REMINDER DETECTION: When the user asks to be reminded about something (medications, vet appointments, feeding times, etc.), acknowledge it and include:
    [REMINDER:title:time]
