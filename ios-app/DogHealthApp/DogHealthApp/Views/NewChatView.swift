@@ -54,6 +54,7 @@ struct NewChatView: View {
     @State private var messageText = ""
     @State private var messages: [Message] = []
     @State private var isLoading = false
+    @State private var isLoadingHistory = false
     @State private var isCreatingConversation = false
     @State private var conversationId: String?
     @State private var errorMessage: String?
@@ -158,7 +159,17 @@ struct NewChatView: View {
                     }
                     .padding()
                     
-                    if messages.isEmpty {
+                    if isLoadingHistory {
+                        VStack(spacing: 16) {
+                            Spacer()
+                            ProgressView()
+                                .scaleEffect(1.2)
+                            Text("Loading conversation...")
+                                .font(.petlyBody(14))
+                                .foregroundColor(.petlyFormIcon)
+                            Spacer()
+                        }
+                    } else if messages.isEmpty {
                         ScrollView {
                             EmptyStateChatView(onQuickAction: handleQuickAction)
                                 .padding(.bottom, keyboardObserver.isKeyboardVisible ? max(keyboardObserver.keyboardHeight - geometry.safeAreaInsets.bottom, 0) + 80 : 150)
@@ -278,12 +289,29 @@ struct NewChatView: View {
             })
         }
         .sheet(isPresented: $showingChatHistory) {
-            ChatHistoryView(onSelectConversation: { selectedConversationId, loadedMessages in
+            ChatHistoryView(onSelectConversation: { selectedConversationId, _ in
                 withAnimation {
                     conversationId = selectedConversationId
-                    messages = loadedMessages
+                    messages = []
                     showCloseButton = true
                     attachedImages = []
+                    isLoadingHistory = true
+                }
+                Task {
+                    do {
+                        let loadedMessages = try await APIService.shared.getConversationMessages(conversationId: selectedConversationId)
+                        await MainActor.run {
+                            withAnimation {
+                                messages = loadedMessages
+                                isLoadingHistory = false
+                            }
+                        }
+                    } catch {
+                        await MainActor.run {
+                            isLoadingHistory = false
+                            errorMessage = "Failed to load messages"
+                        }
+                    }
                 }
             })
                 .environmentObject(appState)
