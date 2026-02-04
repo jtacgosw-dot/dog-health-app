@@ -160,6 +160,12 @@ router.post('/',
         throw new Error(`Failed to save AI response: ${aiMsgError.message}`);
       }
 
+      // Update conversation's updated_at timestamp so chat history shows correct time
+      await supabase
+        .from('conversations')
+        .update({ updated_at: new Date().toISOString() })
+        .eq('id', currentConversationId);
+
       await supabase
         .from('usage_analytics')
         .insert([{
