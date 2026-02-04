@@ -461,14 +461,9 @@ struct SwipeableConversationRow: View {
                             .fontWeight(.medium)
                     }
                     .foregroundColor(.white)
-                    .frame(width: deleteButtonWidth - 8, height: 88)
-                    .background(
-                        RoundedRectangle(cornerRadius: 12)
-                            .fill(Color.red)
-                    )
+                    .frame(width: deleteButtonWidth, height: 100)
+                    .background(Color.red)
                 }
-                .frame(width: deleteButtonWidth, height: 100)
-                .background(Color.petlyBackground)
             }
             
             ConversationRow(
