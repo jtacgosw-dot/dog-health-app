@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { authenticateToken } = require('../middleware/auth');
+const { chatRateLimit } = require('../middleware/rateLimit');
 const { generateAIResponse } = require('../services/openai');
 const supabase = require('../services/supabase');
 const { body, validationResult } = require('express-validator');
@@ -11,6 +12,7 @@ const { body, validationResult } = require('express-validator');
  */
 router.post('/',
   authenticateToken,
+  chatRateLimit,
   [
     body('message').notEmpty().withMessage('Message is required'),
     body('conversationId').optional().isUUID().withMessage('Invalid conversation ID'),

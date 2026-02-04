@@ -4,7 +4,7 @@ struct Dog: Identifiable, Codable {
     let id: String
     var name: String
     var breed: String
-    var age: Int
+    var age: Double // Changed from Int to support fractional ages (e.g., 0.5 for 6 months)
     var weight: Double?
     var imageUrl: String?
     var healthConcerns: [String]
@@ -15,7 +15,7 @@ struct Dog: Identifiable, Codable {
     init(id: String = UUID().uuidString, 
          name: String, 
          breed: String, 
-         age: Int, 
+         age: Double, 
          weight: Double? = nil,
          imageUrl: String? = nil,
          healthConcerns: [String] = [],
@@ -32,6 +32,26 @@ struct Dog: Identifiable, Codable {
         self.allergies = allergies
         self.createdAt = createdAt
         self.updatedAt = updatedAt
+    }
+    
+    // Computed property for display-friendly age string
+    var ageDisplayString: String {
+        if age < 1 {
+            let months = Int(age * 12)
+            return months == 1 ? "1 month" : "\(months) months"
+        } else if age == floor(age) {
+            let years = Int(age)
+            return years == 1 ? "1 year" : "\(years) years"
+        } else {
+            let years = Int(age)
+            let months = Int((age - Double(years)) * 12)
+            if months == 0 {
+                return years == 1 ? "1 year" : "\(years) years"
+            }
+            let yearStr = years == 1 ? "1 year" : "\(years) years"
+            let monthStr = months == 1 ? "1 month" : "\(months) months"
+            return "\(yearStr), \(monthStr)"
+        }
     }
 }
 

@@ -18,6 +18,9 @@ class HealthLogSyncService: ObservableObject {
     private let maxRetryAttempts = 3
     private let baseRetryDelay: UInt64 = 1_000_000_000 // 1 second in nanoseconds
     
+    // Lock to prevent race conditions in sync operations
+    private var syncLock = NSLock()
+    
     private init() {
         setupNetworkMonitoring()
     }
@@ -48,6 +51,10 @@ class HealthLogSyncService: ObservableObject {
     }
     
     func syncPendingLogs() async {
+        // Use lock to prevent race conditions when called rapidly
+        guard syncLock.try() else { return }
+        defer { syncLock.unlock() }
+        
         guard !isSyncing else { return }
         guard isOnline else { return }
         guard APIService.shared.getAuthToken() != nil else { return }

@@ -169,17 +169,31 @@ struct NewPetProfileView: View {
             return
         }
         
-        let ageInt = Int(age) ?? 0
+        let ageDouble = Double(age) ?? 0
         let weightDouble = Double(weight)
         
-        if ageInt < 0 {
-            errorMessage = "Age cannot be negative"
+        // Validate age: must be positive and reasonable (max 30 years for dogs)
+        // Supports fractional ages like 0.5 for 6 months old puppies
+        if ageDouble <= 0 && !age.isEmpty {
+            errorMessage = "Please enter a valid age (e.g., 0.5 for 6 months, 2 for 2 years)"
             return
         }
         
-        if let w = weightDouble, w < 0 {
-            errorMessage = "Weight cannot be negative"
+        if ageDouble > 30 {
+            errorMessage = "Age seems too high. Please enter a valid age (max 30 years)"
             return
+        }
+        
+        // Validate weight: must be positive and reasonable (max 300 lbs for largest breeds)
+        if let w = weightDouble {
+            if w <= 0 {
+                errorMessage = "Please enter a valid weight"
+                return
+            }
+            if w > 300 {
+                errorMessage = "Weight seems too high. Please check the value"
+                return
+            }
         }
         
         errorMessage = nil
@@ -191,28 +205,28 @@ struct NewPetProfileView: View {
                 
                 let dog: Dog
                 if let existingDog = appState.currentDog {
-                    let updatedDog = Dog(
-                        id: existingDog.id,
-                        name: name,
-                        breed: breed,
-                        age: ageInt,
-                        weight: weightDouble,
-                        imageUrl: existingDog.imageUrl,
-                        healthConcerns: healthConcernsArray,
-                        allergies: allergiesArray,
-                        createdAt: existingDog.createdAt,
-                        updatedAt: Date()
-                    )
+                        let updatedDog = Dog(
+                            id: existingDog.id,
+                            name: name,
+                            breed: breed,
+                            age: ageDouble,
+                            weight: weightDouble,
+                            imageUrl: existingDog.imageUrl,
+                            healthConcerns: healthConcernsArray,
+                            allergies: allergiesArray,
+                            createdAt: existingDog.createdAt,
+                            updatedAt: Date()
+                        )
                     dog = try await APIService.shared.updateDog(dog: updatedDog)
                 } else {
-                    let newDog = Dog(
-                        name: name,
-                        breed: breed,
-                        age: ageInt,
-                        weight: weightDouble,
-                        healthConcerns: healthConcernsArray,
-                        allergies: allergiesArray
-                    )
+                        let newDog = Dog(
+                            name: name,
+                            breed: breed,
+                            age: ageDouble,
+                            weight: weightDouble,
+                            healthConcerns: healthConcernsArray,
+                            allergies: allergiesArray
+                        )
                     dog = try await APIService.shared.createDog(dog: newDog)
                 }
                 

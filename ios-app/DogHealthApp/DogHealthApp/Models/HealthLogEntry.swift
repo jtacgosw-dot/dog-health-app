@@ -119,7 +119,9 @@ final class HealthLogEntry {
         case .mood:
             if let level = moodLevel {
                 let moods = ["Sad", "Down", "Okay", "Good", "Great"]
-                return moods[min(level, moods.count - 1)]
+                // Clamp level to valid array bounds (0 to moods.count - 1)
+                let clampedLevel = max(0, min(level, moods.count - 1))
+                return moods[clampedLevel]
             }
             return "Mood"
         case .supplements:
