@@ -219,6 +219,20 @@ struct NewChatView: View {
                             )
                             .onChange(of: messages.count) {
                                 if let lastMessage = messages.last {
+                                    withAnimation {
+                                        proxy.scrollTo(lastMessage.id, anchor: .bottom)
+                                    }
+                                }
+                            }
+                            .onChange(of: conversationId) {
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                                    if let lastMessage = messages.last {
+                                        proxy.scrollTo(lastMessage.id, anchor: .bottom)
+                                    }
+                                }
+                            }
+                            .onAppear {
+                                if let lastMessage = messages.last {
                                     proxy.scrollTo(lastMessage.id, anchor: .bottom)
                                 }
                             }
@@ -768,8 +782,16 @@ struct NewMessageBubble: View {
     @State private var showCopiedFeedback = false
     @State private var showFeedbackThanks = false
     @State private var currentFeedback: MessageFeedback?
-    @State private var logSuggestionDismissed = false
+    @State private var dismissedLogSuggestionIndices: Set<Int> = []
     @State private var reminderCreated = false
+    
+    private var dismissedSuggestionsKey: String {
+        "dismissedLogSuggestions_\(message.id)"
+    }
+    
+    private var dismissedReminderKey: String {
+        "dismissedReminder_\(message.id)"
+    }
     
     @ScaledMetric(relativeTo: .body) private var bubbleMaxWidth: CGFloat = 280
     @ScaledMetric(relativeTo: .body) private var avatarSize: CGFloat = 32
@@ -784,12 +806,23 @@ struct NewMessageBubble: View {
         return content.trimmingCharacters(in: .whitespacesAndNewlines)
     }
     
-    private var logSuggestion: (type: String, details: String)? {
-        guard let match = message.content.range(of: #"\[LOG_SUGGESTION:([^:]+):([^\]]+)\]"#, options: .regularExpression) else { return nil }
-        let matchStr = String(message.content[match])
-        let parts = matchStr.dropFirst(16).dropLast(1).split(separator: ":", maxSplits: 1)
-        guard parts.count == 2 else { return nil }
-        return (String(parts[0]), String(parts[1]))
+    private var logSuggestions: [(type: String, details: String)] {
+        var suggestions: [(type: String, details: String)] = []
+        let pattern = #"\[LOG_SUGGESTION:([^:]+):([^\]]+)\]"#
+        guard let regex = try? NSRegularExpression(pattern: pattern, options: []) else { return [] }
+        let nsString = message.content as NSString
+        let results = regex.matches(in: message.content, options: [], range: NSRange(location: 0, length: nsString.length))
+        
+        for match in results {
+            if match.numberOfRanges == 3 {
+                let typeRange = match.range(at: 1)
+                let detailsRange = match.range(at: 2)
+                let type = nsString.substring(with: typeRange)
+                let details = nsString.substring(with: detailsRange)
+                suggestions.append((type: type, details: details))
+            }
+        }
+        return suggestions
     }
     
     private var reminderSuggestion: (title: String, time: String)? {
@@ -876,6 +909,11 @@ struct NewMessageBubble: View {
                 appeared = true
             }
             currentFeedback = message.feedback
+            
+            if let savedIndices = UserDefaults.standard.array(forKey: dismissedSuggestionsKey) as? [Int] {
+                dismissedLogSuggestionIndices = Set(savedIndices)
+            }
+            reminderCreated = UserDefaults.standard.bool(forKey: dismissedReminderKey)
         }
     }
     
@@ -938,18 +976,29 @@ struct NewMessageBubble: View {
                 }
             }
             
-            if !isUser, let suggestion = logSuggestion, !logSuggestionDismissed {
-                LogSuggestionCard(
-                    logType: suggestion.type,
-                    details: suggestion.details,
-                    onLog: {
-                        onLogSuggestion?(suggestion.type, suggestion.details)
-                        withAnimation { logSuggestionDismissed = true }
-                    },
-                    onDismiss: {
-                        withAnimation { logSuggestionDismissed = true }
+            if !isUser {
+                let suggestions = logSuggestions
+                ForEach(Array(suggestions.enumerated()), id: \.offset) { index, suggestion in
+                    if !dismissedLogSuggestionIndices.contains(index) {
+                        LogSuggestionCard(
+                            logType: suggestion.type,
+                            details: suggestion.details,
+                            onLog: {
+                                onLogSuggestion?(suggestion.type, suggestion.details)
+                                withAnimation { 
+                                    dismissedLogSuggestionIndices.insert(index)
+                                    UserDefaults.standard.set(Array(dismissedLogSuggestionIndices), forKey: dismissedSuggestionsKey)
+                                }
+                            },
+                            onDismiss: {
+                                withAnimation { 
+                                    dismissedLogSuggestionIndices.insert(index)
+                                    UserDefaults.standard.set(Array(dismissedLogSuggestionIndices), forKey: dismissedSuggestionsKey)
+                                }
+                            }
+                        )
                     }
-                )
+                }
             }
             
             if !isUser, let reminder = reminderSuggestion, !reminderCreated {
@@ -958,10 +1007,16 @@ struct NewMessageBubble: View {
                     time: reminder.time,
                     onCreate: {
                         onReminderSuggestion?(reminder.title, reminder.time)
-                        withAnimation { reminderCreated = true }
+                        withAnimation { 
+                            reminderCreated = true
+                            UserDefaults.standard.set(true, forKey: dismissedReminderKey)
+                        }
                     },
                     onDismiss: {
-                        withAnimation { reminderCreated = true }
+                        withAnimation { 
+                            reminderCreated = true
+                            UserDefaults.standard.set(true, forKey: dismissedReminderKey)
+                        }
                     }
                 )
             }
