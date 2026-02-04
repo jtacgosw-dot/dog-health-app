@@ -169,8 +169,17 @@ struct PetCard: View {
     }
     
     private func loadPetPhoto() {
-        let key = "petPhoto_\(dog.id)"
-        petPhotoData = UserDefaults.standard.data(forKey: key)
+        // Load from the same file location that AppState uses
+        let documentsDirectory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+        let petPhotoURL = documentsDirectory.appendingPathComponent("petPhoto.jpg")
+        
+        if FileManager.default.fileExists(atPath: petPhotoURL.path) {
+            petPhotoData = try? Data(contentsOf: petPhotoURL)
+        } else {
+            // Fallback to legacy UserDefaults storage
+            let key = "petPhoto_\(dog.id)"
+            petPhotoData = UserDefaults.standard.data(forKey: key)
+        }
     }
 }
 
