@@ -55,6 +55,14 @@ class WeightTrackingManager: ObservableObject {
         weightEntries.last?.weight
     }
     
+    /// Returns the latest weight from entries, or falls back to dog's profile weight
+    func currentWeight(dogProfileWeight: Double?) -> Double? {
+        if let entryWeight = weightEntries.last?.weight {
+            return entryWeight
+        }
+        return dogProfileWeight
+    }
+    
     var weightChange: Double? {
         guard weightEntries.count >= 2 else { return nil }
         let latest = weightEntries[weightEntries.count - 1].weight
@@ -66,6 +74,14 @@ class WeightTrackingManager: ObservableObject {
         guard !weightEntries.isEmpty else { return nil }
         let total = weightEntries.reduce(0) { $0 + $1.weight }
         return total / Double(weightEntries.count)
+    }
+    
+    /// Returns average weight from entries, or falls back to dog's profile weight if no entries
+    func averageOrProfileWeight(dogProfileWeight: Double?) -> Double? {
+        if !weightEntries.isEmpty {
+            return averageWeight
+        }
+        return dogProfileWeight
     }
 }
 
@@ -144,10 +160,12 @@ struct WeightTrackingView: View {
     }
     
     private var statsSection: some View {
-        HStack(spacing: 16) {
+        let currentWeight = weightManager.currentWeight(dogProfileWeight: appState.currentDog?.weight)
+        
+        return HStack(spacing: 16) {
             StatCard(
                 title: "Current",
-                value: weightManager.latestWeight.map { String(format: "%.1f", $0) } ?? "--",
+                value: currentWeight.map { String(format: "%.1f", $0) } ?? "--",
                 unit: "lbs",
                 icon: "scalemass.fill",
                 color: .petlyDarkGreen
@@ -163,7 +181,7 @@ struct WeightTrackingView: View {
             
             StatCard(
                 title: "Average",
-                value: weightManager.averageWeight.map { String(format: "%.1f", $0) } ?? "--",
+                value: weightManager.averageOrProfileWeight(dogProfileWeight: appState.currentDog?.weight).map { String(format: "%.1f", $0) } ?? "--",
                 unit: "lbs",
                 icon: "chart.line.uptrend.xyaxis",
                 color: .blue

@@ -203,6 +203,9 @@ struct NewChatView: View {
                                                 },
                                                 onReminderSuggestion: { title, time in
                                                     handleReminderSuggestion(title: title, time: time)
+                                                },
+                                                onWeightUpdate: { newWeight in
+                                                    handleWeightUpdate(newWeight: newWeight)
                                                 }
                                             )
                                         }
@@ -607,7 +610,12 @@ struct NewChatView: View {
         
         // Capitalize first letter to match LogType enum values (e.g., "Meals", "Walk", "Water")
         // AI may generate "meals" or "Meals" - normalize to match the app's LogType enum
-        let normalizedLogType = logType.prefix(1).uppercased() + logType.dropFirst().lowercased()
+        var normalizedLogType = logType.prefix(1).uppercased() + logType.dropFirst().lowercased()
+        
+        // FALLBACK CATEGORIZATION: If AI outputs "Note" or "Notes", try to auto-categorize based on keywords in details
+        if normalizedLogType == "Note" || normalizedLogType == "Notes" {
+            normalizedLogType = inferLogTypeFromDetails(details)
+        }
         
         // Parse duration from details for Walk/Playtime logs (e.g., "30 min walk", "20 minute walk")
         var duration: String? = nil
@@ -793,6 +801,109 @@ struct NewChatView: View {
         return now.addingTimeInterval(3600)
     }
     
+    private func handleWeightUpdate(newWeight: Double) {
+        let generator = UIImpactFeedbackGenerator(style: .medium)
+        generator.impactOccurred()
+        
+        guard var dog = appState.currentDog else { return }
+        
+        // Update the dog's profile weight
+        dog.weight = newWeight
+        appState.currentDog = dog
+        
+        // Also add a weight entry to track history
+        let weightEntry = WeightEntry(
+            weight: newWeight,
+            date: Date(),
+            note: "Updated via AI chat"
+        )
+        WeightTrackingManager.shared.addEntry(weightEntry)
+    }
+    
+    /// Infers the proper log type from details when AI outputs "Note" instead of a specific type
+    private func inferLogTypeFromDetails(_ details: String) -> String {
+        let lowercased = details.lowercased()
+        
+        // Grooming keywords
+        if lowercased.contains("bath") || lowercased.contains("brush") || lowercased.contains("groom") ||
+           lowercased.contains("nail") || lowercased.contains("haircut") || lowercased.contains("ear clean") ||
+           lowercased.contains("teeth clean") || lowercased.contains("fur") || lowercased.contains("coat") {
+            return "Grooming"
+        }
+        
+        // Mood keywords
+        if lowercased.contains("mood") || lowercased.contains("happy") || lowercased.contains("sad") ||
+           lowercased.contains("energetic") || lowercased.contains("energized") || lowercased.contains("tired") ||
+           lowercased.contains("anxious") || lowercased.contains("calm") || lowercased.contains("playful") ||
+           lowercased.contains("excited") || lowercased.contains("lethargic") || lowercased.contains("depressed") {
+            return "Mood"
+        }
+        
+        // Walk keywords
+        if lowercased.contains("walk") || lowercased.contains("stroll") || lowercased.contains("hike") {
+            return "Walk"
+        }
+        
+        // Playtime keywords
+        if lowercased.contains("play") || lowercased.contains("fetch") || lowercased.contains("tug") ||
+           lowercased.contains("zoomies") || lowercased.contains("running around") {
+            return "Playtime"
+        }
+        
+        // Treat keywords
+        if lowercased.contains("treat") || lowercased.contains("snack") || lowercased.contains("reward") ||
+           lowercased.contains("biscuit") || lowercased.contains("chew") {
+            return "Treat"
+        }
+        
+        // Meals keywords
+        if lowercased.contains("food") || lowercased.contains("fed") || lowercased.contains("feeding") ||
+           lowercased.contains("breakfast") || lowercased.contains("lunch") || lowercased.contains("dinner") ||
+           lowercased.contains("ate") || lowercased.contains("eating") || lowercased.contains("meal") {
+            return "Meals"
+        }
+        
+        // Water keywords
+        if lowercased.contains("water") || lowercased.contains("drinking") || lowercased.contains("hydration") ||
+           lowercased.contains("drank") {
+            return "Water"
+        }
+        
+        // Symptom keywords
+        if lowercased.contains("vomit") || lowercased.contains("diarrhea") || lowercased.contains("cough") ||
+           lowercased.contains("sneez") || lowercased.contains("limp") || lowercased.contains("scratch") ||
+           lowercased.contains("sick") || lowercased.contains("pain") || lowercased.contains("swell") {
+            return "Symptom"
+        }
+        
+        // Digestion keywords
+        if lowercased.contains("poop") || lowercased.contains("pee") || lowercased.contains("bowel") ||
+           lowercased.contains("urination") || lowercased.contains("stool") || lowercased.contains("potty") {
+            return "Digestion"
+        }
+        
+        // Supplements keywords
+        if lowercased.contains("vitamin") || lowercased.contains("supplement") || lowercased.contains("probiotic") ||
+           lowercased.contains("fish oil") || lowercased.contains("joint supplement") {
+            return "Supplements"
+        }
+        
+        // Medication keywords
+        if lowercased.contains("medicine") || lowercased.contains("medication") || lowercased.contains("pill") ||
+           lowercased.contains("dose") || lowercased.contains("prescription") {
+            return "Medication"
+        }
+        
+        // Appointments keywords
+        if lowercased.contains("vet") || lowercased.contains("appointment") || lowercased.contains("checkup") ||
+           lowercased.contains("vaccination") {
+            return "Appointments"
+        }
+        
+        // Default to Notes if no match found
+        return "Notes"
+    }
+    
 }
 
 struct EmptyStateChatView: View {
@@ -909,12 +1020,14 @@ struct NewMessageBubble: View {
     var onFeedback: ((MessageFeedback) -> Void)?
     var onLogSuggestion: ((String, String) -> Void)?
     var onReminderSuggestion: ((String, String) -> Void)?
+    var onWeightUpdate: ((Double) -> Void)?
     @State private var appeared = false
     @State private var showCopiedFeedback = false
     @State private var showFeedbackThanks = false
     @State private var currentFeedback: MessageFeedback?
     @State private var dismissedLogSuggestionIndices: Set<Int> = []
     @State private var reminderCreated = false
+    @State private var weightUpdated = false
     
     private var dismissedSuggestionsKey: String {
         "dismissedLogSuggestions_\(message.id)"
@@ -934,6 +1047,7 @@ struct NewMessageBubble: View {
         var content = message.content
         content = content.replacingOccurrences(of: #"\[LOG_SUGGESTION:[^\]]+\]"#, with: "", options: .regularExpression)
         content = content.replacingOccurrences(of: #"\[REMINDER:[^\]]+\]"#, with: "", options: .regularExpression)
+        content = content.replacingOccurrences(of: #"\[WEIGHT_UPDATE:[^\]]+\]"#, with: "", options: .regularExpression)
         return content.trimmingCharacters(in: .whitespacesAndNewlines)
     }
     
@@ -962,6 +1076,13 @@ struct NewMessageBubble: View {
         let parts = matchStr.dropFirst(10).dropLast(1).split(separator: ":", maxSplits: 1)
         guard parts.count == 2 else { return nil }
         return (String(parts[0]), String(parts[1]))
+    }
+    
+    private var weightUpdateSuggestion: Double? {
+        guard let match = message.content.range(of: #"\[WEIGHT_UPDATE:([^\]]+)\]"#, options: .regularExpression) else { return nil }
+        let matchStr = String(message.content[match])
+        let valueStr = matchStr.dropFirst(15).dropLast(1) // Remove "[WEIGHT_UPDATE:" and "]"
+        return Double(valueStr)
     }
     
     var body: some View {
@@ -1148,6 +1269,19 @@ struct NewMessageBubble: View {
                             reminderCreated = true
                             UserDefaults.standard.set(true, forKey: dismissedReminderKey)
                         }
+                    }
+                )
+            }
+            
+            if !isUser, let newWeight = weightUpdateSuggestion, !weightUpdated {
+                WeightUpdateCard(
+                    weight: newWeight,
+                    onUpdate: {
+                        onWeightUpdate?(newWeight)
+                        withAnimation { weightUpdated = true }
+                    },
+                    onDismiss: {
+                        withAnimation { weightUpdated = true }
                     }
                 )
             }
@@ -1473,6 +1607,51 @@ struct ReminderSuggestionCard: View {
                     .padding(.vertical, 6)
                     .background(Color.orange)
                     .cornerRadius(14)
+            }
+            
+            Button(action: onDismiss) {
+                Image(systemName: "xmark")
+                    .font(.system(size: 12, weight: .medium))
+                    .foregroundColor(.petlyFormIcon)
+            }
+        }
+        .padding(12)
+        .background(Color.white)
+        .cornerRadius(12)
+        .shadow(color: .black.opacity(0.06), radius: 4, x: 0, y: 2)
+    }
+}
+
+struct WeightUpdateCard: View {
+    let weight: Double
+    var onUpdate: () -> Void
+    var onDismiss: () -> Void
+    
+    var body: some View {
+        HStack(spacing: 12) {
+            Image(systemName: "scalemass.fill")
+                .font(.system(size: 20))
+                .foregroundColor(.petlyDarkGreen)
+            
+            VStack(alignment: .leading, spacing: 2) {
+                Text("Update Weight")
+                    .font(.petlyBody(14, weight: .semibold))
+                    .foregroundColor(.petlyDarkGreen)
+                Text("Set weight to \(String(format: "%.1f", weight)) lbs")
+                    .font(.petlyBody(12))
+                    .foregroundColor(.petlyFormIcon)
+            }
+            
+            Spacer()
+            
+            Button(action: onUpdate) {
+                Text("Update")
+                    .font(.petlyBody(13, weight: .semibold))
+                    .foregroundColor(.white)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 6)
+                    .background(Color.petlyDarkGreen)
+                    .cornerRadius(8)
             }
             
             Button(action: onDismiss) {
