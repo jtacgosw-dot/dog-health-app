@@ -1256,6 +1256,10 @@ struct EditPetProfileView: View {
     @State private var weight = ""
     @State private var allergies = ""
     @State private var healthConditions = ""
+    @State private var sex = ""
+    @State private var isNeutered = false
+    @State private var medicalHistory = ""
+    @State private var currentMedications = ""
     @State private var showSaved = false
     @State private var errorMessage: String?
     @State private var showingPhotoOptions = false
@@ -1405,6 +1409,60 @@ struct EditPetProfileView: View {
                                 .cornerRadius(12)
                         }
                         
+                        // Sex picker
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Sex")
+                                .font(.petlyBodyMedium(14))
+                                .foregroundColor(.petlyDarkGreen)
+                            
+                            Picker("Sex", selection: $sex) {
+                                Text("Not specified").tag("")
+                                Text("Male").tag("Male")
+                                Text("Female").tag("Female")
+                            }
+                            .pickerStyle(.segmented)
+                            .padding()
+                            .background(Color.petlyLightGreen)
+                            .cornerRadius(12)
+                        }
+                        
+                        // Neutered/Spayed toggle
+                        VStack(alignment: .leading, spacing: 8) {
+                            Toggle(isOn: $isNeutered) {
+                                Text(sex == "Female" ? "Spayed" : "Neutered")
+                                    .font(.petlyBodyMedium(14))
+                                    .foregroundColor(.petlyDarkGreen)
+                            }
+                            .tint(.petlyDarkGreen)
+                            .padding()
+                            .background(Color.petlyLightGreen)
+                            .cornerRadius(12)
+                        }
+                        
+                        // Medical History
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Medical History")
+                                .font(.petlyBodyMedium(14))
+                                .foregroundColor(.petlyDarkGreen)
+                            
+                            TextField("e.g., surgeries, past illnesses", text: $medicalHistory)
+                                .padding()
+                                .background(Color.petlyLightGreen)
+                                .cornerRadius(12)
+                        }
+                        
+                        // Current Medications
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Current Medications")
+                                .font(.petlyBodyMedium(14))
+                                .foregroundColor(.petlyDarkGreen)
+                            
+                            TextField("e.g., heartworm prevention, supplements", text: $currentMedications)
+                                .padding()
+                                .background(Color.petlyLightGreen)
+                                .cornerRadius(12)
+                        }
+                        
                         if let errorMessage = errorMessage {
                             Text(errorMessage)
                                 .font(.petlyBody(12))
@@ -1465,6 +1523,10 @@ struct EditPetProfileView: View {
                     }
                     allergies = dog.allergies.joined(separator: ", ")
                     healthConditions = dog.healthConcerns.joined(separator: ", ")
+                    sex = dog.sex ?? ""
+                    isNeutered = dog.isNeutered ?? false
+                    medicalHistory = dog.medicalHistory ?? ""
+                    currentMedications = dog.currentMedications ?? ""
                     print("[EditPetProfileView] onAppear: Loaded dog \(dog.name) with id \(dog.id)")
                 } else {
                                         print("[EditPetProfileView] onAppear: No currentDog found, using defaults")
@@ -1502,7 +1564,19 @@ struct EditPetProfileView: View {
             healthConcerns: healthConcernsArray,
             allergies: allergiesArray,
             createdAt: createdAt,
-            updatedAt: Date()
+            updatedAt: Date(),
+            energyLevel: appState.currentDog?.energyLevel,
+            friendliness: appState.currentDog?.friendliness,
+            trainability: appState.currentDog?.trainability,
+            personalityTraits: appState.currentDog?.personalityTraits,
+            feedingSchedule: appState.currentDog?.feedingSchedule,
+            foodType: appState.currentDog?.foodType,
+            portionSize: appState.currentDog?.portionSize,
+            foodAllergies: appState.currentDog?.foodAllergies,
+            sex: sex.isEmpty ? nil : sex,
+            isNeutered: isNeutered,
+            medicalHistory: medicalHistory.isEmpty ? nil : medicalHistory,
+            currentMedications: currentMedications.isEmpty ? nil : currentMedications
         )
         
         appState.saveDogLocally(updatedDog)
