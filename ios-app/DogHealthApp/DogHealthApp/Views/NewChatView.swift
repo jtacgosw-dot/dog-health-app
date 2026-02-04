@@ -629,11 +629,12 @@ struct NewChatView: View {
             normalizedLogType = inferLogTypeFromDetails(details)
         }
         
-        // Parse duration from details for Walk/Playtime logs (e.g., "30 min walk", "20 minute walk")
+        // Parse duration from details for Walk/Playtime logs (e.g., "30 min walk", "20 minute walk", "3-hour walk")
         var duration: String? = nil
         if normalizedLogType == "Walk" || normalizedLogType == "Playtime" {
-            // Try to extract duration from details (e.g., "30 min", "20 minutes", "1 hour")
-            let durationPattern = #"(\d+)\s*(min|minute|minutes|hr|hour|hours)"#
+            // Try to extract duration from details (e.g., "30 min", "20 minutes", "1 hour", "3-hour")
+            // Pattern matches: "30 min", "30min", "3-hour", "3 hour", "3hour"
+            let durationPattern = #"(\d+)[\s\-]*(min|minute|minutes|hr|hour|hours)"#
             if let regex = try? NSRegularExpression(pattern: durationPattern, options: .caseInsensitive),
                let match = regex.firstMatch(in: details, options: [], range: NSRange(details.startIndex..., in: details)),
                let numberRange = Range(match.range(at: 1), in: details),
