@@ -48,6 +48,8 @@ struct Conversation: Identifiable, Codable {
     var lastMessagePreview: String?
     var lastMessageRole: String?
     var lastMessageCreatedAt: Date?
+    var isPinned: Bool
+    var isArchived: Bool
     
     enum CodingKeys: String, CodingKey {
         case id
@@ -61,6 +63,8 @@ struct Conversation: Identifiable, Codable {
         case lastMessagePreview
         case lastMessageRole
         case lastMessageCreatedAt
+        case isPinned = "is_pinned"
+        case isArchived = "is_archived"
     }
     
     init(id: String = UUID().uuidString,
@@ -73,7 +77,9 @@ struct Conversation: Identifiable, Codable {
          messageCount: Int = 0,
          lastMessagePreview: String? = nil,
          lastMessageRole: String? = nil,
-         lastMessageCreatedAt: Date? = nil) {
+         lastMessageCreatedAt: Date? = nil,
+         isPinned: Bool = false,
+         isArchived: Bool = false) {
         self.id = id
         self.userId = userId
         self.dogId = dogId
@@ -85,6 +91,8 @@ struct Conversation: Identifiable, Codable {
         self.lastMessagePreview = lastMessagePreview
         self.lastMessageRole = lastMessageRole
         self.lastMessageCreatedAt = lastMessageCreatedAt
+        self.isPinned = isPinned
+        self.isArchived = isArchived
     }
     
     init(from decoder: Decoder) throws {
@@ -100,5 +108,7 @@ struct Conversation: Identifiable, Codable {
         lastMessagePreview = try container.decodeIfPresent(String.self, forKey: .lastMessagePreview)
         lastMessageRole = try container.decodeIfPresent(String.self, forKey: .lastMessageRole)
         lastMessageCreatedAt = try container.decodeIfPresent(Date.self, forKey: .lastMessageCreatedAt)
+        isPinned = try container.decodeIfPresent(Bool.self, forKey: .isPinned) ?? false
+        isArchived = try container.decodeIfPresent(Bool.self, forKey: .isArchived) ?? false
     }
 }

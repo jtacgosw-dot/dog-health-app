@@ -381,45 +381,57 @@ struct ServerConversation: Codable {
     let title: String?
     let createdAt: String
     let updatedAt: String?
+    let isPinned: Bool?
     let isArchived: Bool?
     let dogId: String?
     let dogs: ServerDogInfo?
     let messageCount: Int?
     let lastMessagePreview: String?
     let lastMessageRole: String?
+    let lastMessageCreatedAt: String?
     
     enum CodingKeys: String, CodingKey {
         case id
         case title
         case createdAt = "created_at"
         case updatedAt = "updated_at"
+        case isPinned = "is_pinned"
         case isArchived = "is_archived"
         case dogId = "dog_id"
         case dogs
         case messageCount
         case lastMessagePreview
         case lastMessageRole
+        case lastMessageCreatedAt
     }
     
-        func toConversation() -> Conversation {
-            let formatter = ISO8601DateFormatter()
-            formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-            let createdDate = formatter.date(from: createdAt) ?? Date()
-            let updatedDate = updatedAt.flatMap { formatter.date(from: $0) }
+    func toConversation() -> Conversation {
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
         
-            return Conversation(
-                id: id,
-                userId: nil,
-                dogId: dogId,
-                createdAt: createdDate,
-                updatedAt: updatedDate,
-                title: title ?? "Chat",
-                messages: [],
-                messageCount: messageCount ?? 0,
-                lastMessagePreview: lastMessagePreview,
-                lastMessageRole: lastMessageRole
-            )
-        }
+        let standardFormatter = ISO8601DateFormatter()
+        standardFormatter.formatOptions = [.withInternetDateTime]
+        
+        let createdDate = formatter.date(from: createdAt) ?? standardFormatter.date(from: createdAt) ?? Date()
+        let updatedDate = updatedAt.flatMap { formatter.date(from: $0) ?? standardFormatter.date(from: $0) }
+        let lastMsgDate = lastMessageCreatedAt.flatMap { formatter.date(from: $0) ?? standardFormatter.date(from: $0) }
+        
+        return Conversation(
+            id: id,
+            userId: nil,
+            dogId: dogId,
+            createdAt: createdDate,
+            updatedAt: updatedDate,
+            title: title ?? "Chat",
+            messages: [],
+            messageCount: messageCount ?? 0,
+            lastMessagePreview: lastMessagePreview,
+            lastMessageRole: lastMessageRole,
+            lastMessageCreatedAt: lastMsgDate,
+            isPinned: isPinned ?? false,
+            isArchived: isArchived ?? false
+        )
+    }
 }
 
 struct ServerDogInfo: Codable {

@@ -918,7 +918,7 @@ struct NewMessageBubble: View {
                 }
                 
                 if hasText {
-                    Text(displayContent)
+                    Text(parseMarkdown(displayContent))
                         .font(.petlyBody(15))
                         .foregroundColor(isUser ? .white : .petlyDarkGreen)
                         .padding(.horizontal, 14)
@@ -1033,6 +1033,39 @@ struct NewMessageBubble: View {
                 showCopiedFeedback = false
             }
         }
+    }
+    
+    private func parseMarkdown(_ text: String) -> AttributedString {
+        var result = AttributedString()
+        var currentIndex = text.startIndex
+        
+        while currentIndex < text.endIndex {
+            if let boldStart = text[currentIndex...].range(of: "**") {
+                if boldStart.lowerBound > currentIndex {
+                    let normalText = String(text[currentIndex..<boldStart.lowerBound])
+                    result.append(AttributedString(normalText))
+                }
+                
+                let afterBoldStart = boldStart.upperBound
+                if afterBoldStart < text.endIndex,
+                   let boldEnd = text[afterBoldStart...].range(of: "**") {
+                    let boldText = String(text[afterBoldStart..<boldEnd.lowerBound])
+                    var boldAttr = AttributedString(boldText)
+                    boldAttr.font = .system(size: 15, weight: .semibold)
+                    result.append(boldAttr)
+                    currentIndex = boldEnd.upperBound
+                } else {
+                    result.append(AttributedString("**"))
+                    currentIndex = afterBoldStart
+                }
+            } else {
+                let remainingText = String(text[currentIndex...])
+                result.append(AttributedString(remainingText))
+                break
+            }
+        }
+        
+        return result
     }
 }
 
