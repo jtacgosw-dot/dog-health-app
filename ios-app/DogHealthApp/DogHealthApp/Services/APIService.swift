@@ -359,6 +359,12 @@ struct ChatDogProfile: Codable {
     let foodType: String?
     let portionSize: String?
     let foodAllergies: String?
+    
+    // Medical fields
+    let sex: String?
+    let isNeutered: Bool?
+    let medicalHistory: String?
+    let currentMedications: String?
 }
 
 struct ChatHealthLog: Codable {

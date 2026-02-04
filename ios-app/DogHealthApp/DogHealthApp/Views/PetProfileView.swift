@@ -9,6 +9,10 @@ struct PetProfileView: View {
     @State private var weight = ""
     @State private var healthConcerns = ""
     @State private var allergies = ""
+    @State private var sex = ""
+    @State private var isNeutered = false
+    @State private var medicalHistory = ""
+    @State private var currentMedications = ""
     @State private var selectedPhoto: PhotosPickerItem?
     @State private var profileImage: Image?
     @State private var isLoading = false
@@ -61,8 +65,47 @@ struct PetProfileView: View {
                             ProfileTextField(title: "Breed", text: $breed, icon: "tag.fill")
                             ProfileTextField(title: "Age (years)", text: $age, icon: "calendar", keyboardType: .numberPad)
                             ProfileTextField(title: "Weight (lbs)", text: $weight, icon: "scalemass", keyboardType: .decimalPad)
+                            
+                            // Sex picker
+                            VStack(alignment: .leading, spacing: 8) {
+                                HStack(spacing: 6) {
+                                    Image(systemName: "figure.stand")
+                                        .font(.system(size: 14))
+                                        .foregroundColor(.petlyDarkGreen)
+                                    Text("Sex")
+                                        .font(.subheadline)
+                                        .fontWeight(.medium)
+                                        .foregroundColor(.petlyDarkGreen)
+                                }
+                                
+                                Picker("Sex", selection: $sex) {
+                                    Text("Not specified").tag("")
+                                    Text("Male").tag("Male")
+                                    Text("Female").tag("Female")
+                                }
+                                .pickerStyle(.segmented)
+                            }
+                            
+                            // Neutered/Spayed toggle
+                            VStack(alignment: .leading, spacing: 8) {
+                                Toggle(isOn: $isNeutered) {
+                                    HStack(spacing: 6) {
+                                        Image(systemName: "checkmark.seal")
+                                            .font(.system(size: 14))
+                                            .foregroundColor(.petlyDarkGreen)
+                                        Text(sex == "Female" ? "Spayed" : "Neutered")
+                                            .font(.subheadline)
+                                            .fontWeight(.medium)
+                                            .foregroundColor(.petlyDarkGreen)
+                                    }
+                                }
+                                .tint(.petlyDarkGreen)
+                            }
+                            
                             ProfileTextField(title: "Health Concerns", text: $healthConcerns, icon: "heart.text.square", multiline: true)
                             ProfileTextField(title: "Allergies", text: $allergies, icon: "exclamationmark.triangle", multiline: true)
+                            ProfileTextField(title: "Medical History", text: $medicalHistory, icon: "cross.case", multiline: true)
+                            ProfileTextField(title: "Current Medications", text: $currentMedications, icon: "pills", multiline: true)
                         }
                         .padding(.horizontal)
                         
@@ -159,6 +202,10 @@ struct PetProfileView: View {
         }
         healthConcerns = dog.healthConcerns.joined(separator: ", ")
         allergies = dog.allergies.joined(separator: ", ")
+        sex = dog.sex ?? ""
+        isNeutered = dog.isNeutered ?? false
+        medicalHistory = dog.medicalHistory ?? ""
+        currentMedications = dog.currentMedications ?? ""
     }
     
     private func saveProfile() {
@@ -187,7 +234,19 @@ struct PetProfileView: View {
                         healthConcerns: healthConcernsArray,
                         allergies: allergiesArray,
                         createdAt: existingDog.createdAt,
-                        updatedAt: Date()
+                        updatedAt: Date(),
+                        energyLevel: existingDog.energyLevel,
+                        friendliness: existingDog.friendliness,
+                        trainability: existingDog.trainability,
+                        personalityTraits: existingDog.personalityTraits,
+                        feedingSchedule: existingDog.feedingSchedule,
+                        foodType: existingDog.foodType,
+                        portionSize: existingDog.portionSize,
+                        foodAllergies: existingDog.foodAllergies,
+                        sex: sex.isEmpty ? nil : sex,
+                        isNeutered: isNeutered,
+                        medicalHistory: medicalHistory.isEmpty ? nil : medicalHistory,
+                        currentMedications: currentMedications.isEmpty ? nil : currentMedications
                     )
                     dog = try await APIService.shared.updateDog(dog: updatedDog)
                 } else {
@@ -197,7 +256,11 @@ struct PetProfileView: View {
                         age: ageDouble,
                         weight: weightDouble,
                         healthConcerns: healthConcernsArray,
-                        allergies: allergiesArray
+                        allergies: allergiesArray,
+                        sex: sex.isEmpty ? nil : sex,
+                        isNeutered: isNeutered,
+                        medicalHistory: medicalHistory.isEmpty ? nil : medicalHistory,
+                        currentMedications: currentMedications.isEmpty ? nil : currentMedications
                     )
                     dog = try await APIService.shared.createDog(dog: newDog)
                 }
