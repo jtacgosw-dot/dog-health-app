@@ -545,7 +545,15 @@ struct CreateCarePlanView: View {
             age: dog.age,
             weight: dog.weight,
             healthConcerns: dog.healthConcerns.isEmpty ? nil : dog.healthConcerns,
-            allergies: dog.allergies.isEmpty ? nil : dog.allergies
+            allergies: dog.allergies.isEmpty ? nil : dog.allergies,
+            energyLevel: dog.energyLevel,
+            friendliness: dog.friendliness,
+            trainability: dog.trainability,
+            personalityTraits: dog.personalityTraits?.isEmpty == true ? nil : dog.personalityTraits,
+            feedingSchedule: dog.feedingSchedule,
+            foodType: dog.foodType,
+            portionSize: dog.portionSize,
+            foodAllergies: dog.foodAllergies
         )
     }
     
