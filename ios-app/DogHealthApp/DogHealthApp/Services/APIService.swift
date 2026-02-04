@@ -134,13 +134,25 @@ class APIService {
     
     func getConversationMessages(conversationId: String) async throws -> [Message] {
         let response: ConversationMessagesResponse = try await makeRequest(endpoint: "/chat/conversations/\(conversationId)/messages")
+        
+        // Create formatter with fractional seconds support (matches server format)
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        let standardFormatter = ISO8601DateFormatter()
+        standardFormatter.formatOptions = [.withInternetDateTime]
+        
         return response.messages.map { serverMsg in
-            Message(
+            // Try fractional seconds first, then fall back to standard
+            let timestamp = formatter.date(from: serverMsg.createdAt) 
+                ?? standardFormatter.date(from: serverMsg.createdAt) 
+                ?? Date()
+            
+            return Message(
                 id: serverMsg.id,
                 conversationId: conversationId,
                 role: serverMsg.role == "user" ? .user : .assistant,
                 content: serverMsg.content,
-                timestamp: ISO8601DateFormatter().date(from: serverMsg.createdAt) ?? Date(),
+                timestamp: timestamp,
                 feedback: serverMsg.feedback.flatMap { MessageFeedback(rawValue: $0) }
             )
         }

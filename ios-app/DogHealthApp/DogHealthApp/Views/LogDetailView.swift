@@ -46,6 +46,7 @@ struct LogDetailView: View {
     @State private var amount = ""
     @State private var duration = ""
     @State private var selectedMood = 2
+    @State private var selectedSeverity = 3 // Separate variable for symptom severity
     @State private var selectedMealType: Int
     @State private var selectedSymptom = 0
     @State private var selectedDigestion = 0
@@ -262,14 +263,14 @@ struct LogDetailView: View {
             
             HStack {
                 ForEach(1...5, id: \.self) { level in
-                    Button(action: { selectedMood = level }) {
+                    Button(action: { selectedSeverity = level }) {
                         Circle()
-                            .fill(selectedMood >= level ? Color.petlyDarkGreen : Color.petlyLightGreen)
+                            .fill(selectedSeverity >= level ? Color.petlyDarkGreen : Color.petlyLightGreen)
                             .frame(width: 40, height: 40)
                             .overlay(
                                 Text("\(level)")
                                     .font(.petlyBodyMedium(16))
-                                    .foregroundColor(selectedMood >= level ? .white : .petlyDarkGreen)
+                                    .foregroundColor(selectedSeverity >= level ? .white : .petlyDarkGreen)
                             )
                     }
                 }
@@ -462,7 +463,7 @@ struct LogDetailView: View {
             entry.treatName = amount
         case .symptom:
             entry.symptomType = symptoms[selectedSymptom]
-            entry.severityLevel = selectedMood
+            entry.severityLevel = selectedSeverity
         case .water:
             entry.waterAmount = amount
         case .playtime:
