@@ -1635,7 +1635,7 @@ struct WeightUpdateCard: View {
             
             VStack(alignment: .leading, spacing: 2) {
                 Text("Update Weight")
-                    .font(.petlyBody(14, weight: .semibold))
+                    .font(.petlyBodyMedium(14))
                     .foregroundColor(.petlyDarkGreen)
                 Text("Set weight to \(String(format: "%.1f", weight)) lbs")
                     .font(.petlyBody(12))
@@ -1646,7 +1646,7 @@ struct WeightUpdateCard: View {
             
             Button(action: onUpdate) {
                 Text("Update")
-                    .font(.petlyBody(13, weight: .semibold))
+                    .font(.petlyBodyMedium(13))
                     .foregroundColor(.white)
                     .padding(.horizontal, 12)
                     .padding(.vertical, 6)
