@@ -130,7 +130,7 @@ struct PetCard: View {
                             .foregroundColor(.petlyFormIcon)
                     }
                     
-                    Text("\(dog.age) years old")
+                    Text("\(dog.ageDisplayString) old")
                         .font(.petlyBody(12))
                         .foregroundColor(.petlyFormIcon)
                 }
@@ -291,10 +291,10 @@ struct AddPetView: View {
     private func addPet() {
         errorMessage = nil
         
-        let ageInt = Int(age) ?? 0
+        let ageDouble = Double(age) ?? 0
         let weightDouble = Double(weight)
         
-        if ageInt < 0 {
+        if ageDouble < 0 {
             errorMessage = "Age cannot be negative"
             return
         }
@@ -311,7 +311,7 @@ struct AddPetView: View {
                 let newDog = Dog(
                     name: name,
                     breed: breed.isEmpty ? "Unknown" : breed,
-                    age: ageInt,
+                    age: ageDouble,
                     weight: weightDouble
                 )
                 
