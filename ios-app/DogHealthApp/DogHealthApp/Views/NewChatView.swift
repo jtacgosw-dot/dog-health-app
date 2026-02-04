@@ -122,7 +122,7 @@ struct NewChatView: View {
                                 HStack(spacing: 6) {
                                     Image(systemName: "clock.arrow.circlepath")
                                         .font(.system(size: 14))
-                                    Text("History")
+                                    Text("Chats")
                                         .font(.petlyBody(14))
                                 }
                                 .foregroundColor(.petlyDarkGreen)
