@@ -426,7 +426,13 @@ SMART FEATURES:
    [REMINDER:title:time]
    Example: [REMINDER:Give heartworm medication:6:00 PM]
    Example: [REMINDER:Vet appointment:tomorrow 2:00 PM]
-   If no specific time given, ask them what time they'd like to be reminded.`;
+   If no specific time given, ask them what time they'd like to be reminded.
+
+3. WEIGHT UPDATE: When the user tells you their pet's new weight or asks you to update the weight, include:
+   [WEIGHT_UPDATE:value_in_lbs]
+   Example: User says "Mart now weighs 45 pounds" → [WEIGHT_UPDATE:45]
+   Example: User says "Update weight to 32.5 lbs" → [WEIGHT_UPDATE:32.5]
+   Only include this tag when the user explicitly mentions a new weight to record.`;
 
     if (dogProfile) {
       const ageValue = dogProfile.age || dogProfile.age_years;
