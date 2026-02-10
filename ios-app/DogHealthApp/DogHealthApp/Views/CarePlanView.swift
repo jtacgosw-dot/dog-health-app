@@ -216,12 +216,20 @@ struct CreateCarePlanView: View {
     @Environment(\.modelContext) private var modelContext
     @Query private var allLogs: [HealthLogEntry]
     
-    @State private var selectedGoal: CarePlanGoalType?
+    @State private var selectedGoals: Set<CarePlanGoalType> = []
     @State private var customTitle: String = ""
     @State private var duration: Int = 14
     @State private var isGenerating = false
     @State private var generatedPlan: GeneratedPlanData?
     @State private var errorMessage: String?
+    
+    private var conflictingGoals: [Set<CarePlanGoalType>] {
+        [[.weightGain, .weightLoss]]
+    }
+    
+    private var primaryGoal: CarePlanGoalType? {
+        selectedGoals.first
+    }
     
     private var dogName: String {
         appState.currentDog?.name ?? "your pet"
@@ -238,7 +246,7 @@ struct CreateCarePlanView: View {
                         if generatedPlan == nil {
                             goalSelectionSection
                             
-                            if selectedGoal != nil {
+                            if !selectedGoals.isEmpty {
                                 durationSection
                                 generateButton
                             }
@@ -288,27 +296,28 @@ struct CreateCarePlanView: View {
             
             LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
                 ForEach(CarePlanGoalType.allCases, id: \.self) { goal in
-                    Button(action: { selectedGoal = goal }) {
+                    Button(action: { toggleGoal(goal) }) {
                         VStack(spacing: 8) {
                             Image(systemName: goal.icon)
                                 .font(.system(size: 30))
-                                .foregroundColor(selectedGoal == goal ? .white : goal.color)
+                                .foregroundColor(selectedGoals.contains(goal) ? .white : goal.color)
                             Text(goal.rawValue)
                                 .font(.petlyBodyMedium(14))
-                                .foregroundColor(selectedGoal == goal ? .white : .petlyDarkGreen)
+                                .foregroundColor(selectedGoals.contains(goal) ? .white : .petlyDarkGreen)
                                 .multilineTextAlignment(.center)
                                 .minimumScaleFactor(0.7)
                                 .lineLimit(2)
                         }
-                        .frame(maxWidth: .infinity, minHeight: 90)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        .frame(minHeight: 90)
                         .padding()
-                        .background(selectedGoal == goal ? goal.color : Color.white)
+                        .background(selectedGoals.contains(goal) ? goal.color : Color.white)
                         .cornerRadius(12)
                     }
                 }
             }
             
-            if selectedGoal == .custom {
+            if selectedGoals.contains(.custom) {
                 TextField("Describe the goal...", text: $customTitle)
                     .font(.petlyBody(14))
                     .padding()
@@ -357,7 +366,7 @@ struct CreateCarePlanView: View {
             .background(Color.petlyDarkGreen)
             .cornerRadius(12)
         }
-        .disabled(selectedGoal == .custom && customTitle.isEmpty)
+        .disabled(selectedGoals.contains(.custom) && customTitle.isEmpty)
     }
     
     private var planPreviewSection: some View {
@@ -372,7 +381,7 @@ struct CreateCarePlanView: View {
                         Text(plan.title)
                             .font(.petlyTitle(20))
                             .foregroundColor(.petlyDarkGreen)
-                        Text("\(duration) day plan")
+                        Text("\(duration) day plan · \(selectedGoals.count) goal\(selectedGoals.count == 1 ? "" : "s")")
                             .font(.petlyBody(14))
                             .foregroundColor(.petlyFormIcon)
                     }
@@ -486,8 +495,23 @@ struct CreateCarePlanView: View {
         }
     }
     
+    private func toggleGoal(_ goal: CarePlanGoalType) {
+        if selectedGoals.contains(goal) {
+            selectedGoals.remove(goal)
+        } else {
+            for conflict in conflictingGoals {
+                if conflict.contains(goal) {
+                    for conflicting in conflict where conflicting != goal {
+                        selectedGoals.remove(conflicting)
+                    }
+                }
+            }
+            selectedGoals.insert(goal)
+        }
+    }
+    
     private func generatePlan() {
-        guard let goal = selectedGoal else { return }
+        guard let goal = primaryGoal else { return }
         
         isGenerating = true
         errorMessage = nil
@@ -522,7 +546,8 @@ struct CreateCarePlanView: View {
     }
     
     private func buildPlanPrompt(goal: CarePlanGoalType) -> String {
-        let goalDescription = goal == .custom ? customTitle : goal.rawValue
+        let goalDescriptions = selectedGoals.map { $0 == .custom ? customTitle : $0.rawValue }
+        let goalDescription = goalDescriptions.joined(separator: ", ")
         
         return """
         Create a \(duration)-day care plan for \(dogName) focused on: \(goalDescription)
@@ -661,7 +686,7 @@ struct CreateCarePlanView: View {
     }
     
     private func savePlan() {
-        guard let goal = selectedGoal, let planData = generatedPlan else { return }
+        guard let goal = primaryGoal, let planData = generatedPlan else { return }
         
         let dogId = appState.currentDog?.id ?? "default"
         let endDate = Calendar.current.date(byAdding: .day, value: duration, to: Date()) ?? Date()

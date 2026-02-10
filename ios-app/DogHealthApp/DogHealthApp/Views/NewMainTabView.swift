@@ -167,6 +167,7 @@ struct TabBarButton: View {
 struct ExploreView: View {
     @EnvironmentObject var appState: AppState
     @State private var selectedQuickAction: String?
+    @State private var showSmartInsights = false
     var onQuickAction: ((String) -> Void)?
     
     // Scaled sizes for Dynamic Type support
@@ -275,7 +276,8 @@ struct ExploreView: View {
                     InsightCard(
                         icon: "pills",
                         title: "Give \(dogName) Daily Multivitamins",
-                        description: "\(dogName) would benefit from daily Multivitamins—perfect for joints, coat, and immunity."
+                        description: "\(dogName) would benefit from daily Multivitamins—perfect for joints, coat, and immunity.",
+                        onTap: { showSmartInsights = true }
                     )
                     .padding(.horizontal)
                     
@@ -289,6 +291,10 @@ struct ExploreView: View {
             .background(Color.petlyBackground)
         }
         .background(Color.petlyBackground.ignoresSafeArea())
+        .sheet(isPresented: $showSmartInsights) {
+            SmartInsightsView()
+                .environmentObject(appState)
+        }
     }
 }
 
@@ -400,6 +406,7 @@ struct InsightCard: View {
     let icon: String
     let title: String
     let description: String
+    var onTap: (() -> Void)? = nil
     @State private var isPressed = false
     @ScaledMetric(relativeTo: .body) private var iconSize: CGFloat = 32
     
@@ -412,6 +419,7 @@ struct InsightCard: View {
                 withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) {
                     isPressed = false
                 }
+                onTap?()
             }
         }) {
             HStack(spacing: 16) {
