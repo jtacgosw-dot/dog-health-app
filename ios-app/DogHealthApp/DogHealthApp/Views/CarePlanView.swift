@@ -373,9 +373,9 @@ struct CreateCarePlanView: View {
         VStack(alignment: .leading, spacing: 20) {
             if let plan = generatedPlan {
                 HStack {
-                    Image(systemName: selectedGoal?.icon ?? "list.clipboard")
+                    Image(systemName: primaryGoal?.icon ?? "list.clipboard")
                         .font(.system(size: 30))
-                        .foregroundColor(selectedGoal?.color ?? .petlyDarkGreen)
+                        .foregroundColor(primaryGoal?.color ?? .petlyDarkGreen)
                     
                     VStack(alignment: .leading, spacing: 2) {
                         Text(plan.title)
@@ -433,7 +433,7 @@ struct CreateCarePlanView: View {
                                     .foregroundColor(.white)
                                     .padding(.horizontal, 12)
                                     .padding(.vertical, 6)
-                                    .background(selectedGoal?.color ?? .petlyDarkGreen)
+                                    .background(primaryGoal?.color ?? .petlyDarkGreen)
                                     .cornerRadius(8)
                                 
                                 Text(milestone.description)
