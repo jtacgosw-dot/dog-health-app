@@ -674,6 +674,9 @@ struct VetPackQuickActionButton: View {
     let color: Color
     let action: () -> Void
     
+    @ScaledMetric(relativeTo: .body) private var buttonMinHeight: CGFloat = 100
+    private var cappedMinHeight: CGFloat { min(buttonMinHeight, 140) }
+    
     var body: some View {
         Button(action: action) {
             VStack(spacing: 8) {
@@ -684,12 +687,17 @@ struct VetPackQuickActionButton: View {
                 Text(title)
                     .font(.petlyBodyMedium(12))
                     .foregroundColor(.primary)
+                    .minimumScaleFactor(0.8)
+                    .lineLimit(1)
                 
                 Text(subtitle)
                     .font(.petlyBody(10))
                     .foregroundColor(.secondary)
+                    .minimumScaleFactor(0.8)
+                    .lineLimit(1)
             }
-            .frame(maxWidth: .infinity)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .frame(minHeight: cappedMinHeight)
             .padding()
             .background(Color.petlyLightGreen.opacity(0.5))
             .cornerRadius(12)

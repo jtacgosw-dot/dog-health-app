@@ -1162,8 +1162,9 @@ struct NewMessageBubble: View {
                         Text("Thanks for the feedback!")
                             .font(.petlyBody(10))
                             .foregroundColor(.petlyDarkGreen)
-                            .minimumScaleFactor(0.7)
+                            .minimumScaleFactor(0.5)
                             .lineLimit(1)
+                            .fixedSize(horizontal: false, vertical: true)
                             .transition(.opacity.combined(with: .scale))
                     }
                     
@@ -1572,6 +1573,8 @@ struct LogSuggestionCard: View {
     @ScaledMetric(relativeTo: .body) private var iconSize: CGFloat = 20
     @ScaledMetric(relativeTo: .body) private var iconFrameSize: CGFloat = 36
     @ScaledMetric(relativeTo: .body) private var dismissIconSize: CGFloat = 12
+    private var cappedIconSize: CGFloat { min(iconSize, 28) }
+    private var cappedIconFrameSize: CGFloat { min(iconFrameSize, 48) }
     
     private var icon: String {
         switch logType.lowercased() {
@@ -1588,9 +1591,9 @@ struct LogSuggestionCard: View {
     var body: some View {
         HStack(spacing: 12) {
             Image(systemName: icon)
-                .font(.system(size: iconSize))
+                .font(.system(size: cappedIconSize))
                 .foregroundColor(.petlyDarkGreen)
-                .frame(width: iconFrameSize, height: iconFrameSize)
+                .frame(width: cappedIconFrameSize, height: cappedIconFrameSize)
                 .background(Color.petlyLightGreen)
                 .clipShape(Circle())
             
@@ -1598,12 +1601,13 @@ struct LogSuggestionCard: View {
                 Text("Log this?")
                     .font(.petlyBodyMedium(12))
                     .foregroundColor(.petlyDarkGreen)
-                    .minimumScaleFactor(0.8)
+                    .minimumScaleFactor(0.6)
+                    .lineLimit(1)
                 Text(details)
                     .font(.petlyBody(11))
                     .foregroundColor(.petlyFormIcon)
                     .lineLimit(2)
-                    .minimumScaleFactor(0.8)
+                    .minimumScaleFactor(0.6)
             }
             .layoutPriority(1)
             
@@ -1639,17 +1643,18 @@ struct ReminderSuggestionCard: View {
     let onCreate: () -> Void
     let onDismiss: () -> Void
     
-    // Scaled sizes for Dynamic Type support
     @ScaledMetric(relativeTo: .body) private var iconSize: CGFloat = 20
     @ScaledMetric(relativeTo: .body) private var iconFrameSize: CGFloat = 36
     @ScaledMetric(relativeTo: .body) private var dismissIconSize: CGFloat = 12
+    private var cappedIconSize: CGFloat { min(iconSize, 28) }
+    private var cappedIconFrameSize: CGFloat { min(iconFrameSize, 48) }
     
     var body: some View {
         HStack(spacing: 12) {
             Image(systemName: "bell.fill")
-                .font(.system(size: iconSize))
+                .font(.system(size: cappedIconSize))
                 .foregroundColor(.orange)
-                .frame(width: iconFrameSize, height: iconFrameSize)
+                .frame(width: cappedIconFrameSize, height: cappedIconFrameSize)
                 .background(Color.orange.opacity(0.15))
                 .clipShape(Circle())
             
@@ -1657,12 +1662,13 @@ struct ReminderSuggestionCard: View {
                 Text("Set reminder?")
                     .font(.petlyBodyMedium(12))
                     .foregroundColor(.petlyDarkGreen)
-                    .minimumScaleFactor(0.8)
+                    .minimumScaleFactor(0.6)
+                    .lineLimit(1)
                 Text("\(title) at \(time)")
                     .font(.petlyBody(11))
                     .foregroundColor(.petlyFormIcon)
                     .lineLimit(2)
-                    .minimumScaleFactor(0.8)
+                    .minimumScaleFactor(0.6)
             }
             .layoutPriority(1)
             

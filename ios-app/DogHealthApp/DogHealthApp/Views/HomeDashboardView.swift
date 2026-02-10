@@ -1187,6 +1187,8 @@ struct HealthDigestCard: View {
                         .foregroundColor(.gray)
                 }
                 
+                Spacer(minLength: 0)
+                
                 Text("Health Digest")
                     .font(.headline)
                     .foregroundColor(.petlyDarkGreen)
@@ -1198,7 +1200,8 @@ struct HealthDigestCard: View {
                     .minimumScaleFactor(0.8)
             }
             .padding()
-            .frame(maxWidth: .infinity, minHeight: cappedCardMinHeight, alignment: .leading)
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
+            .frame(minHeight: cappedCardMinHeight)
             .background(Color.petlyLightGreen)
             .cornerRadius(16)
             .shadow(color: .black.opacity(0.06), radius: 8, x: 0, y: 2)
@@ -1207,7 +1210,7 @@ struct HealthDigestCard: View {
     }
 }
 
-struct CarePlansCard:View {
+struct CarePlansCard: View {
     var onViewPlans: () -> Void
     @ScaledMetric(relativeTo: .body) private var cardMinHeight: CGFloat = 130
     private var cappedCardMinHeight: CGFloat { min(cardMinHeight, 180) }
@@ -1225,6 +1228,8 @@ struct CarePlansCard:View {
                         .foregroundColor(.gray)
                 }
                 
+                Spacer(minLength: 0)
+                
                 Text("Care Plans")
                     .font(.headline)
                     .foregroundColor(.petlyDarkGreen)
@@ -1236,7 +1241,8 @@ struct CarePlansCard:View {
                     .minimumScaleFactor(0.8)
             }
             .padding()
-            .frame(maxWidth: .infinity, minHeight: cappedCardMinHeight, alignment: .leading)
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
+            .frame(minHeight: cappedCardMinHeight)
             .background(Color.petlyLightGreen)
             .cornerRadius(16)
             .shadow(color: .black.opacity(0.06), radius: 8, x: 0, y: 2)
@@ -1436,6 +1442,8 @@ struct PreventativeCareCard:View {
                     }
                 }
                 
+                Spacer(minLength: 0)
+                
                 Text("Preventative Care")
                     .font(.headline)
                     .foregroundColor(.petlyDarkGreen)
@@ -1455,7 +1463,8 @@ struct PreventativeCareCard:View {
                 }
             }
             .padding()
-            .frame(maxWidth: .infinity, minHeight: cappedCardMinHeight, alignment: .leading)
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
+            .frame(minHeight: cappedCardMinHeight)
             .background(Color.petlyLightGreen)
             .cornerRadius(16)
             .shadow(color: .black.opacity(0.06), radius: 8, x: 0, y: 2)

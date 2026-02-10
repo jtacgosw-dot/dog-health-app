@@ -581,6 +581,12 @@ struct DailyHealthReviewView: View {
         
         modelContext.insert(checkIn)
         
+        do {
+            try modelContext.save()
+        } catch {
+            print("Failed to save daily check-in: \(error)")
+        }
+        
         // Haptic feedback for completion
         HapticFeedback.success()
         
