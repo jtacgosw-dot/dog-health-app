@@ -517,6 +517,8 @@ struct SmartInsightsCard: View {
                         .foregroundColor(.gray)
                 }
                 
+                Spacer(minLength: 0)
+                
                 Text("Smart Insights")
                     .font(.headline)
                     .foregroundColor(.petlyDarkGreen)
@@ -529,7 +531,8 @@ struct SmartInsightsCard: View {
                     .minimumScaleFactor(0.8)
             }
             .padding()
-            .frame(maxWidth: .infinity, minHeight: cappedCardMinHeight, alignment: .leading)
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
+            .frame(minHeight: cappedCardMinHeight)
             .background(Color.petlyLightGreen)
             .cornerRadius(16)
             .shadow(color: .black.opacity(0.06), radius: 8, x: 0, y: 2)

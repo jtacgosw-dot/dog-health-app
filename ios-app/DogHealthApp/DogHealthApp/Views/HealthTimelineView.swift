@@ -489,13 +489,18 @@ struct TimelineStatCard: View {
                 .font(.petlyTitle(24))
                 .foregroundColor(.petlyDarkGreen)
                 .contentTransition(.numericText())
+                .minimumScaleFactor(0.7)
+                .lineLimit(1)
             
             Text(title)
                 .font(.petlyBody(12))
                 .foregroundColor(.petlyFormIcon)
+                .minimumScaleFactor(0.7)
+                .lineLimit(1)
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, 16)
+        .padding(.horizontal, 4)
         .background(Color.petlyLightGreen)
         .cornerRadius(16)
     }
@@ -514,6 +519,8 @@ struct FilterChip: View {
                     .font(.system(size: 12))
                 Text(title)
                     .font(.petlyBody(12))
+                    .minimumScaleFactor(0.8)
+                    .lineLimit(1)
             }
             .foregroundColor(isSelected ? .white : .petlyDarkGreen)
             .padding(.horizontal, 12)
