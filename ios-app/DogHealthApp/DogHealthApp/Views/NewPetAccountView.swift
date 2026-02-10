@@ -431,18 +431,39 @@ struct NutritionEditView: View {
     @State private var feedingSchedule = "Twice daily"
     @State private var foodType = "Dry kibble"
     @State private var portionSize = "1 cup"
+    @State private var portionFrequency = "per meal"
+    @State private var customPortionSize = ""
     @State private var allergies = ""
     @State private var showSaved = false
     
     let feedingOptions = ["Once daily", "Twice daily", "Three times daily", "Free feeding"]
     let foodTypes = ["Dry kibble", "Wet food", "Raw diet", "Home cooked", "Mixed"]
-    let portionSizes = ["1/2 cup", "1 cup", "1.5 cups", "2 cups", "Custom"]
+    let portionSizes = ["1/4 cup", "1/3 cup", "1/2 cup", "3/4 cup", "1 cup", "1.5 cups", "2 cups", "2.5 cups", "3 cups", "Custom"]
+    let portionFrequencies = ["per meal", "per day"]
+    
+    private var isCustomPortion: Bool {
+        portionSize == "Custom"
+    }
+    
+    private var effectivePortionSize: String {
+        if isCustomPortion && !customPortionSize.isEmpty {
+            return customPortionSize
+        }
+        return portionSize
+    }
     
     private func loadExistingData() {
         if let dog = appState.currentDog {
             feedingSchedule = dog.feedingSchedule ?? "Twice daily"
             foodType = dog.foodType ?? "Dry kibble"
-            portionSize = dog.portionSize ?? "1 cup"
+            let savedPortion = dog.portionSize ?? "1 cup"
+            // Check if it's a custom value not in our list
+            if portionSizes.contains(savedPortion) {
+                portionSize = savedPortion
+            } else {
+                portionSize = "Custom"
+                customPortionSize = savedPortion
+            }
             allergies = dog.foodAllergies ?? ""
         }
     }
@@ -451,7 +472,9 @@ struct NutritionEditView: View {
         guard var dog = appState.currentDog else { return }
         dog.feedingSchedule = feedingSchedule
         dog.foodType = foodType
-        dog.portionSize = portionSize
+        // Save the effective portion size with frequency
+        let portionToSave = effectivePortionSize
+        dog.portionSize = "\(portionToSave) \(portionFrequency)"
         dog.foodAllergies = allergies.isEmpty ? nil : allergies
         dog.updatedAt = Date()
         appState.saveDogLocally(dog)
@@ -514,6 +537,31 @@ struct NutritionEditView: View {
                             .frame(maxWidth: .infinity, alignment: .leading)
                             .background(Color.petlyLightGreen)
                             .cornerRadius(12)
+                            
+                            if isCustomPortion {
+                                TextField("Enter custom amount (e.g., 1.25 cups)", text: $customPortionSize)
+                                    .padding()
+                                    .background(Color.petlyLightGreen)
+                                    .cornerRadius(12)
+                            }
+                        }
+                        
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Portion Frequency")
+                                .font(.petlyBodyMedium(14))
+                                .foregroundColor(.petlyDarkGreen)
+                            
+                            Text("Is this amount per meal or total per day?")
+                                .font(.petlyBody(12))
+                                .foregroundColor(.petlyFormIcon)
+                            
+                            Picker("Portion Frequency", selection: $portionFrequency) {
+                                ForEach(portionFrequencies, id: \.self) { freq in
+                                    Text(freq).tag(freq)
+                                }
+                            }
+                            .pickerStyle(.segmented)
+                            .padding(.vertical, 4)
                         }
                         
                         VStack(alignment: .leading, spacing: 8) {

@@ -322,14 +322,18 @@ struct CreateCarePlanView: View {
                 .font(.petlyBodyMedium(16))
                 .foregroundColor(.petlyDarkGreen)
             
-            HStack(spacing: 12) {
+            // Use flexible layout that wraps on smaller screens or larger text
+            LazyVGrid(columns: [GridItem(.adaptive(minimum: 70, maximum: 120))], spacing: 8) {
                 ForEach([7, 14, 21, 30], id: \.self) { days in
                     Button(action: { duration = days }) {
                         Text("\(days) days")
                             .font(.petlyBody(14))
                             .foregroundColor(duration == days ? .white : .petlyDarkGreen)
-                            .padding(.horizontal, 16)
+                            .minimumScaleFactor(0.8)
+                            .lineLimit(1)
+                            .padding(.horizontal, 12)
                             .padding(.vertical, 10)
+                            .frame(minWidth: 60)
                             .background(duration == days ? Color.petlyDarkGreen : Color.petlyLightGreen)
                             .cornerRadius(20)
                     }
