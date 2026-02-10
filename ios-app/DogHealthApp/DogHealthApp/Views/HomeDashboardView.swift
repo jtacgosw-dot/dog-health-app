@@ -6,6 +6,7 @@ struct HomeDashboardView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.sizeCategory) private var sizeCategory
     @Query private var allLogs: [HealthLogEntry]
+    @Query private var allCheckIns: [DailyCheckIn]
     
     // Scaled sizes for Dynamic Type support
     @ScaledMetric(relativeTo: .body) private var avatarSize: CGFloat = 60
