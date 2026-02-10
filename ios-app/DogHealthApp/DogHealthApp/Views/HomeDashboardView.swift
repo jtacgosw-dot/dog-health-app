@@ -352,8 +352,9 @@ struct HomeDashboardView: View {
                     .environmentObject(appState)
             }
             .sheet(isPresented: $showDailyHealthReview, onDismiss: {
-                // Force refresh the DailyHealthReviewCard when the sheet is dismissed
-                dailyReviewRefreshId = UUID()
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                    dailyReviewRefreshId = UUID()
+                }
             }) {
                 DailyHealthReviewView()
                     .environmentObject(appState)
@@ -1328,9 +1329,10 @@ struct DailyHealthReviewCard:View {
         let calendar = Calendar.current
         let today = calendar.startOfDay(for: Date())
         let weekStart = calendar.date(byAdding: .day, value: -6, to: today)!
+        let tomorrow = calendar.date(byAdding: .day, value: 1, to: today)!
         return checkIns.filter { checkIn in
             checkIn.dogId == dogId &&
-            checkIn.date >= weekStart && checkIn.date <= today
+            checkIn.date >= weekStart && checkIn.date < tomorrow
         }.count
     }
     

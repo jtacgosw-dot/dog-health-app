@@ -410,7 +410,7 @@ struct StatCard: View {
                 .minimumScaleFactor(0.8)
                 .lineLimit(1)
         }
-        .frame(maxWidth: .infinity)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .padding(.horizontal, 8)
         .padding(.vertical, 12)
         .background(Color.petlyLightGreen)

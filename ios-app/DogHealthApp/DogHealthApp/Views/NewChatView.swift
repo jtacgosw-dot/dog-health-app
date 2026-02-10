@@ -261,9 +261,20 @@ struct NewChatView: View {
             }
         }
         .ignoresSafeArea(.keyboard, edges: .bottom)
+                .onAppear {
+                    if !initialPrompt.isEmpty {
+                        let prompt = initialPrompt
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                            if !prompt.isEmpty {
+                                messageText = prompt
+                                initialPrompt = ""
+                                sendMessage()
+                            }
+                        }
+                    }
+                }
                 .onChange(of: initialPrompt) { oldValue, newValue in
                     if !newValue.isEmpty {
-                        // Small delay to ensure view is ready before sending
                         DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
                             messageText = newValue
                             initialPrompt = ""
@@ -1162,8 +1173,8 @@ struct NewMessageBubble: View {
                         Text("Thanks for the feedback!")
                             .font(.petlyBody(10))
                             .foregroundColor(.petlyDarkGreen)
-                            .minimumScaleFactor(0.5)
-                            .lineLimit(1)
+                            .minimumScaleFactor(0.4)
+                            .lineLimit(2)
                             .fixedSize(horizontal: false, vertical: true)
                             .transition(.opacity.combined(with: .scale))
                     }
@@ -1201,7 +1212,7 @@ struct NewMessageBubble: View {
                     }
                 }
             }
-            .frame(maxWidth: min(bubbleMaxWidth, 320), alignment: isUser ? .trailing : .leading)
+            .frame(maxWidth: bubbleMaxWidth, alignment: isUser ? .trailing : .leading)
             
             if !isUser {
                 Spacer(minLength: 50)
@@ -1570,11 +1581,11 @@ struct LogSuggestionCard: View {
     let onDismiss: () -> Void
     
     // Scaled sizes for Dynamic Type support
-    @ScaledMetric(relativeTo: .body) private var iconSize: CGFloat = 20
-    @ScaledMetric(relativeTo: .body) private var iconFrameSize: CGFloat = 36
+    @ScaledMetric(relativeTo: .body) private var iconSize: CGFloat = 16
+    @ScaledMetric(relativeTo: .body) private var iconFrameSize: CGFloat = 30
     @ScaledMetric(relativeTo: .body) private var dismissIconSize: CGFloat = 12
-    private var cappedIconSize: CGFloat { min(iconSize, 28) }
-    private var cappedIconFrameSize: CGFloat { min(iconFrameSize, 48) }
+    private var cappedIconSize: CGFloat { min(iconSize, 22) }
+    private var cappedIconFrameSize: CGFloat { min(iconFrameSize, 38) }
     
     private var icon: String {
         switch logType.lowercased() {
@@ -1589,7 +1600,7 @@ struct LogSuggestionCard: View {
     }
     
     var body: some View {
-        HStack(spacing: 12) {
+        HStack(spacing: 8) {
             Image(systemName: icon)
                 .font(.system(size: cappedIconSize))
                 .foregroundColor(.petlyDarkGreen)
@@ -1601,24 +1612,24 @@ struct LogSuggestionCard: View {
                 Text("Log this?")
                     .font(.petlyBodyMedium(12))
                     .foregroundColor(.petlyDarkGreen)
-                    .minimumScaleFactor(0.6)
-                    .lineLimit(1)
+                    .minimumScaleFactor(0.4)
+                    .lineLimit(2)
                 Text(details)
                     .font(.petlyBody(11))
                     .foregroundColor(.petlyFormIcon)
                     .lineLimit(2)
-                    .minimumScaleFactor(0.6)
+                    .minimumScaleFactor(0.4)
             }
             .layoutPriority(1)
             
-            Spacer(minLength: 4)
+            Spacer(minLength: 2)
             
             Button(action: onLog) {
                 Text("Log")
-                    .font(.petlyBodyMedium(12))
+                    .font(.petlyBodyMedium(11))
                     .foregroundColor(.white)
-                    .padding(.horizontal, 14)
-                    .padding(.vertical, 6)
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 5)
                     .background(Color.petlyDarkGreen)
                     .cornerRadius(14)
             }
@@ -1626,11 +1637,11 @@ struct LogSuggestionCard: View {
             
             Button(action: onDismiss) {
                 Image(systemName: "xmark")
-                    .font(.system(size: dismissIconSize, weight: .medium))
+                    .font(.system(size: min(dismissIconSize, 14), weight: .medium))
                     .foregroundColor(.petlyFormIcon)
             }
         }
-        .padding(12)
+        .padding(8)
         .background(Color.white)
         .cornerRadius(12)
         .shadow(color: .black.opacity(0.06), radius: 4, x: 0, y: 2)
@@ -1643,14 +1654,14 @@ struct ReminderSuggestionCard: View {
     let onCreate: () -> Void
     let onDismiss: () -> Void
     
-    @ScaledMetric(relativeTo: .body) private var iconSize: CGFloat = 20
-    @ScaledMetric(relativeTo: .body) private var iconFrameSize: CGFloat = 36
+    @ScaledMetric(relativeTo: .body) private var iconSize: CGFloat = 16
+    @ScaledMetric(relativeTo: .body) private var iconFrameSize: CGFloat = 30
     @ScaledMetric(relativeTo: .body) private var dismissIconSize: CGFloat = 12
-    private var cappedIconSize: CGFloat { min(iconSize, 28) }
-    private var cappedIconFrameSize: CGFloat { min(iconFrameSize, 48) }
+    private var cappedIconSize: CGFloat { min(iconSize, 22) }
+    private var cappedIconFrameSize: CGFloat { min(iconFrameSize, 38) }
     
     var body: some View {
-        HStack(spacing: 12) {
+        HStack(spacing: 8) {
             Image(systemName: "bell.fill")
                 .font(.system(size: cappedIconSize))
                 .foregroundColor(.orange)
@@ -1662,24 +1673,24 @@ struct ReminderSuggestionCard: View {
                 Text("Set reminder?")
                     .font(.petlyBodyMedium(12))
                     .foregroundColor(.petlyDarkGreen)
-                    .minimumScaleFactor(0.6)
-                    .lineLimit(1)
+                    .minimumScaleFactor(0.4)
+                    .lineLimit(2)
                 Text("\(title) at \(time)")
                     .font(.petlyBody(11))
                     .foregroundColor(.petlyFormIcon)
                     .lineLimit(2)
-                    .minimumScaleFactor(0.6)
+                    .minimumScaleFactor(0.4)
             }
             .layoutPriority(1)
             
-            Spacer(minLength: 4)
+            Spacer(minLength: 2)
             
             Button(action: onCreate) {
                 Text("Set")
-                    .font(.petlyBodyMedium(12))
+                    .font(.petlyBodyMedium(11))
                     .foregroundColor(.white)
-                    .padding(.horizontal, 14)
-                    .padding(.vertical, 6)
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 5)
                     .background(Color.orange)
                     .cornerRadius(14)
             }
@@ -1687,11 +1698,11 @@ struct ReminderSuggestionCard: View {
             
             Button(action: onDismiss) {
                 Image(systemName: "xmark")
-                    .font(.system(size: dismissIconSize, weight: .medium))
+                    .font(.system(size: min(dismissIconSize, 14), weight: .medium))
                     .foregroundColor(.petlyFormIcon)
             }
         }
-        .padding(12)
+        .padding(8)
         .background(Color.white)
         .cornerRadius(12)
         .shadow(color: .black.opacity(0.06), radius: 4, x: 0, y: 2)

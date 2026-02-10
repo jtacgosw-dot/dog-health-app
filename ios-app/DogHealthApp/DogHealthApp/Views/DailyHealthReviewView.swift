@@ -192,7 +192,7 @@ struct DailyHealthReviewView: View {
                     .font(.petlyBodyMedium(14))
                     .foregroundColor(isSelected ? .petlyDarkGreen : .petlyFormIcon)
             }
-            .frame(maxWidth: .infinity)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
             .padding()
             .background(isSelected ? Color.petlyLightGreen : Color.white)
             .cornerRadius(12)
