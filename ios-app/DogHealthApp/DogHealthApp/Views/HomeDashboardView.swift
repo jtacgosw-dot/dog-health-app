@@ -37,6 +37,30 @@ struct HomeDashboardView: View {
     @State private var showWelcomeCard = false
     @State private var dailyReviewRefreshId = UUID()
     
+    private var dogId: String {
+        appState.currentDog?.id ?? ""
+    }
+    
+    private var hasCompletedTodayReview: Bool {
+        let calendar = Calendar.current
+        let today = calendar.startOfDay(for: Date())
+        return allCheckIns.contains { checkIn in
+            checkIn.dogId == dogId &&
+            calendar.isDate(checkIn.date, inSameDayAs: today)
+        }
+    }
+    
+    private var checkInsThisWeekCount: Int {
+        let calendar = Calendar.current
+        let today = calendar.startOfDay(for: Date())
+        let weekStart = calendar.date(byAdding: .day, value: -6, to: today)!
+        let tomorrow = calendar.date(byAdding: .day, value: 1, to: today)!
+        return allCheckIns.filter { checkIn in
+            checkIn.dogId == dogId &&
+            checkIn.date >= weekStart && checkIn.date < tomorrow
+        }.count
+    }
+    
     private let activityGoal = 60
     private let welcomeCardKey = "hasSeenWelcomeCard"
     private let mealsTotal = 3
@@ -215,7 +239,11 @@ struct HomeDashboardView: View {
                         .padding(.horizontal)
                         .padding(.top, 10)
                         
-                        DailyHealthReviewCard(onStartReview: { showDailyHealthReview = true })
+                        DailyHealthReviewCard(
+                            hasCompletedToday: hasCompletedTodayReview,
+                            checkInsThisWeek: checkInsThisWeekCount,
+                            onStartReview: { showDailyHealthReview = true }
+                        )
                         .id(dailyReviewRefreshId)
                         .padding(.horizontal)
                         .appearAnimation(delay: 0.08)
@@ -1304,37 +1332,12 @@ struct VetVisitPackCard:View {
 }
 
 struct DailyHealthReviewCard:View {
-    @EnvironmentObject var appState: AppState
-    @Query private var checkIns: [DailyCheckIn]
-    
+    var hasCompletedToday: Bool
+    var checkInsThisWeek: Int
     var onStartReview: () -> Void
     
     @ScaledMetric(relativeTo: .body) private var iconCircleSize: CGFloat = 50
     private var cappedIconCircleSize: CGFloat { min(iconCircleSize, 70) }
-    
-    private var dogId: String {
-        appState.currentDog?.id ?? ""
-    }
-    
-    private var hasCompletedToday: Bool {
-        let calendar = Calendar.current
-        let today = calendar.startOfDay(for: Date())
-        return checkIns.contains { checkIn in
-            checkIn.dogId == dogId &&
-            calendar.isDate(checkIn.date, inSameDayAs: today)
-        }
-    }
-    
-    private var checkInsThisWeek: Int {
-        let calendar = Calendar.current
-        let today = calendar.startOfDay(for: Date())
-        let weekStart = calendar.date(byAdding: .day, value: -6, to: today)!
-        let tomorrow = calendar.date(byAdding: .day, value: 1, to: today)!
-        return checkIns.filter { checkIn in
-            checkIn.dogId == dogId &&
-            checkIn.date >= weekStart && checkIn.date < tomorrow
-        }.count
-    }
     
     var body: some View {
         Button(action: onStartReview) {

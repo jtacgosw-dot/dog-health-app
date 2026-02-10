@@ -250,6 +250,13 @@ struct CreateCarePlanView: View {
                                 durationSection
                                 generateButton
                             }
+                            
+                            if let error = errorMessage {
+                                Text(error)
+                                    .font(.petlyBody(14))
+                                    .foregroundColor(.red)
+                                    .padding()
+                            }
                         } else {
                             planPreviewSection
                         }

@@ -31,6 +31,8 @@ struct SmartInsightsView: View {
                 VStack(spacing: 20) {
                     headerSection
                     
+                    petlySuggestionsSection
+                    
                     if insights.isEmpty {
                         emptyStateSection
                     } else {
@@ -124,6 +126,52 @@ struct SmartInsightsView: View {
             .cornerRadius(10)
         }
         .padding(.vertical, 32)
+    }
+    
+    private var petlySuggestionsSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Suggested for \(dogName)")
+                .font(.headline)
+            
+            HStack(alignment: .top, spacing: 12) {
+                ZStack {
+                    Circle()
+                        .fill(Color.green.opacity(0.15))
+                        .frame(width: 44, height: 44)
+                    
+                    Image(systemName: "pills")
+                        .font(.title3)
+                        .foregroundColor(.green)
+                }
+                
+                VStack(alignment: .leading, spacing: 6) {
+                    Text("Give \(dogName) Daily Multivitamins")
+                        .font(.subheadline)
+                        .fontWeight(.semibold)
+                    
+                    Text("\(dogName) would benefit from daily Multivitamins\u{2014}perfect for joints, coat, and immunity.")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                
+                Spacer()
+            }
+            .padding()
+            .background(
+                LinearGradient(
+                    gradient: Gradient(colors: [Color.petlyLightGreen.opacity(0.8), Color.petlyLightGreen.opacity(0.4)]),
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                )
+            )
+            .cornerRadius(12)
+            .shadow(color: .black.opacity(0.06), radius: 8, x: 0, y: 2)
+            
+            Text("Petly Suggestion")
+                .font(.caption)
+                .foregroundColor(.secondary)
+        }
     }
     
     private var insightsSection: some View {
