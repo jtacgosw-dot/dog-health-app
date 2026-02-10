@@ -263,9 +263,12 @@ struct NewChatView: View {
         .ignoresSafeArea(.keyboard, edges: .bottom)
                 .onChange(of: initialPrompt) { oldValue, newValue in
                     if !newValue.isEmpty {
-                        messageText = newValue
-                        initialPrompt = ""
-                        sendMessage()
+                        // Small delay to ensure view is ready before sending
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                            messageText = newValue
+                            initialPrompt = ""
+                            sendMessage()
+                        }
                     }
                 }
                 .onChange(of: selectedPhotoItem) { oldValue, newValue in
@@ -1159,6 +1162,8 @@ struct NewMessageBubble: View {
                         Text("Thanks for the feedback!")
                             .font(.petlyBody(10))
                             .foregroundColor(.petlyDarkGreen)
+                            .minimumScaleFactor(0.7)
+                            .lineLimit(1)
                             .transition(.opacity.combined(with: .scale))
                     }
                     
@@ -1563,6 +1568,11 @@ struct LogSuggestionCard: View {
     let onLog: () -> Void
     let onDismiss: () -> Void
     
+    // Scaled sizes for Dynamic Type support
+    @ScaledMetric(relativeTo: .body) private var iconSize: CGFloat = 20
+    @ScaledMetric(relativeTo: .body) private var iconFrameSize: CGFloat = 36
+    @ScaledMetric(relativeTo: .body) private var dismissIconSize: CGFloat = 12
+    
     private var icon: String {
         switch logType.lowercased() {
         case "symptom": return "heart.text.square"
@@ -1578,9 +1588,9 @@ struct LogSuggestionCard: View {
     var body: some View {
         HStack(spacing: 12) {
             Image(systemName: icon)
-                .font(.system(size: 20))
+                .font(.system(size: iconSize))
                 .foregroundColor(.petlyDarkGreen)
-                .frame(width: 36, height: 36)
+                .frame(width: iconFrameSize, height: iconFrameSize)
                 .background(Color.petlyLightGreen)
                 .clipShape(Circle())
             
@@ -1588,13 +1598,16 @@ struct LogSuggestionCard: View {
                 Text("Log this?")
                     .font(.petlyBodyMedium(12))
                     .foregroundColor(.petlyDarkGreen)
+                    .minimumScaleFactor(0.8)
                 Text(details)
                     .font(.petlyBody(11))
                     .foregroundColor(.petlyFormIcon)
-                    .lineLimit(1)
+                    .lineLimit(2)
+                    .minimumScaleFactor(0.8)
             }
+            .layoutPriority(1)
             
-            Spacer()
+            Spacer(minLength: 4)
             
             Button(action: onLog) {
                 Text("Log")
@@ -1605,10 +1618,11 @@ struct LogSuggestionCard: View {
                     .background(Color.petlyDarkGreen)
                     .cornerRadius(14)
             }
+            .fixedSize()
             
             Button(action: onDismiss) {
                 Image(systemName: "xmark")
-                    .font(.system(size: 12, weight: .medium))
+                    .font(.system(size: dismissIconSize, weight: .medium))
                     .foregroundColor(.petlyFormIcon)
             }
         }
@@ -1625,12 +1639,17 @@ struct ReminderSuggestionCard: View {
     let onCreate: () -> Void
     let onDismiss: () -> Void
     
+    // Scaled sizes for Dynamic Type support
+    @ScaledMetric(relativeTo: .body) private var iconSize: CGFloat = 20
+    @ScaledMetric(relativeTo: .body) private var iconFrameSize: CGFloat = 36
+    @ScaledMetric(relativeTo: .body) private var dismissIconSize: CGFloat = 12
+    
     var body: some View {
         HStack(spacing: 12) {
             Image(systemName: "bell.fill")
-                .font(.system(size: 20))
+                .font(.system(size: iconSize))
                 .foregroundColor(.orange)
-                .frame(width: 36, height: 36)
+                .frame(width: iconFrameSize, height: iconFrameSize)
                 .background(Color.orange.opacity(0.15))
                 .clipShape(Circle())
             
@@ -1638,13 +1657,16 @@ struct ReminderSuggestionCard: View {
                 Text("Set reminder?")
                     .font(.petlyBodyMedium(12))
                     .foregroundColor(.petlyDarkGreen)
+                    .minimumScaleFactor(0.8)
                 Text("\(title) at \(time)")
                     .font(.petlyBody(11))
                     .foregroundColor(.petlyFormIcon)
-                    .lineLimit(1)
+                    .lineLimit(2)
+                    .minimumScaleFactor(0.8)
             }
+            .layoutPriority(1)
             
-            Spacer()
+            Spacer(minLength: 4)
             
             Button(action: onCreate) {
                 Text("Set")
@@ -1655,10 +1677,11 @@ struct ReminderSuggestionCard: View {
                     .background(Color.orange)
                     .cornerRadius(14)
             }
+            .fixedSize()
             
             Button(action: onDismiss) {
                 Image(systemName: "xmark")
-                    .font(.system(size: 12, weight: .medium))
+                    .font(.system(size: dismissIconSize, weight: .medium))
                     .foregroundColor(.petlyFormIcon)
             }
         }
@@ -1674,22 +1697,29 @@ struct WeightUpdateCard: View {
     var onUpdate: () -> Void
     var onDismiss: () -> Void
     
+    // Scaled sizes for Dynamic Type support
+    @ScaledMetric(relativeTo: .body) private var iconSize: CGFloat = 20
+    @ScaledMetric(relativeTo: .body) private var dismissIconSize: CGFloat = 12
+    
     var body: some View {
         HStack(spacing: 12) {
             Image(systemName: "scalemass.fill")
-                .font(.system(size: 20))
+                .font(.system(size: iconSize))
                 .foregroundColor(.petlyDarkGreen)
             
             VStack(alignment: .leading, spacing: 2) {
                 Text("Update Weight")
                     .font(.petlyBodyMedium(14))
                     .foregroundColor(.petlyDarkGreen)
+                    .minimumScaleFactor(0.8)
                 Text("Set weight to \(String(format: "%.1f", weight)) lbs")
                     .font(.petlyBody(12))
                     .foregroundColor(.petlyFormIcon)
+                    .minimumScaleFactor(0.8)
             }
+            .layoutPriority(1)
             
-            Spacer()
+            Spacer(minLength: 4)
             
             Button(action: onUpdate) {
                 Text("Update")
@@ -1700,10 +1730,11 @@ struct WeightUpdateCard: View {
                     .background(Color.petlyDarkGreen)
                     .cornerRadius(8)
             }
+            .fixedSize()
             
             Button(action: onDismiss) {
                 Image(systemName: "xmark")
-                    .font(.system(size: 12, weight: .medium))
+                    .font(.system(size: dismissIconSize, weight: .medium))
                     .foregroundColor(.petlyFormIcon)
             }
         }

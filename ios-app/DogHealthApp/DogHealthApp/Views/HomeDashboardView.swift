@@ -35,6 +35,7 @@ struct HomeDashboardView: View {
         @State private var showConfetti = false
     @State private var showShareSheet = false
     @State private var showWelcomeCard = false
+    @State private var dailyReviewRefreshId = UUID()
     
     private let activityGoal = 60
     private let welcomeCardKey = "hasSeenWelcomeCard"
@@ -215,6 +216,7 @@ struct HomeDashboardView: View {
                         .padding(.top, 10)
                         
                         DailyHealthReviewCard(onStartReview: { showDailyHealthReview = true })
+                        .id(dailyReviewRefreshId)
                         .padding(.horizontal)
                         .appearAnimation(delay: 0.08)
                         
@@ -349,7 +351,10 @@ struct HomeDashboardView: View {
                 VetVisitPackView()
                     .environmentObject(appState)
             }
-            .sheet(isPresented: $showDailyHealthReview) {
+            .sheet(isPresented: $showDailyHealthReview, onDismiss: {
+                // Force refresh the DailyHealthReviewCard when the sheet is dismissed
+                dailyReviewRefreshId = UUID()
+            }) {
                 DailyHealthReviewView()
                     .environmentObject(appState)
             }

@@ -292,9 +292,9 @@ struct HealthTimelineView: View {
     }
     
     private var timelineContent: some View {
-        VStack(spacing: 0) {
+        VStack(spacing: 8) {
             ForEach(Array(groupedEntries.enumerated()), id: \.element.date) { index, group in
-                VStack(alignment: .leading, spacing: 0) {
+                VStack(alignment: .leading, spacing: 8) {
                     HStack {
                         Text(formatDateHeader(group.date))
                             .font(.petlyBodyMedium(16))

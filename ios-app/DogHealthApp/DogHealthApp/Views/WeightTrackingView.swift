@@ -387,7 +387,7 @@ struct StatCard: View {
     let color: Color
     
     var body: some View {
-        VStack(spacing: 8) {
+        VStack(spacing: 6) {
             Image(systemName: icon)
                 .font(.system(size: 20))
                 .foregroundColor(color)
@@ -395,17 +395,24 @@ struct StatCard: View {
             Text(value)
                 .font(.petlyTitle(20))
                 .foregroundColor(.primary)
+                .minimumScaleFactor(0.7)
+                .lineLimit(1)
             
             Text(unit)
                 .font(.petlyBody(10))
                 .foregroundColor(.secondary)
+                .minimumScaleFactor(0.8)
+                .lineLimit(1)
             
             Text(title)
                 .font(.petlyBody(12))
                 .foregroundColor(.secondary)
+                .minimumScaleFactor(0.8)
+                .lineLimit(1)
         }
         .frame(maxWidth: .infinity)
-        .padding()
+        .padding(.horizontal, 8)
+        .padding(.vertical, 12)
         .background(Color.petlyLightGreen)
         .cornerRadius(12)
     }
