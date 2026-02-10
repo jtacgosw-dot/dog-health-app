@@ -518,7 +518,10 @@ struct CreateCarePlanView: View {
     }
     
     private func generatePlan() {
-        guard let goal = primaryGoal else { return }
+        guard let goal = primaryGoal else {
+            errorMessage = "Please select at least one goal."
+            return
+        }
         
         isGenerating = true
         errorMessage = nil
@@ -544,8 +547,11 @@ struct CreateCarePlanView: View {
                     isGenerating = false
                 }
             } catch {
+                let fallbackPlan = parsePlanResponse("", goal: goal)
+                
                 await MainActor.run {
-                    errorMessage = "Unable to generate plan. Please try again."
+                    generatedPlan = fallbackPlan
+                    errorMessage = "AI was unavailable — created a default template you can customize."
                     isGenerating = false
                 }
             }

@@ -37,29 +37,11 @@ struct HomeDashboardView: View {
     @State private var showShareSheet = false
     @State private var showWelcomeCard = false
     @State private var dailyReviewRefreshId = UUID()
+    @State private var reviewCompletedToday: Bool = false
+    @State private var reviewCheckInsThisWeek: Int = 0
     
     private var dogId: String {
         appState.currentDog?.id ?? ""
-    }
-    
-    private var hasCompletedTodayReview: Bool {
-        let calendar = Calendar.current
-        let today = calendar.startOfDay(for: Date())
-        return allCheckIns.contains { checkIn in
-            checkIn.dogId == dogId &&
-            calendar.isDate(checkIn.date, inSameDayAs: today)
-        }
-    }
-    
-    private var checkInsThisWeekCount: Int {
-        let calendar = Calendar.current
-        let today = calendar.startOfDay(for: Date())
-        let weekStart = calendar.date(byAdding: .day, value: -6, to: today)!
-        let tomorrow = calendar.date(byAdding: .day, value: 1, to: today)!
-        return allCheckIns.filter { checkIn in
-            checkIn.dogId == dogId &&
-            checkIn.date >= weekStart && checkIn.date < tomorrow
-        }.count
     }
     
     private let activityGoal = 60
@@ -241,8 +223,8 @@ struct HomeDashboardView: View {
                         .padding(.top, 10)
                         
                         DailyHealthReviewCard(
-                            hasCompletedToday: hasCompletedTodayReview,
-                            checkInsThisWeek: checkInsThisWeekCount,
+                            hasCompletedToday: reviewCompletedToday,
+                            checkInsThisWeek: reviewCheckInsThisWeek,
                             onStartReview: { showDailyHealthReview = true }
                         )
                         .id(dailyReviewRefreshId)
@@ -381,7 +363,9 @@ struct HomeDashboardView: View {
                     .environmentObject(appState)
             }
             .sheet(isPresented: $showDailyHealthReview, onDismiss: {
+                refreshCheckInData()
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                    refreshCheckInData()
                     dailyReviewRefreshId = UUID()
                 }
             }) {
@@ -406,6 +390,7 @@ struct HomeDashboardView: View {
                 )
             }
                         .onAppear {
+                            refreshCheckInData()
                             checkWelcomeCard()
                         }
             .overlay(alignment: .top) {
@@ -451,6 +436,34 @@ struct HomeDashboardView: View {
                     showWelcomeCard = true
                 }
             }
+        }
+    }
+    
+    private func refreshCheckInData() {
+        let calendar = Calendar.current
+        let today = calendar.startOfDay(for: Date())
+        let currentDogId = dogId
+        
+        do {
+            let descriptor = FetchDescriptor<DailyCheckIn>()
+            let fetchedCheckIns = try modelContext.fetch(descriptor)
+            let dogCheckIns = fetchedCheckIns.filter { $0.dogId == currentDogId }
+            
+            let completedToday = dogCheckIns.contains {
+                calendar.isDate($0.date, inSameDayAs: today)
+            }
+            
+            let weekStart = calendar.date(byAdding: .day, value: -6, to: today)!
+            let tomorrow = calendar.date(byAdding: .day, value: 1, to: today)!
+            let weekCount = dogCheckIns.filter {
+                $0.date >= weekStart && $0.date < tomorrow
+            }.count
+            
+            reviewCompletedToday = completedToday
+            reviewCheckInsThisWeek = weekCount
+        } catch {
+            reviewCompletedToday = false
+            reviewCheckInsThisWeek = 0
         }
     }
 }
