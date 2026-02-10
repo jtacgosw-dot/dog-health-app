@@ -22,6 +22,7 @@ struct DogHealthAppApp: App {
             CarePlan.self,
             CarePlanTask.self,
             CarePlanMilestone.self,
+            DailyCheckIn.self,
         ])
         let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
         
