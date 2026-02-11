@@ -545,7 +545,7 @@ struct CreateCarePlanView: View {
                     let response = try await APIService.shared.sendChatMessage(
                         message: prompt,
                         conversationId: nil,
-                        dogId: appState.currentDog?.id,
+                        dogId: nil,
                         dogProfile: dogProfile,
                         healthLogs: healthLogs
                     )
