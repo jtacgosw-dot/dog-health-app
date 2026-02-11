@@ -10,6 +10,11 @@ struct PreventativeCareView: View {
     
     @State private var showingAddReminder = false
     @State private var selectedReminderType: ReminderType = .vaccination
+    @State private var scrollProxy: ScrollViewProxy?
+    @State private var showingWeightInput = false
+    @State private var pendingWeightReminder: PetReminder?
+    @State private var weightInputText = ""
+    @State private var loggedReminderIds: Set<String> = []
     
     private var dogId: String {
         appState.currentDog?.id ?? ""
@@ -33,12 +38,14 @@ struct PreventativeCareView: View {
     
     var body: some View {
         NavigationView {
+            ScrollViewReader { proxy in
             ScrollView {
                 VStack(spacing: 24) {
                     headerSection
                     
                     if !dueReminders.isEmpty {
                         dueNowSection
+                            .id("dueNowSection")
                     }
                     
                     upcomingSection
@@ -50,6 +57,8 @@ struct PreventativeCareView: View {
                     careTypesSection
                 }
                 .padding()
+            }
+            .onAppear { scrollProxy = proxy }
             }
             .background(Color.petlyBackground)
             .navigationTitle("Preventative Care")
@@ -79,6 +88,21 @@ struct PreventativeCareView: View {
         }
         .buttonStyle(.plain)
         .preferredColorScheme(.light)
+        .alert("Log Weight", isPresented: $showingWeightInput) {
+            TextField("Weight in lbs", text: $weightInputText)
+                .keyboardType(.decimalPad)
+            Button("Log") {
+                if let reminder = pendingWeightReminder {
+                    completeWeightReminder(reminder)
+                }
+            }
+            Button("Cancel", role: .cancel) {
+                pendingWeightReminder = nil
+                weightInputText = ""
+            }
+        } message: {
+            Text("Enter \(dogName)'s current weight")
+        }
     }
     
     private var headerSection: some View {
@@ -108,17 +132,24 @@ struct PreventativeCareView: View {
             }
             
             if !dueReminders.isEmpty {
-                HStack {
-                    Image(systemName: "exclamationmark.circle.fill")
-                        .foregroundColor(.orange)
-                    Text("\(dueReminders.count) item\(dueReminders.count == 1 ? "" : "s") due")
-                        .font(.subheadline)
-                        .fontWeight(.medium)
+                Button {
+                    withAnimation {
+                        scrollProxy?.scrollTo("dueNowSection", anchor: .top)
+                    }
+                } label: {
+                    HStack {
+                        Image(systemName: "exclamationmark.circle.fill")
+                            .foregroundColor(.orange)
+                        Text("\(dueReminders.count) item\(dueReminders.count == 1 ? "" : "s") due")
+                            .font(.subheadline)
+                            .fontWeight(.medium)
+                            .foregroundColor(.primary)
+                    }
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 8)
+                    .background(Color.orange.opacity(0.15))
+                    .cornerRadius(8)
                 }
-                .padding(.horizontal, 12)
-                .padding(.vertical, 8)
-                .background(Color.orange.opacity(0.15))
-                .cornerRadius(8)
             }
         }
         .padding()
@@ -144,8 +175,8 @@ struct PreventativeCareView: View {
             }
             
             ForEach(dueReminders, id: \.id) { reminder in
-                PreventativeCareReminderCard(reminder: reminder, isDue: true) {
-                    markReminderComplete(reminder)
+                PreventativeCareReminderCard(reminder: reminder, isDue: true, isLogged: loggedReminderIds.contains(reminder.id)) {
+                    logAndCompleteReminder(reminder)
                 }
             }
         }
@@ -168,8 +199,8 @@ struct PreventativeCareView: View {
                     .padding()
             } else {
                 ForEach(upcomingReminders.prefix(5), id: \.id) { reminder in
-                    PreventativeCareReminderCard(reminder: reminder, isDue: false) {
-                        markReminderComplete(reminder)
+                    PreventativeCareReminderCard(reminder: reminder, isDue: false, isLogged: loggedReminderIds.contains(reminder.id)) {
+                        logAndCompleteReminder(reminder)
                     }
                 }
             }
@@ -221,15 +252,80 @@ struct PreventativeCareView: View {
         }
     }
     
-    private func markReminderComplete(_ reminder: PetReminder) {
-        reminder.markCompleted()
-        try? modelContext.save()
+    private func isWeightRelated(_ reminder: PetReminder) -> Bool {
+        reminder.title.localizedCaseInsensitiveContains("weigh")
+    }
+    
+    private func logAndCompleteReminder(_ reminder: PetReminder) {
+        if isWeightRelated(reminder) {
+            pendingWeightReminder = reminder
+            weightInputText = ""
+            showingWeightInput = true
+            return
+        }
+        
+        performLog(reminder)
+        loggedReminderIds.insert(reminder.id)
+    }
+    
+    private func completeWeightReminder(_ reminder: PetReminder) {
+        guard let weight = Double(weightInputText), weight > 0 else {
+            pendingWeightReminder = nil
+            weightInputText = ""
+            return
+        }
+        
+        let entry = WeightEntry(weight: weight, date: Date(), note: "Logged from: \(reminder.title)")
+        WeightTrackingManager.shared.addEntry(entry)
+        
+        if var dog = appState.currentDog {
+            dog.weight = weight
+            appState.currentDog = dog
+        }
+        
+        performLog(reminder, weightValue: weight)
+        loggedReminderIds.insert(reminder.id)
+        pendingWeightReminder = nil
+        weightInputText = ""
+    }
+    
+    private func performLog(_ reminder: PetReminder, weightValue: Double? = nil) {
+        let generator = UIImpactFeedbackGenerator(style: .medium)
+        generator.impactOccurred()
+        
+        let currentDogId = dogId
+        let logType = weightValue != nil ? "Weight" : healthLogType(for: reminder.type)
+        let logEntry = HealthLogEntry(
+            dogId: currentDogId,
+            logType: logType,
+            timestamp: Date(),
+            notes: weightValue != nil ? "\(reminder.title): \(String(format: "%.1f", weightValue!)) lbs" : reminder.title,
+            supplementName: [.medication, .fleaTick, .heartworm].contains(reminder.type) ? reminder.title : nil,
+            appointmentType: [.vaccination, .vetAppointment].contains(reminder.type) ? reminder.title : nil,
+            groomingType: reminder.type == .grooming ? reminder.title : nil
+        )
+        modelContext.insert(logEntry)
+        
+        withAnimation(.easeInOut(duration: 0.3)) {
+            reminder.markCompleted()
+            try? modelContext.save()
+        }
+    }
+    
+    private func healthLogType(for type: ReminderType) -> String {
+        switch type {
+        case .vaccination, .vetAppointment: return "Upcoming Appointments"
+        case .medication, .fleaTick, .heartworm: return "Supplements"
+        case .grooming: return "Grooming"
+        case .other: return "Notes"
+        }
     }
 }
 
 struct PreventativeCareReminderCard: View {
     let reminder: PetReminder
     let isDue: Bool
+    var isLogged: Bool = false
     let onComplete: () -> Void
     
     private var daysText: String {
@@ -289,15 +385,16 @@ struct PreventativeCareReminderCard: View {
             Button {
                 onComplete()
             } label: {
-                Text("Done")
+                Text(isLogged ? "Logged" : "Log")
                     .font(.caption)
                     .fontWeight(.medium)
                     .foregroundColor(.white)
                     .padding(.horizontal, 12)
                     .padding(.vertical, 6)
-                    .background(Color.petlyDarkGreen)
+                    .background(isLogged ? Color.green : Color.petlyDarkGreen)
                     .cornerRadius(8)
             }
+            .disabled(isLogged)
         }
         .padding()
         .background(Color.white)
