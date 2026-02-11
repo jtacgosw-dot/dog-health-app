@@ -138,12 +138,13 @@ final class PetReminder {
         updatedAt = Date()
         needsSync = true
         
-        // Calculate next due date based on frequency
         if let component = frequencyType.calendarComponent {
             let interval = frequencyType.intervalValue
             if let newDate = Calendar.current.date(byAdding: component, value: interval, to: Date()) {
                 nextDueDate = newDate
             }
+        } else {
+            isEnabled = false
         }
     }
 }

@@ -10,6 +10,7 @@ struct PreventativeCareView: View {
     
     @State private var showingAddReminder = false
     @State private var selectedReminderType: ReminderType = .vaccination
+    @State private var scrollProxy: ScrollViewProxy?
     
     private var dogId: String {
         appState.currentDog?.id ?? ""
@@ -33,12 +34,14 @@ struct PreventativeCareView: View {
     
     var body: some View {
         NavigationView {
+            ScrollViewReader { proxy in
             ScrollView {
                 VStack(spacing: 24) {
                     headerSection
                     
                     if !dueReminders.isEmpty {
                         dueNowSection
+                            .id("dueNowSection")
                     }
                     
                     upcomingSection
@@ -50,6 +53,8 @@ struct PreventativeCareView: View {
                     careTypesSection
                 }
                 .padding()
+            }
+            .onAppear { scrollProxy = proxy }
             }
             .background(Color.petlyBackground)
             .navigationTitle("Preventative Care")
@@ -108,17 +113,24 @@ struct PreventativeCareView: View {
             }
             
             if !dueReminders.isEmpty {
-                HStack {
-                    Image(systemName: "exclamationmark.circle.fill")
-                        .foregroundColor(.orange)
-                    Text("\(dueReminders.count) item\(dueReminders.count == 1 ? "" : "s") due")
-                        .font(.subheadline)
-                        .fontWeight(.medium)
+                Button {
+                    withAnimation {
+                        scrollProxy?.scrollTo("dueNowSection", anchor: .top)
+                    }
+                } label: {
+                    HStack {
+                        Image(systemName: "exclamationmark.circle.fill")
+                            .foregroundColor(.orange)
+                        Text("\(dueReminders.count) item\(dueReminders.count == 1 ? "" : "s") due")
+                            .font(.subheadline)
+                            .fontWeight(.medium)
+                            .foregroundColor(.primary)
+                    }
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 8)
+                    .background(Color.orange.opacity(0.15))
+                    .cornerRadius(8)
                 }
-                .padding(.horizontal, 12)
-                .padding(.vertical, 8)
-                .background(Color.orange.opacity(0.15))
-                .cornerRadius(8)
             }
         }
         .padding()
@@ -222,8 +234,12 @@ struct PreventativeCareView: View {
     }
     
     private func markReminderComplete(_ reminder: PetReminder) {
-        reminder.markCompleted()
-        try? modelContext.save()
+        let generator = UIImpactFeedbackGenerator(style: .medium)
+        generator.impactOccurred()
+        withAnimation(.easeInOut(duration: 0.3)) {
+            reminder.markCompleted()
+            try? modelContext.save()
+        }
     }
 }
 
