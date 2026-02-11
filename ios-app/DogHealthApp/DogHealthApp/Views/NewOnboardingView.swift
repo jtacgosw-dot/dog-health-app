@@ -86,21 +86,30 @@ struct NewOnboardingView: View {
             
             ScrollView {
                 VStack(spacing: 20) {
-                    Image("woofMeow")
-                        .resizable()
-                        .scaledToFit()
-                        .frame(height: 120)
-                        .padding(.top, 20)
+                    ZStack {
+                        Circle()
+                            .fill(Color.petlyDarkGreen)
+                            .frame(width: 100, height: 100)
+                        
+                        Image(systemName: "pawprint.fill")
+                            .font(.system(size: 44))
+                            .foregroundColor(.white)
+                    }
+                    .padding(.top, 30)
                     
                     VStack(spacing: 4) {
                         Text("Your pet\u{2019}s journey")
                             .font(.petlyTitle(28))
                             .foregroundColor(.petlyDarkGreen)
-                        Text("starts here...")
+                        Text("starts here.")
                             .font(.petlyTitle(28))
                             .foregroundColor(.petlyDarkGreen)
                     }
                     .padding(.top, 10)
+                    
+                    Text("Create an account to get started")
+                        .font(.petlyBody(14))
+                        .foregroundColor(.petlyFormIcon)
                     
                     VStack(spacing: 12) {
                         HStack(spacing: 12) {
@@ -453,9 +462,26 @@ struct NewOnboardingView: View {
             return
         }
         
+        let emailPattern = #"^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$"#
+        guard email.range(of: emailPattern, options: .regularExpression) != nil else {
+            errorMessage = "Please enter a valid email address"
+            return
+        }
+        
+        guard password.count >= 6 else {
+            errorMessage = "Password must be at least 6 characters"
+            return
+        }
+        
+        guard password == confirmPassword else {
+            errorMessage = "Passwords do not match"
+            return
+        }
+        
         errorMessage = nil
         isLoading = true
         UserDefaults.standard.set(ownerName, forKey: "ownerName")
+        UserDefaults.standard.set(email, forKey: "userEmail")
         
         let deviceId = UIDevice.current.identifierForVendor?.uuidString ?? UUID().uuidString
         UserDefaults.standard.set(deviceId, forKey: "guestDeviceId")
@@ -565,6 +591,7 @@ struct NewOnboardingView: View {
         
         Task {
             do {
+                let personalityArray = petPersonality.isEmpty ? nil : petPersonality.split(separator: ",").map { $0.trimmingCharacters(in: .whitespaces) }
                 let newDog = Dog(
                     name: petName,
                     breed: petBreed,
@@ -572,6 +599,7 @@ struct NewOnboardingView: View {
                     weight: weightDouble,
                     healthConcerns: healthConcernsArray,
                     allergies: allergiesArray,
+                    personalityTraits: personalityArray,
                     sex: petGender
                 )
                 let dog = try await APIService.shared.createDog(dog: newDog)
