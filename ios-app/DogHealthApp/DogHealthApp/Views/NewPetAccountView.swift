@@ -1627,8 +1627,14 @@ struct EditPetProfileView: View {
             currentMedications: currentMedications.isEmpty ? nil : currentMedications
         )
         
+        let previousWeight = appState.currentDog?.weight
         appState.saveDogLocally(updatedDog)
-        print("[EditPetProfileView] Saved dog locally: \(updatedDog.name) with id \(dogId)")
+        
+        if let newWeight = updatedDog.weight, previousWeight != newWeight {
+            WeightTrackingManager.shared.switchDog(dogId)
+            let entry = WeightEntry(weight: newWeight, date: Date(), note: "Updated from profile")
+            WeightTrackingManager.shared.addEntry(entry)
+        }
         
         showSaved = true
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
