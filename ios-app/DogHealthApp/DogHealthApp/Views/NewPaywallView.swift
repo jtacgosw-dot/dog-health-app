@@ -55,7 +55,7 @@ struct NewPaywallView: View {
                 .padding(.horizontal)
                 .padding(.top, 10)
                 
-                ScrollView {
+                ScrollView(showsIndicators: false) {
                     VStack(spacing: 24) {
                         ZStack {
                             Circle()

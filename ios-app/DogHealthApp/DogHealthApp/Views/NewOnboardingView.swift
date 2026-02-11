@@ -87,7 +87,7 @@ struct NewOnboardingView: View {
                 .padding(.horizontal)
                 .padding(.top, 10)
             
-            ScrollView {
+            ScrollView(showsIndicators: false) {
                 VStack(spacing: 20) {
                     ZStack {
                         Circle()
@@ -218,26 +218,32 @@ struct NewOnboardingView: View {
                     .padding(.horizontal, 40)
                     .padding(.vertical, 10)
                     
-                    HStack(spacing: 24) {
+                    HStack(spacing: 20) {
                         Button(action: {}) {
                             Image(systemName: "f.circle.fill")
-                                .font(.system(size: 32))
-                                .foregroundColor(.petlyDarkGreen)
+                                .font(.system(size: 22))
+                                .foregroundColor(.white)
+                                .frame(width: 48, height: 48)
+                                .background(Color.petlyDarkGreen)
+                                .clipShape(Circle())
                         }
                         
-                        SignInWithAppleButton(.signIn) { request in
-                            request.requestedScopes = [.fullName, .email]
-                        } onCompletion: { result in
-                            handleAppleSignIn(result)
+                        Button(action: { triggerAppleSignIn() }) {
+                            Image(systemName: "apple.logo")
+                                .font(.system(size: 22))
+                                .foregroundColor(.white)
+                                .frame(width: 48, height: 48)
+                                .background(Color.black)
+                                .clipShape(Circle())
                         }
-                        .signInWithAppleButtonStyle(.black)
-                        .frame(width: 44, height: 44)
-                        .clipShape(Circle())
                         
                         Button(action: {}) {
                             Text("G")
-                                .font(.system(size: 28, weight: .medium))
-                                .foregroundColor(.petlyDarkGreen)
+                                .font(.system(size: 22, weight: .bold))
+                                .foregroundColor(.white)
+                                .frame(width: 48, height: 48)
+                                .background(Color.petlyDarkGreen)
+                                .clipShape(Circle())
                         }
                     }
                     
@@ -289,7 +295,7 @@ struct NewOnboardingView: View {
             .padding(.horizontal)
             .padding(.top, 10)
             
-            ScrollView {
+            ScrollView(showsIndicators: false) {
                 VStack(spacing: 16) {
                     ZStack {
                         Circle()
@@ -427,7 +433,7 @@ struct NewOnboardingView: View {
                 .foregroundColor(.petlyFormIcon)
                 .padding(.bottom, 20)
             
-            ScrollView {
+            ScrollView(showsIndicators: false) {
             LazyVGrid(columns: [GridItem(.flexible(minimum: 150)), GridItem(.flexible(minimum: 150))], spacing: 12) {
                 ForEach(interests, id: \.1) { icon, title in
                     InterestChip(
@@ -548,6 +554,19 @@ struct NewOnboardingView: View {
                 }
             }
         }
+    }
+    
+    private func triggerAppleSignIn() {
+        let provider = ASAuthorizationAppleIDProvider()
+        let request = provider.createRequest()
+        request.requestedScopes = [.fullName, .email]
+        let controller = ASAuthorizationController(authorizationRequests: [request])
+        let delegate = AppleSignInDelegate { result in
+            handleAppleSignIn(result)
+        }
+        controller.delegate = delegate
+        objc_setAssociatedObject(controller, "delegate", delegate, .OBJC_ASSOCIATION_RETAIN)
+        controller.performRequests()
     }
     
     private func handleAppleSignIn(_ result: Result<ASAuthorization, Error>) {
@@ -717,6 +736,22 @@ struct InterestChip: View {
         }
         .scaleEffect(isPressed ? 0.98 : 1.0)
         .animation(.spring(response: 0.3, dampingFraction: 0.6), value: isPressed)
+    }
+}
+
+class AppleSignInDelegate: NSObject, ASAuthorizationControllerDelegate {
+    let completion: (Result<ASAuthorization, Error>) -> Void
+    
+    init(completion: @escaping (Result<ASAuthorization, Error>) -> Void) {
+        self.completion = completion
+    }
+    
+    func authorizationController(controller: ASAuthorizationController, didCompleteWithAuthorization authorization: ASAuthorization) {
+        completion(.success(authorization))
+    }
+    
+    func authorizationController(controller: ASAuthorizationController, didCompleteWithError error: Error) {
+        completion(.failure(error))
     }
 }
 
