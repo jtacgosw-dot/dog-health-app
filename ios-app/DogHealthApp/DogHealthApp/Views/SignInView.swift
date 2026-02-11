@@ -3,78 +3,145 @@ import AuthenticationServices
 
 struct SignInView: View {
     @EnvironmentObject var appState: AppState
+    @State private var email = ""
+    @State private var password = ""
     @State private var isLoading = false
     @State private var errorMessage: String?
     
     var body: some View {
         ZStack {
-            Color.petlyCream
+            Color.petlyBackground
                 .ignoresSafeArea()
             
-            VStack(spacing: 30) {
-                Spacer()
-                
-                Text("Petly")
-                    .font(.system(size: 56, weight: .bold, design: .serif))
-                    .foregroundColor(.petlyDarkGreen)
-                
-                Image(systemName: "pawprint.circle.fill")
-                    .font(.system(size: 100))
-                    .foregroundColor(.petlyDarkGreen)
-                
-                Text("Welcome Back")
-                    .font(.title2)
-                    .fontWeight(.semibold)
-                    .foregroundColor(.petlyDarkGreen)
-                
-                Text("Sign in to access your pet's personalized care plan")
-                    .font(.body)
-                    .foregroundColor(.secondary)
-                    .multilineTextAlignment(.center)
-                    .padding(.horizontal, 40)
-                
-                Spacer()
-                
-                if let errorMessage = errorMessage {
-                    Text(errorMessage)
-                        .font(.caption)
-                        .foregroundColor(.red)
-                        .padding()
-                        .background(Color.red.opacity(0.1))
-                        .cornerRadius(8)
-                        .padding(.horizontal)
-                }
-                
-                VStack(spacing: 16) {
-                    SignInWithAppleButton(
-                        .signIn,
-                        onRequest: { request in
-                            request.requestedScopes = [.fullName, .email]
-                        },
-                        onCompletion: { result in
-                            handleSignInWithApple(result)
+            VStack(spacing: 0) {
+                ScrollView(showsIndicators: false) {
+                    VStack(spacing: 20) {
+                        ZStack {
+                            Circle()
+                                .fill(Color.petlyLightGreen)
+                                .frame(width: 120, height: 120)
+                            
+                            Circle()
+                                .fill(Color.petlyDarkGreen)
+                                .frame(width: 96, height: 96)
+                            
+                            Image(systemName: "pawprint.fill")
+                                .font(.system(size: 44))
+                                .foregroundColor(.white)
                         }
-                    )
-                    .signInWithAppleButtonStyle(.black)
-                    .frame(height: 50)
-                    .cornerRadius(PetlyTheme.buttonCornerRadius)
-                    .disabled(isLoading)
-                    
-                    Button(action: {
-                        handleGuestSignIn()
-                    }) {
-                        Text("Continue as Guest")
-                            .font(.subheadline)
-                            .foregroundColor(.secondary)
+                        .padding(.top, 60)
+                        
+                        VStack(spacing: 4) {
+                            Text("Welcome back")
+                                .font(.petlyTitle(28))
+                                .foregroundColor(.petlyDarkGreen)
+                            Text("to Petly.")
+                                .font(.petlyTitle(28))
+                                .foregroundColor(.petlyDarkGreen)
+                        }
+                        .padding(.top, 10)
+                        
+                        Text("Sign in to access your pet\u{2019}s care")
+                            .font(.petlyBody(14))
+                            .foregroundColor(.petlyFormIcon)
+                        
+                        VStack(spacing: 14) {
+                            HStack(spacing: 12) {
+                                Image(systemName: "envelope")
+                                    .foregroundColor(.petlyFormIcon)
+                                    .frame(width: 24)
+                                TextField("E-Mail", text: $email)
+                                    .font(.petlyBody(16))
+                                    .textContentType(.emailAddress)
+                                    .keyboardType(.emailAddress)
+                                    .autocapitalization(.none)
+                            }
+                            .padding()
+                            .background(Color.petlyLightGreen)
+                            .cornerRadius(12)
+                            
+                            HStack(spacing: 12) {
+                                Image(systemName: "lock.fill")
+                                    .foregroundColor(.petlyFormIcon)
+                                    .frame(width: 24)
+                                SecureField("Password", text: $password)
+                                    .font(.petlyBody(16))
+                                    .textContentType(.password)
+                            }
+                            .padding()
+                            .background(Color.petlyLightGreen)
+                            .cornerRadius(12)
+                        }
+                        .padding(.horizontal)
+                        
+                        if let errorMessage = errorMessage {
+                            Text(errorMessage)
+                                .font(.petlyBody(12))
+                                .foregroundColor(.red)
+                                .padding()
+                                .background(Color.red.opacity(0.1))
+                                .cornerRadius(8)
+                                .padding(.horizontal)
+                        }
+                        
+                        Button(action: handleEmailSignIn) {
+                            Text("SIGN IN")
+                                .font(.petlyBodyMedium(16))
+                                .foregroundColor(.white)
+                                .frame(maxWidth: .infinity)
+                                .padding()
+                                .background(Color.petlyDarkGreen)
+                                .cornerRadius(12)
+                                .shadow(color: Color.petlyDarkGreen.opacity(0.3), radius: 8, x: 0, y: 4)
+                        }
+                        .padding(.horizontal)
+                        .disabled(isLoading)
+                        
+                        HStack {
+                            Rectangle()
+                                .fill(Color.petlyFormIcon.opacity(0.3))
+                                .frame(height: 1)
+                            Text("Or")
+                                .font(.petlyBody(14))
+                                .foregroundColor(.petlyFormIcon)
+                                .padding(.horizontal, 16)
+                            Rectangle()
+                                .fill(Color.petlyFormIcon.opacity(0.3))
+                                .frame(height: 1)
+                        }
+                        .padding(.horizontal, 40)
+                        .padding(.vertical, 10)
+                        
+                        HStack(spacing: 24) {
+                            Button(action: { triggerAppleSignIn() }) {
+                                ZStack {
+                                    Circle()
+                                        .fill(Color.petlyLightGreen)
+                                        .frame(width: 56, height: 56)
+                                    Circle()
+                                        .fill(Color.petlyDarkGreen)
+                                        .frame(width: 44, height: 44)
+                                    Image(systemName: "apple.logo")
+                                        .font(.system(size: 22))
+                                        .foregroundColor(.white)
+                                }
+                            }
+                            .disabled(isLoading)
+                        }
+                        
+                        Button(action: handleGuestSignIn) {
+                            Text("Continue as Guest")
+                                .font(.petlyBody(14))
+                                .foregroundColor(.petlyFormIcon)
+                                .underline()
+                        }
+                        .disabled(isLoading)
+                        .padding(.top, 8)
+                        .padding(.bottom, 40)
                     }
-                    .disabled(isLoading)
-                    .padding(.top, 8)
                 }
-                .padding(.horizontal, 32)
-                
-                Spacer()
+                .scrollDismissesKeyboard(.interactively)
             }
-            .padding()
             
             if isLoading {
                 Color.black.opacity(0.3)
@@ -85,6 +152,69 @@ struct SignInView: View {
             }
         }
         .buttonStyle(.plain)
+        .onTapGesture {
+            UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+        }
+    }
+    
+    private func handleEmailSignIn() {
+        let emailPattern = #"^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$"#
+        guard email.range(of: emailPattern, options: .regularExpression) != nil else {
+            errorMessage = "Please enter a valid email address"
+            return
+        }
+        
+        guard password.count >= 6 else {
+            errorMessage = "Password must be at least 6 characters"
+            return
+        }
+        
+        errorMessage = nil
+        isLoading = true
+        
+        let deviceId = UIDevice.current.identifierForVendor?.uuidString ?? UUID().uuidString
+        UserDefaults.standard.set(deviceId, forKey: "guestDeviceId")
+        
+        Task {
+            do {
+                let response = try await APIService.shared.guestSignIn(deviceId: deviceId)
+                APIService.shared.setAuthToken(response.token)
+                APIService.shared.setIsGuest(false)
+                
+                await MainActor.run {
+                    let statusString = response.user.subscriptionStatus ?? "free"
+                    let status = SubscriptionStatus(rawValue: statusString) ?? .free
+                    appState.currentUser = User(
+                        id: response.user.id,
+                        email: email,
+                        fullName: response.user.fullName ?? "User",
+                        subscriptionStatus: status
+                    )
+                    UserDefaults.standard.set(email, forKey: "userEmail")
+                    appState.isSignedIn = true
+                    isLoading = false
+                }
+                await appState.loadUserData()
+            } catch {
+                await MainActor.run {
+                    errorMessage = "Sign in failed: \(error.localizedDescription)"
+                    isLoading = false
+                }
+            }
+        }
+    }
+    
+    private func triggerAppleSignIn() {
+        let provider = ASAuthorizationAppleIDProvider()
+        let request = provider.createRequest()
+        request.requestedScopes = [.fullName, .email]
+        let controller = ASAuthorizationController(authorizationRequests: [request])
+        let delegate = AppleSignInDelegateForSignIn { result in
+            handleSignInWithApple(result)
+        }
+        controller.delegate = delegate
+        objc_setAssociatedObject(controller, "delegate", delegate, .OBJC_ASSOCIATION_RETAIN)
+        controller.performRequests()
     }
     
     private func handleGuestSignIn() {
@@ -180,6 +310,22 @@ struct SignInView: View {
             }
             errorMessage = "Sign in failed: \(error.localizedDescription)"
         }
+    }
+}
+
+class AppleSignInDelegateForSignIn: NSObject, ASAuthorizationControllerDelegate {
+    let completion: (Result<ASAuthorization, Error>) -> Void
+    
+    init(completion: @escaping (Result<ASAuthorization, Error>) -> Void) {
+        self.completion = completion
+    }
+    
+    func authorizationController(controller: ASAuthorizationController, didCompleteWithAuthorization authorization: ASAuthorization) {
+        completion(.success(authorization))
+    }
+    
+    func authorizationController(controller: ASAuthorizationController, didCompleteWithError error: Error) {
+        completion(.failure(error))
     }
 }
 

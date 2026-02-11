@@ -219,20 +219,6 @@ struct NewOnboardingView: View {
                     .padding(.vertical, 10)
                     
                     HStack(spacing: 24) {
-                        Button(action: {}) {
-                            ZStack {
-                                Circle()
-                                    .fill(Color.petlyLightGreen)
-                                    .frame(width: 56, height: 56)
-                                Circle()
-                                    .fill(Color.petlyDarkGreen)
-                                    .frame(width: 44, height: 44)
-                                Text("f")
-                                    .font(.system(size: 24, weight: .bold, design: .serif))
-                                    .foregroundColor(.white)
-                            }
-                        }
-                        
                         Button(action: { triggerAppleSignIn() }) {
                             ZStack {
                                 Circle()
