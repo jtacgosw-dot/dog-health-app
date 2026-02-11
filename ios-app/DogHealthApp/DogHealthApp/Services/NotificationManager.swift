@@ -110,7 +110,11 @@ class NotificationManager: ObservableObject {
         userDefaults.set(morningWalkTime, forKey: "morningWalkTime")
         userDefaults.set(eveningWalkTime, forKey: "eveningWalkTime")
         
-        scheduleAllNotifications()
+        if (mealRemindersEnabled || walkRemindersEnabled) && !isAuthorized {
+            requestAuthorization()
+        } else {
+            scheduleAllNotifications()
+        }
     }
     
     private func loadSettings() {
@@ -128,6 +132,19 @@ class NotificationManager: ObservableObject {
         }
         if let eveningWalk = userDefaults.object(forKey: "eveningWalkTime") as? Date {
             eveningWalkTime = eveningWalk
+        }
+    }
+    
+    func ensureAuthorizedThenSchedule(for reminder: PetReminder) {
+        guard reminder.isEnabled else { return }
+        
+        if isAuthorized {
+            scheduleReminderNotification(for: reminder)
+        } else {
+            requestAuthorization()
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { [weak self] in
+                self?.scheduleReminderNotification(for: reminder)
+            }
         }
     }
     

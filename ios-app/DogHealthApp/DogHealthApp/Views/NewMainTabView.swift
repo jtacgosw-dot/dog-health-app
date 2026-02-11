@@ -5,6 +5,8 @@ struct NewMainTabView: View {
     @State private var selectedTab = 0
     @State private var showDailyLog = false
     @State private var chatPrompt: String = ""
+    @State private var showPetSetup = false
+    @State private var hasCheckedPetSetup = false
     
     var body: some View {
         ZStack(alignment: .bottom) {
@@ -36,6 +38,23 @@ struct NewMainTabView: View {
         .sheet(isPresented: $showDailyLog) {
             DailyLogEntryView()
                 .buttonStyle(.plain)
+        }
+        .sheet(isPresented: $showPetSetup) {
+            NavigationStack {
+                NewPetProfileView()
+                    .environmentObject(appState)
+            }
+        }
+        .onAppear {
+            if !hasCheckedPetSetup {
+                hasCheckedPetSetup = true
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                    let hasRealDog = appState.dogs.contains { !$0.id.hasPrefix("00000000-0000-") }
+                    if !hasRealDog && appState.currentDog == nil {
+                        showPetSetup = true
+                    }
+                }
+            }
         }
         .buttonStyle(.plain)
     }

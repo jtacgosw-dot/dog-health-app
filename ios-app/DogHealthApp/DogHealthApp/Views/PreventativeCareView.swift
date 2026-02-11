@@ -594,6 +594,7 @@ struct AddPreventativeCareReminderView:View {
         )
         
         modelContext.insert(reminder)
+        NotificationManager.shared.ensureAuthorizedThenSchedule(for: reminder)
         dismiss()
     }
 }
