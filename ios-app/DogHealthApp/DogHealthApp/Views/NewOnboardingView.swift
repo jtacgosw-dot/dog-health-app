@@ -22,18 +22,18 @@ struct NewOnboardingView: View {
     @State private var errorMessage: String?
     
     let interests: [(String, String)] = [
-        ("\u{1F356}", "Nutrition"),
-        ("\u{1F43E}", "Behavior"),
-        ("\u{2764}\u{FE0F}", "Wellness"),
-        ("\u{1F34E}", "Recipes"),
-        ("\u{2702}\u{FE0F}", "Grooming"),
-        ("\u{1F3C3}", "Training"),
-        ("\u{1F4CA}", "Tracking"),
-        ("\u{1F9B7}", "Dental"),
-        ("\u{1F48A}", "Supplements"),
-        ("\u{1F4AA}", "Fitness"),
-        ("\u{1F33F}", "Longevity"),
-        ("\u{1FA7A}", "Vet-Care")
+        ("fork.knife", "Nutrition"),
+        ("pawprint.fill", "Behavior"),
+        ("heart.fill", "Wellness"),
+        ("leaf.fill", "Recipes"),
+        ("scissors", "Grooming"),
+        ("figure.walk", "Training"),
+        ("chart.bar.fill", "Tracking"),
+        ("mouth.fill", "Dental"),
+        ("pill.fill", "Supplements"),
+        ("bolt.heart.fill", "Fitness"),
+        ("tree.fill", "Longevity"),
+        ("stethoscope", "Vet-Care")
     ]
     
     let genders = ["Male", "Female"]
@@ -423,9 +423,9 @@ struct NewOnboardingView: View {
             
             ScrollView {
             LazyVGrid(columns: [GridItem(.flexible(minimum: 150)), GridItem(.flexible(minimum: 150))], spacing: 12) {
-                ForEach(interests, id: \.1) { emoji, title in
+                ForEach(interests, id: \.1) { icon, title in
                     InterestChip(
-                        emoji: emoji,
+                        icon: icon,
                         title: title,
                         isSelected: selectedInterests.contains(title)
                     ) {
@@ -659,7 +659,7 @@ struct NewOnboardingView: View {
 }
 
 struct InterestChip: View {
-    let emoji: String
+    let icon: String
     let title: String
     let isSelected: Bool
     let action: () -> Void
@@ -678,8 +678,10 @@ struct InterestChip: View {
             }
         }) {
             HStack(spacing: 8) {
-                Text(emoji)
-                    .font(.system(size: 16))
+                Image(systemName: icon)
+                    .font(.system(size: 14))
+                    .foregroundColor(isSelected ? .white : .petlyDarkGreen)
+                    .frame(width: 20)
                 Text(title)
                     .font(.petlyBodyMedium(14))
                     .foregroundColor(isSelected ? .white : .petlyDarkGreen)
