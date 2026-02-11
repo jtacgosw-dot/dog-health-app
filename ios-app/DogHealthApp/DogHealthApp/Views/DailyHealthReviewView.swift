@@ -630,12 +630,12 @@ struct DailyHealthReviewView: View {
         }
         
         return CareConsistency(
-            checkInsThisWeek: weekCheckIns.count + 1,
+            checkInsThisWeek: weekCheckIns.count,
             totalDaysThisWeek: 7,
-            checkInsThisMonth: monthCheckIns.count + 1,
+            checkInsThisMonth: monthCheckIns.count,
             totalDaysThisMonth: 30,
-            currentStreak: currentStreak + 1,
-            longestStreak: currentStreak + 1
+            currentStreak: currentStreak,
+            longestStreak: currentStreak
         )
     }
 }
