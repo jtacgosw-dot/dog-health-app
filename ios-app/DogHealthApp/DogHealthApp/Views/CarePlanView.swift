@@ -185,6 +185,14 @@ struct CarePlanCard: View {
                             .padding(.vertical, 4)
                             .background(Color.petlyLightGreen)
                             .cornerRadius(8)
+                    } else if !plan.isActive {
+                        Text("Completed")
+                            .font(.petlyBodyMedium(12))
+                            .foregroundColor(.white)
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 4)
+                            .background(Color.green)
+                            .cornerRadius(8)
                     }
                 }
                 
@@ -547,11 +555,12 @@ struct CreateCarePlanView: View {
                     isGenerating = false
                 }
             } catch {
+                print("[CarePlan] Generate failed: \(error)")
                 let fallbackPlan = parsePlanResponse("", goal: goal)
                 
                 await MainActor.run {
                     generatedPlan = fallbackPlan
-                    errorMessage = "AI was unavailable — created a default template you can customize."
+                    errorMessage = "AI was unavailable (\(error.localizedDescription)) — created a default template you can customize."
                     isGenerating = false
                 }
             }
@@ -767,6 +776,7 @@ struct CarePlanDetailView: View {
     @Environment(\.modelContext) private var modelContext
     
     @Bindable var plan: CarePlan
+    @State private var showDeleteConfirmation = false
     
     private var progress: Double {
         let total = plan.tasks.count
@@ -790,6 +800,10 @@ struct CarePlanDetailView: View {
                         
                         if plan.isActive {
                             endPlanButton
+                            deletePlanButton
+                        } else {
+                            completedBanner
+                            deletePlanButton
                         }
                         
                         Spacer(minLength: 100)
@@ -919,6 +933,41 @@ struct CarePlanDetailView: View {
         }
     }
     
+    private var deletePlanButton: some View {
+        Button(action: { showDeleteConfirmation = true }) {
+            HStack {
+                Image(systemName: "trash")
+                Text("Delete Plan")
+            }
+            .font(.petlyBodyMedium(14))
+            .foregroundColor(.red)
+            .frame(maxWidth: .infinity)
+            .padding()
+            .background(Color.red.opacity(0.05))
+            .cornerRadius(12)
+        }
+        .alert("Delete Plan?", isPresented: $showDeleteConfirmation) {
+            Button("Cancel", role: .cancel) { }
+            Button("Delete", role: .destructive) { deletePlan() }
+        } message: {
+            Text("This will permanently remove this care plan and all its tasks.")
+        }
+    }
+    
+    private var completedBanner: some View {
+        HStack {
+            Image(systemName: "checkmark.seal.fill")
+                .foregroundColor(.green)
+            Text("This plan has been completed")
+                .font(.petlyBodyMedium(14))
+                .foregroundColor(.petlyDarkGreen)
+        }
+        .frame(maxWidth: .infinity)
+        .padding()
+        .background(Color.green.opacity(0.1))
+        .cornerRadius(12)
+    }
+    
     private func toggleTask(_ task: CarePlanTask) {
         task.isCompleted.toggle()
         if task.isCompleted {
@@ -932,6 +981,12 @@ struct CarePlanDetailView: View {
     
     private func endPlan() {
         plan.isActive = false
+        try? modelContext.save()
+        dismiss()
+    }
+    
+    private func deletePlan() {
+        modelContext.delete(plan)
         try? modelContext.save()
         dismiss()
     }
