@@ -376,13 +376,37 @@ struct GuestUser: Codable {
     let subscriptionStatus: String?
 }
 
-struct ChatRequest: Codable {
+struct ChatRequest: Encodable {
     let message: String
     let conversationId: String?
     let dogId: String?
     let dogProfile: ChatDogProfile?
     let healthLogs: [ChatHealthLog]?
     let images: [String]?
+    
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(message, forKey: .message)
+        if let conversationId = conversationId {
+            try container.encode(conversationId, forKey: .conversationId)
+        }
+        if let dogId = dogId {
+            try container.encode(dogId, forKey: .dogId)
+        }
+        if let dogProfile = dogProfile {
+            try container.encode(dogProfile, forKey: .dogProfile)
+        }
+        if let healthLogs = healthLogs {
+            try container.encode(healthLogs, forKey: .healthLogs)
+        }
+        if let images = images {
+            try container.encode(images, forKey: .images)
+        }
+    }
+    
+    private enum CodingKeys: String, CodingKey {
+        case message, conversationId, dogId, dogProfile, healthLogs, images
+    }
 }
 
 struct ChatDogProfile: Codable {

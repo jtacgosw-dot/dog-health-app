@@ -15,8 +15,8 @@ router.post('/',
   chatRateLimit,
   [
     body('message').notEmpty().withMessage('Message is required'),
-    body('conversationId').optional().isUUID().withMessage('Invalid conversation ID'),
-    body('dogId').optional().isUUID().withMessage('Invalid dog ID')
+    body('conversationId').optional({ values: 'null' }).isUUID().withMessage('Invalid conversation ID'),
+    body('dogId').optional({ values: 'null' }).isUUID().withMessage('Invalid dog ID')
   ],
   async (req, res) => {
     try {
