@@ -218,32 +218,47 @@ struct NewOnboardingView: View {
                     .padding(.horizontal, 40)
                     .padding(.vertical, 10)
                     
-                    HStack(spacing: 20) {
+                    HStack(spacing: 24) {
                         Button(action: {}) {
-                            Image(systemName: "f.circle.fill")
-                                .font(.system(size: 22))
-                                .foregroundColor(.white)
-                                .frame(width: 48, height: 48)
-                                .background(Color.petlyDarkGreen)
-                                .clipShape(Circle())
+                            ZStack {
+                                Circle()
+                                    .fill(Color.petlyLightGreen)
+                                    .frame(width: 56, height: 56)
+                                Circle()
+                                    .fill(Color.petlyDarkGreen)
+                                    .frame(width: 44, height: 44)
+                                Text("f")
+                                    .font(.system(size: 24, weight: .bold, design: .serif))
+                                    .foregroundColor(.white)
+                            }
                         }
                         
                         Button(action: { triggerAppleSignIn() }) {
-                            Image(systemName: "apple.logo")
-                                .font(.system(size: 22))
-                                .foregroundColor(.white)
-                                .frame(width: 48, height: 48)
-                                .background(Color.black)
-                                .clipShape(Circle())
+                            ZStack {
+                                Circle()
+                                    .fill(Color.petlyLightGreen)
+                                    .frame(width: 56, height: 56)
+                                Circle()
+                                    .fill(Color.petlyDarkGreen)
+                                    .frame(width: 44, height: 44)
+                                Image(systemName: "apple.logo")
+                                    .font(.system(size: 22))
+                                    .foregroundColor(.white)
+                            }
                         }
                         
                         Button(action: {}) {
-                            Text("G")
-                                .font(.system(size: 22, weight: .bold))
-                                .foregroundColor(.white)
-                                .frame(width: 48, height: 48)
-                                .background(Color.petlyDarkGreen)
-                                .clipShape(Circle())
+                            ZStack {
+                                Circle()
+                                    .fill(Color.petlyLightGreen)
+                                    .frame(width: 56, height: 56)
+                                Circle()
+                                    .fill(Color.petlyDarkGreen)
+                                    .frame(width: 44, height: 44)
+                                Text("G")
+                                    .font(.system(size: 22, weight: .bold))
+                                    .foregroundColor(.white)
+                            }
                         }
                     }
                     
