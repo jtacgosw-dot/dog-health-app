@@ -1,99 +1,251 @@
 import SwiftUI
+import AuthenticationServices
 
 struct NewOnboardingView: View {
     @EnvironmentObject var appState: AppState
-    @State private var selectedInterests: Set<String> = []
     @State private var currentPage = 0
-    @State private var ownerName: String = ""
+    @State private var selectedInterests: Set<String> = []
+    @State private var email = ""
+    @State private var ownerName = ""
+    @State private var password = ""
+    @State private var confirmPassword = ""
+    @State private var showPassword = false
+    @State private var petName = ""
+    @State private var petAge = ""
+    @State private var petBreed = ""
+    @State private var petWeight = ""
+    @State private var petPersonality = ""
+    @State private var petGender = "Male"
+    @State private var petAllergies = ""
+    @State private var petHealthConditions = ""
+    @State private var isLoading = false
+    @State private var errorMessage: String?
     
-    let interests = [
-        ("leaf.fill", "Nutrition"),
-        ("pawprint.fill", "Behavior"),
-        ("heart.fill", "Wellness"),
-        ("fork.knife", "Recipes"),
-        ("scissors", "Grooming"),
-        ("figure.run", "Training"),
-        ("chart.bar.fill", "Tracking"),
-        ("mouth.fill", "Dental"),
-        ("pills.fill", "Supplements"),
-        ("dumbbell.fill", "Fitness"),
-        ("leaf.circle.fill", "Longevity"),
-        ("stethoscope", "Vet-Care")
+    let interests: [(String, String)] = [
+        ("\u{1F356}", "Nutrition"),
+        ("\u{1F43E}", "Behavior"),
+        ("\u{2764}\u{FE0F}", "Wellness"),
+        ("\u{1F34E}", "Recipes"),
+        ("\u{2702}\u{FE0F}", "Grooming"),
+        ("\u{1F3C3}", "Training"),
+        ("\u{1F4CA}", "Tracking"),
+        ("\u{1F9B7}", "Dental"),
+        ("\u{1F48A}", "Supplements"),
+        ("\u{1F4AA}", "Fitness"),
+        ("\u{1F33F}", "Longevity"),
+        ("\u{1FA7A}", "Vet-Care")
     ]
+    
+    let genders = ["Male", "Female"]
     
     var body: some View {
         ZStack {
             Color.petlyBackground
                 .ignoresSafeArea()
             
-            VStack(spacing: 30) {
-                Spacer()
-                
+            VStack(spacing: 0) {
                 if currentPage == 0 {
-                    welcomePage
+                    signUpPage
+                        .transition(.asymmetric(
+                            insertion: .move(edge: .trailing).combined(with: .opacity),
+                            removal: .move(edge: .leading).combined(with: .opacity)
+                        ))
                 } else if currentPage == 1 {
-                    nameInputPage
+                    petProfilePage
+                        .transition(.asymmetric(
+                            insertion: .move(edge: .trailing).combined(with: .opacity),
+                            removal: .move(edge: .leading).combined(with: .opacity)
+                        ))
                 } else {
                     interestsPage
+                        .transition(.asymmetric(
+                            insertion: .move(edge: .trailing).combined(with: .opacity),
+                            removal: .move(edge: .leading).combined(with: .opacity)
+                        ))
                 }
-                
-                Spacer()
-                
-                pageIndicator
-                    .padding(.bottom, 40)
             }
-            .padding()
+            
+            if isLoading {
+                Color.black.opacity(0.3)
+                    .ignoresSafeArea()
+                ProgressView()
+                    .scaleEffect(1.5)
+                    .tint(.white)
+            }
         }
         .buttonStyle(.plain)
     }
     
-    var welcomePage: some View {
-        VStack(spacing: 20) {
-            Text("Petly")
-                .font(.petlyTitle(48))
-                .foregroundColor(.petlyDarkGreen)
-            
-            Image(systemName: "pawprint.fill")
-                .font(.system(size: 80))
-                .foregroundColor(.petlyDarkGreen)
-                .padding(.vertical, 20)
-            
-            Text("Smart care tailored with love")
-                .font(.petlyBodyMedium(18))
-                .foregroundColor(.petlyDarkGreen)
-                .multilineTextAlignment(.center)
-            
-            Text("AI THAT KNOWS YOUR PET")
-                .font(.petlyBodyMedium(12))
-                .foregroundColor(.petlyDarkGreen)
+    // MARK: - Page 0: Sign Up
+    
+    var signUpPage: some View {
+        VStack(spacing: 0) {
+            HStack { Spacer() }
+                .padding(.horizontal)
                 .padding(.top, 10)
             
-            Text("Using AI, Petly tailors food, supplement, and lifestyle recommendations to your pet's unique age, breed, size, and health needs — helping them live longer, happier, and healthier lives.")
-                .font(.petlyBody(14))
-                .foregroundColor(.petlyFormIcon)
-                .multilineTextAlignment(.center)
-                .padding(.horizontal)
-                .padding(.top, 5)
-            
-            Button(action: {
-                withAnimation(.spring(response: 0.5, dampingFraction: 0.7)) {
-                    currentPage = 1
+            ScrollView {
+                VStack(spacing: 20) {
+                    Image("woofMeow")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(height: 120)
+                        .padding(.top, 20)
+                    
+                    VStack(spacing: 4) {
+                        Text("Your pet\u{2019}s journey")
+                            .font(.petlyTitle(28))
+                            .foregroundColor(.petlyDarkGreen)
+                        Text("starts here...")
+                            .font(.petlyTitle(28))
+                            .foregroundColor(.petlyDarkGreen)
+                    }
+                    .padding(.top, 10)
+                    
+                    VStack(spacing: 12) {
+                        HStack(spacing: 12) {
+                            Image(systemName: "envelope")
+                                .foregroundColor(.petlyFormIcon)
+                                .frame(width: 24)
+                            TextField("E-Mail", text: $email)
+                                .font(.petlyBody(14))
+                                .keyboardType(.emailAddress)
+                                .autocapitalization(.none)
+                        }
+                        .padding()
+                        .background(Color.petlyLightGreen)
+                        .cornerRadius(12)
+                        
+                        HStack(spacing: 12) {
+                            Image(systemName: "pawprint.fill")
+                                .foregroundColor(.petlyFormIcon)
+                                .frame(width: 24)
+                            TextField("Owner's Name", text: $ownerName)
+                                .font(.petlyBody(14))
+                        }
+                        .padding()
+                        .background(Color.petlyLightGreen)
+                        .cornerRadius(12)
+                        
+                        HStack(spacing: 12) {
+                            Image(systemName: "lock.fill")
+                                .foregroundColor(.petlyFormIcon)
+                                .frame(width: 24)
+                            if showPassword {
+                                TextField("Password", text: $password)
+                                    .font(.petlyBody(14))
+                            } else {
+                                SecureField("Password", text: $password)
+                                    .font(.petlyBody(14))
+                            }
+                        }
+                        .padding()
+                        .background(Color.petlyLightGreen)
+                        .cornerRadius(12)
+                        
+                        HStack(spacing: 12) {
+                            Image(systemName: "lock.fill")
+                                .foregroundColor(.petlyFormIcon)
+                                .frame(width: 24)
+                            if showPassword {
+                                TextField("Confirm Password", text: $confirmPassword)
+                                    .font(.petlyBody(14))
+                            } else {
+                                SecureField("Confirm Password", text: $confirmPassword)
+                                    .font(.petlyBody(14))
+                            }
+                        }
+                        .padding()
+                        .background(Color.petlyLightGreen)
+                        .cornerRadius(12)
+                    }
+                    .padding(.horizontal)
+                    
+                    if let errorMessage = errorMessage {
+                        Text(errorMessage)
+                            .font(.petlyBody(12))
+                            .foregroundColor(.red)
+                            .padding()
+                            .background(Color.red.opacity(0.1))
+                            .cornerRadius(8)
+                            .padding(.horizontal)
+                    }
+                    
+                    Button(action: handleSignUp) {
+                        Text("SIGN UP")
+                            .font(.petlyBodyMedium(16))
+                            .foregroundColor(.white)
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                            .background(Color.petlyDarkGreen)
+                            .cornerRadius(12)
+                    }
+                    .padding(.horizontal)
+                    
+                    HStack {
+                        Rectangle()
+                            .fill(Color.petlyFormIcon.opacity(0.3))
+                            .frame(height: 1)
+                        Text("Or")
+                            .font(.petlyBody(14))
+                            .foregroundColor(.petlyFormIcon)
+                            .padding(.horizontal, 16)
+                        Rectangle()
+                            .fill(Color.petlyFormIcon.opacity(0.3))
+                            .frame(height: 1)
+                    }
+                    .padding(.horizontal, 40)
+                    .padding(.vertical, 10)
+                    
+                    HStack(spacing: 24) {
+                        Button(action: {}) {
+                            Image(systemName: "f.circle.fill")
+                                .font(.system(size: 32))
+                                .foregroundColor(.petlyDarkGreen)
+                        }
+                        
+                        SignInWithAppleButton(.signIn) { request in
+                            request.requestedScopes = [.fullName, .email]
+                        } onCompletion: { result in
+                            handleAppleSignIn(result)
+                        }
+                        .signInWithAppleButtonStyle(.black)
+                        .frame(width: 44, height: 44)
+                        .clipShape(Circle())
+                        
+                        Button(action: {}) {
+                            Text("G")
+                                .font(.system(size: 28, weight: .medium))
+                                .foregroundColor(.petlyDarkGreen)
+                        }
+                    }
+                    
+                    HStack(spacing: 4) {
+                        Text("Already have an account?")
+                            .font(.petlyBody(14))
+                            .foregroundColor(.petlyFormIcon)
+                        Button(action: {
+                            appState.hasCompletedOnboarding = true
+                        }) {
+                            Text("Sign In")
+                                .font(.petlyBodyMedium(14))
+                                .foregroundColor(.petlyDarkGreen)
+                                .underline()
+                        }
+                    }
+                    .padding(.top, 10)
+                    
+                    pageIndicator
+                        .padding(.top, 20)
+                        .padding(.bottom, 40)
                 }
-            }) {
-                Text("Get Started")
-                    .font(.petlyBodyMedium(16))
-                    .foregroundColor(.white)
-                    .frame(maxWidth: .infinity)
-                    .padding()
-                    .background(Color.petlyDarkGreen)
-                    .cornerRadius(25)
             }
-            .padding(.horizontal)
-            .padding(.top, 20)
         }
     }
     
-    var nameInputPage: some View {
+    // MARK: - Page 1: Pet Profile
+    
+    var petProfilePage: some View {
         VStack(spacing: 0) {
             HStack {
                 Button(action: {
@@ -114,65 +266,86 @@ struct NewOnboardingView: View {
             }
             .padding(.horizontal)
             .padding(.top, 10)
-            .padding(.bottom, 20)
             
-            Text("What's your name?")
-                .font(.petlyTitle(28))
-                .foregroundColor(.petlyDarkGreen)
-                .padding(.bottom, 10)
-            
-            Text("We'll use this to personalize your experience")
-                .font(.petlyBody(14))
-                .foregroundColor(.petlyFormIcon)
-                .multilineTextAlignment(.center)
-                .padding(.horizontal)
-                .padding(.bottom, 30)
-            
-            TextField("Your name", text: $ownerName)
-                .font(.petlyBody(18))
-                .padding()
-                .background(Color.petlyLightGreen)
-                .cornerRadius(12)
-                .padding(.horizontal, 40)
-            
-            Spacer()
-            
-            Button(action: {
-                // Save the name to the user
-                if var user = appState.currentUser {
-                    user.fullName = ownerName.isEmpty ? nil : ownerName
-                    appState.currentUser = user
-                    // Save to UserDefaults for persistence
-                    UserDefaults.standard.set(ownerName, forKey: "ownerName")
-                } else if !ownerName.isEmpty {
-                    // Create a user with the name if one doesn't exist
-                    UserDefaults.standard.set(ownerName, forKey: "ownerName")
+            ScrollView {
+                VStack(spacing: 16) {
+                    ZStack {
+                        Circle()
+                            .fill(Color.petlyDarkGreen)
+                            .frame(width: 100, height: 100)
+                        
+                        Image(systemName: "pawprint.fill")
+                            .font(.system(size: 40))
+                            .foregroundColor(.white)
+                    }
+                    .padding(.top, 20)
+                    
+                    Text("Tell us about your pet!")
+                        .font(.petlyTitle(28))
+                        .foregroundColor(.petlyDarkGreen)
+                        .padding(.top, 10)
+                    
+                    VStack(spacing: 12) {
+                        PetFormField(icon: "pawprint.fill", placeholder: "Your Pet's Name", text: $petName)
+                        PetFormField(icon: "clock", placeholder: "Your Pet's Age", text: $petAge, keyboardType: .numberPad)
+                        PetFormField(icon: "hare", placeholder: "Breed", text: $petBreed)
+                        PetFormField(icon: "scalemass", placeholder: "Weight", text: $petWeight, keyboardType: .decimalPad)
+                        PetFormField(icon: "face.smiling", placeholder: "Personality", text: $petPersonality)
+                        
+                        HStack(spacing: 12) {
+                            Image(systemName: "figure.stand.line.dotted.figure.stand")
+                                .foregroundColor(.petlyFormIcon)
+                                .frame(width: 24)
+                            
+                            Picker("Gender", selection: $petGender) {
+                                ForEach(genders, id: \.self) { g in
+                                    Text(g).tag(g)
+                                }
+                            }
+                            .pickerStyle(.menu)
+                            .tint(.petlyDarkGreen)
+                            
+                            Spacer()
+                        }
+                        .padding()
+                        .background(Color.petlyLightGreen)
+                        .cornerRadius(12)
+                        
+                        PetFormField(icon: "allergens", placeholder: "Allergies", text: $petAllergies)
+                        PetFormField(icon: "cross.case", placeholder: "Health Conditions", text: $petHealthConditions)
+                    }
+                    .padding(.horizontal)
+                    
+                    if let errorMessage = errorMessage {
+                        Text(errorMessage)
+                            .font(.petlyBody(12))
+                            .foregroundColor(.red)
+                            .padding()
+                            .background(Color.red.opacity(0.1))
+                            .cornerRadius(8)
+                            .padding(.horizontal)
+                    }
+                    
+                    Button(action: handlePetProfile) {
+                        Text("NEXT STEP")
+                            .font(.petlyBodyMedium(16))
+                            .foregroundColor(.white)
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                            .background(Color.petlyDarkGreen)
+                            .cornerRadius(12)
+                    }
+                    .padding(.horizontal)
+                    
+                    pageIndicator
+                        .padding(.top, 20)
+                        .padding(.bottom, 40)
                 }
-                
-                withAnimation(.spring(response: 0.5, dampingFraction: 0.7)) {
-                    currentPage = 2
-                }
-            }) {
-                Text("CONTINUE")
-                    .font(.petlyBodyMedium(14))
-                    .foregroundColor(.white)
-                    .frame(maxWidth: .infinity)
-                    .padding()
-                    .background(Color.petlyDarkGreen)
-                    .cornerRadius(8)
-            }
-            .padding(.horizontal)
-            .padding(.bottom, 20)
-        }
-        .onAppear {
-            // Pre-fill with existing name if available
-            if let existingName = appState.currentUser?.fullName {
-                ownerName = existingName
-            } else if let savedName = UserDefaults.standard.string(forKey: "ownerName") {
-                ownerName = savedName
             }
         }
     }
+    
+    // MARK: - Page 2: Interests
     
     var interestsPage: some View {
         VStack(spacing: 0) {
@@ -197,7 +370,7 @@ struct NewOnboardingView: View {
             .padding(.top, 10)
             .padding(.bottom, 20)
             
-            Text("Now, let's pick")
+            Text("Now, let\u{2019}s pick")
                 .font(.petlyTitle(28))
                 .foregroundColor(.petlyDarkGreen)
             
@@ -216,9 +389,9 @@ struct NewOnboardingView: View {
                 .padding(.bottom, 20)
             
             LazyVGrid(columns: [GridItem(.flexible(minimum: 150)), GridItem(.flexible(minimum: 150))], spacing: 12) {
-                ForEach(interests, id: \.1) { icon, title in
+                ForEach(interests, id: \.1) { emoji, title in
                     InterestChip(
-                        icon: icon,
+                        emoji: emoji,
                         title: title,
                         isSelected: selectedInterests.contains(title)
                     ) {
@@ -236,36 +409,30 @@ struct NewOnboardingView: View {
             
             Spacer()
             
-            VStack(alignment: .leading, spacing: 0) {
-                Image("dogCatOutline")
-                    .resizable()
-                    .renderingMode(.template)
-                    .scaledToFit()
-                    .frame(height: 200)
-                    .foregroundColor(.petlyDarkGreen)
-                    .opacity(0.7)
-                    .padding(.bottom, -72)
-                
-                Button(action: {
-                    UserDefaults.standard.set(Array(selectedInterests), forKey: "userInterests")
-                    withAnimation(.spring(response: 0.5, dampingFraction: 0.7)) {
-                        appState.hasCompletedOnboarding = true
-                    }
-                }) {
-                    Text("NEXT STEP")
-                        .font(.petlyBodyMedium(14))
-                        .foregroundColor(.white)
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(selectedInterests.isEmpty ? Color.petlyFormIcon : Color.petlyDarkGreen)
-                        .cornerRadius(8)
+            Button(action: {
+                UserDefaults.standard.set(Array(selectedInterests), forKey: "userInterests")
+                withAnimation(.spring(response: 0.5, dampingFraction: 0.7)) {
+                    appState.hasCompletedOnboarding = true
                 }
-                .disabled(selectedInterests.isEmpty)
+            }) {
+                Text("COMPLETE")
+                    .font(.petlyBodyMedium(14))
+                    .foregroundColor(.white)
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .background(selectedInterests.isEmpty ? Color.petlyFormIcon : Color.petlyDarkGreen)
+                    .cornerRadius(8)
             }
+            .disabled(selectedInterests.isEmpty)
             .padding(.horizontal)
-            .padding(.bottom, 20)
+            .padding(.bottom, 10)
+            
+            pageIndicator
+                .padding(.bottom, 30)
         }
     }
+    
+    // MARK: - Page Indicator
     
     var pageIndicator: some View {
         HStack(spacing: 8) {
@@ -277,10 +444,164 @@ struct NewOnboardingView: View {
             }
         }
     }
+    
+    // MARK: - Auth Handlers
+    
+    private func handleSignUp() {
+        guard !ownerName.isEmpty else {
+            errorMessage = "Please enter your name"
+            return
+        }
+        
+        errorMessage = nil
+        isLoading = true
+        UserDefaults.standard.set(ownerName, forKey: "ownerName")
+        
+        let deviceId = UIDevice.current.identifierForVendor?.uuidString ?? UUID().uuidString
+        UserDefaults.standard.set(deviceId, forKey: "guestDeviceId")
+        
+        Task {
+            do {
+                let response = try await APIService.shared.guestSignIn(deviceId: deviceId)
+                APIService.shared.setAuthToken(response.token)
+                APIService.shared.setIsGuest(true)
+                
+                await MainActor.run {
+                    let statusString = response.user.subscriptionStatus ?? "free"
+                    let status = SubscriptionStatus(rawValue: statusString) ?? .free
+                    appState.currentUser = User(
+                        id: response.user.id,
+                        email: response.user.email,
+                        fullName: ownerName,
+                        subscriptionStatus: status
+                    )
+                    appState.isSignedIn = true
+                    isLoading = false
+                    withAnimation(.spring(response: 0.5, dampingFraction: 0.7)) {
+                        currentPage = 1
+                    }
+                }
+                await appState.loadUserData()
+            } catch {
+                await MainActor.run {
+                    errorMessage = "Sign up failed: \(error.localizedDescription)"
+                    isLoading = false
+                }
+            }
+        }
+    }
+    
+    private func handleAppleSignIn(_ result: Result<ASAuthorization, Error>) {
+        isLoading = true
+        errorMessage = nil
+        
+        switch result {
+        case .success(let authorization):
+            if let appleIDCredential = authorization.credential as? ASAuthorizationAppleIDCredential {
+                guard let identityTokenData = appleIDCredential.identityToken,
+                      let identityToken = String(data: identityTokenData, encoding: .utf8),
+                      let authCodeData = appleIDCredential.authorizationCode,
+                      let authCode = String(data: authCodeData, encoding: .utf8) else {
+                    errorMessage = "Failed to get authentication credentials"
+                    isLoading = false
+                    return
+                }
+                
+                let fullName = appleIDCredential.fullName.map { personName in
+                    [personName.givenName, personName.familyName]
+                        .compactMap { $0 }
+                        .joined(separator: " ")
+                }
+                
+                Task {
+                    do {
+                        let response = try await APIService.shared.signInWithApple(
+                            identityToken: identityToken,
+                            authorizationCode: authCode,
+                            fullName: fullName
+                        )
+                        APIService.shared.setAuthToken(response.token)
+                        APIService.shared.setIsGuest(false)
+                        
+                        await MainActor.run {
+                            appState.currentUser = response.user
+                            appState.isSignedIn = true
+                            isLoading = false
+                            withAnimation(.spring(response: 0.5, dampingFraction: 0.7)) {
+                                currentPage = 1
+                            }
+                        }
+                        await appState.loadUserData()
+                    } catch {
+                        await MainActor.run {
+                            errorMessage = "Sign in failed: \(error.localizedDescription)"
+                            isLoading = false
+                        }
+                    }
+                }
+            }
+            
+        case .failure(let error):
+            isLoading = false
+            if let authError = error as? ASAuthorizationError,
+               authError.code == .canceled { return }
+            errorMessage = "Sign in failed: \(error.localizedDescription)"
+        }
+    }
+    
+    private func handlePetProfile() {
+        guard !petName.isEmpty, !petBreed.isEmpty else {
+            errorMessage = "Please fill in at least name and breed"
+            return
+        }
+        
+        errorMessage = nil
+        isLoading = true
+        
+        let ageDouble = Double(petAge) ?? 0
+        let weightDouble = Double(petWeight)
+        let allergiesArray = petAllergies.split(separator: ",").map { $0.trimmingCharacters(in: .whitespaces) }
+        let healthConcernsArray = petHealthConditions.split(separator: ",").map { $0.trimmingCharacters(in: .whitespaces) }
+        
+        Task {
+            do {
+                let newDog = Dog(
+                    name: petName,
+                    breed: petBreed,
+                    age: ageDouble,
+                    weight: weightDouble,
+                    healthConcerns: healthConcernsArray,
+                    allergies: allergiesArray,
+                    sex: petGender
+                )
+                let dog = try await APIService.shared.createDog(dog: newDog)
+                
+                await MainActor.run {
+                    appState.saveDogLocally(dog)
+                    
+                    if let newWeight = dog.weight {
+                        WeightTrackingManager.shared.switchDog(dog.id)
+                        let entry = WeightEntry(weight: newWeight, date: Date(), note: "Initial profile weight")
+                        WeightTrackingManager.shared.addEntry(entry)
+                    }
+                    
+                    isLoading = false
+                    withAnimation(.spring(response: 0.5, dampingFraction: 0.7)) {
+                        currentPage = 2
+                    }
+                }
+            } catch {
+                await MainActor.run {
+                    errorMessage = "Failed to save pet: \(error.localizedDescription)"
+                    isLoading = false
+                }
+            }
+        }
+    }
 }
 
 struct InterestChip: View {
-    let icon: String
+    let emoji: String
     let title: String
     let isSelected: Bool
     let action: () -> Void
@@ -299,9 +620,8 @@ struct InterestChip: View {
             }
         }) {
             HStack(spacing: 8) {
-                Image(systemName: icon)
+                Text(emoji)
                     .font(.system(size: 16))
-                    .foregroundColor(isSelected ? .white : .petlyDarkGreen)
                 Text(title)
                     .font(.petlyBodyMedium(14))
                     .foregroundColor(isSelected ? .white : .petlyDarkGreen)
