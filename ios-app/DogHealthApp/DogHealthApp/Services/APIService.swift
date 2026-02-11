@@ -69,6 +69,7 @@ class APIService {
         
         var request = URLRequest(url: url)
         request.httpMethod = method
+        request.timeoutInterval = 120
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         
         if requiresAuth, let token = getAuthToken() {
@@ -86,16 +87,19 @@ class APIService {
         }
         
                 guard (200...299).contains(httpResponse.statusCode) else {
-                    if let errorBody = String(data: data, encoding: .utf8) {
-                        print("[APIService] HTTP \(httpResponse.statusCode) error: \(errorBody)")
-                    }
+                    let errorBody = String(data: data, encoding: .utf8) ?? "no body"
+                    print("[APIService] HTTP \(httpResponse.statusCode) error: \(errorBody)")
                     if httpResponse.statusCode == 401 && requiresAuth && !isRetry {
                         let refreshed = await refreshTokenIfGuest()
                         if refreshed {
                             return try await makeRequest(endpoint: endpoint, method: method, body: body, requiresAuth: requiresAuth, isRetry: true)
                         }
                     }
-                    throw APIError.httpError(statusCode: httpResponse.statusCode)
+                    var serverMessage: String?
+                    if let jsonObj = try? JSONSerialization.jsonObject(with: data) as? [String: Any] {
+                        serverMessage = jsonObj["message"] as? String ?? jsonObj["error"] as? String
+                    }
+                    throw APIError.httpError(statusCode: httpResponse.statusCode, serverMessage: serverMessage)
                 }
         
         let decoder = JSONDecoder()
@@ -304,7 +308,7 @@ class APIService {
 enum APIError: LocalizedError {
     case invalidURL
     case invalidResponse
-    case httpError(statusCode: Int)
+    case httpError(statusCode: Int, serverMessage: String? = nil)
     case decodingError
     case networkError(underlying: Error)
     
@@ -314,7 +318,8 @@ enum APIError: LocalizedError {
             return "Invalid URL. Please try again."
         case .invalidResponse:
             return "Invalid response from server. Please try again."
-        case .httpError(let statusCode):
+        case .httpError(let statusCode, let serverMessage):
+            let detail = serverMessage.map { ": \($0)" } ?? ""
             switch statusCode {
             case 401:
                 return "Authentication required. Please sign in again."
@@ -323,9 +328,9 @@ enum APIError: LocalizedError {
             case 404:
                 return "Service not found. Please try again later."
             case 500...599:
-                return "Server error. Please try again later."
+                return "Server error\(detail). Please try again later."
             default:
-                return "Request failed (error \(statusCode)). Please try again."
+                return "Request failed (error \(statusCode))\(detail). Please try again."
             }
         case .decodingError:
             return "Failed to process server response. Please try again."
