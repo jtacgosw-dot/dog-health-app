@@ -185,6 +185,9 @@ struct SmartInsightsView: View {
         }
     }
     
+    @State private var showDailyLog = false
+    @State private var showDailyReviewFromStats = false
+    
     private var dataQualitySection: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Data Quality")
@@ -204,21 +207,24 @@ struct SmartInsightsView: View {
                     icon: "fork.knife",
                     title: "Meals logged",
                     value: "\(stats.mealsLogged)",
-                    subtitle: "This month"
+                    subtitle: "This month",
+                    action: { showDailyLog = true }
                 )
                 
                 DataStatRow(
                     icon: "figure.walk",
                     title: "Activities logged",
                     value: "\(stats.activitiesLogged)",
-                    subtitle: "This month"
+                    subtitle: "This month",
+                    action: { showDailyLog = true }
                 )
                 
                 DataStatRow(
                     icon: "heart.text.square",
                     title: "Symptoms recorded",
                     value: "\(stats.symptomsLogged)",
-                    subtitle: "This month"
+                    subtitle: "This month",
+                    action: { showDailyReviewFromStats = true }
                 )
             }
             .padding()
@@ -231,6 +237,12 @@ struct SmartInsightsView: View {
             )
             .cornerRadius(12)
             .shadow(color: .black.opacity(0.06), radius: 8, x: 0, y: 2)
+        }
+        .sheet(isPresented: $showDailyLog) {
+            DailyHealthReviewView()
+        }
+        .sheet(isPresented: $showDailyReviewFromStats) {
+            DailyHealthReviewView()
         }
     }
     
@@ -480,34 +492,46 @@ struct HealthInsightCard: View {
     }
 }
 
-struct DataStatRow:View {
+struct DataStatRow: View {
     let icon: String
     let title: String
     let value: String
     let subtitle: String
+    var action: (() -> Void)?
     
     var body: some View {
-        HStack(spacing: 12) {
-            Image(systemName: icon)
-                .font(.subheadline)
-                .foregroundColor(.petlyDarkGreen)
-                .frame(width: 24)
-            
-            Text(title)
-                .font(.subheadline)
-            
-            Spacer()
-            
-            VStack(alignment: .trailing, spacing: 2) {
-                Text(value)
+        Button(action: { action?() }) {
+            HStack(spacing: 12) {
+                Image(systemName: icon)
                     .font(.subheadline)
-                    .fontWeight(.semibold)
+                    .foregroundColor(.petlyDarkGreen)
+                    .frame(width: 24)
                 
-                Text(subtitle)
-                    .font(.caption2)
-                    .foregroundColor(.secondary)
+                Text(title)
+                    .font(.subheadline)
+                    .foregroundColor(.primary)
+                
+                Spacer()
+                
+                VStack(alignment: .trailing, spacing: 2) {
+                    Text(value)
+                        .font(.subheadline)
+                        .fontWeight(.semibold)
+                        .foregroundColor(.primary)
+                    
+                    Text(subtitle)
+                        .font(.caption2)
+                        .foregroundColor(.secondary)
+                }
+                
+                if action != nil {
+                    Image(systemName: "chevron.right")
+                        .font(.caption2)
+                        .foregroundColor(.secondary)
+                }
             }
         }
+        .disabled(action == nil)
     }
 }
 
