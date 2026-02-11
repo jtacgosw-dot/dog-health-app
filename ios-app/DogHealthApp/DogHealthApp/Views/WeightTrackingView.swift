@@ -21,10 +21,37 @@ class WeightTrackingManager: ObservableObject {
     @Published var weightEntries: [WeightEntry] = []
     
     private let userDefaults = UserDefaults.standard
-    private let entriesKey = "weightEntries"
+    private var currentDogId: String?
+    
+    private var entriesKey: String {
+        if let dogId = currentDogId {
+            return "weightEntries_\(dogId)"
+        }
+        return "weightEntries"
+    }
     
     private init() {
         loadEntries()
+    }
+    
+    func switchDog(_ dogId: String) {
+        guard dogId != currentDogId else { return }
+        currentDogId = dogId
+        loadEntries()
+        migrateGlobalEntriesIfNeeded()
+    }
+    
+    private func migrateGlobalEntriesIfNeeded() {
+        guard currentDogId != nil else { return }
+        let globalKey = "weightEntries"
+        if let data = userDefaults.data(forKey: globalKey),
+           let globalEntries = try? JSONDecoder().decode([WeightEntry].self, from: data),
+           !globalEntries.isEmpty,
+           weightEntries.isEmpty {
+            weightEntries = globalEntries
+            saveEntries()
+            userDefaults.removeObject(forKey: globalKey)
+        }
     }
     
     func addEntry(_ entry: WeightEntry) {
@@ -48,6 +75,8 @@ class WeightTrackingManager: ObservableObject {
         if let data = userDefaults.data(forKey: entriesKey),
            let decoded = try? JSONDecoder().decode([WeightEntry].self, from: data) {
             weightEntries = decoded
+        } else {
+            weightEntries = []
         }
     }
     
@@ -89,6 +118,10 @@ struct WeightTrackingView: View {
     @EnvironmentObject var appState: AppState
     @StateObject private var weightManager = WeightTrackingManager.shared
     @State private var showAddEntry = false
+    
+    private var dogId: String {
+        appState.currentDog?.id ?? ""
+    }
     @State private var newWeight = ""
     @State private var newNote = ""
     @State private var selectedDate = Date()
@@ -138,6 +171,11 @@ struct WeightTrackingView: View {
         }
         .buttonStyle(.plain)
         .preferredColorScheme(.light)
+        .onAppear {
+            if !dogId.isEmpty {
+                weightManager.switchDog(dogId)
+            }
+        }
     }
     
     private var headerSection: some View {
@@ -369,7 +407,7 @@ struct WeightTrackingView: View {
         
         if var dog = appState.currentDog {
             dog.weight = weight
-            appState.currentDog = dog
+            appState.saveDogLocally(dog)
         }
         
         newWeight = ""

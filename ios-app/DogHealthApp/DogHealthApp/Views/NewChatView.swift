@@ -617,7 +617,8 @@ struct NewChatView: View {
     
     private func buildHealthLogs()-> [ChatHealthLog]? {
         let thirtyDaysAgo = Calendar.current.date(byAdding: .day, value: -30, to: Date()) ?? Date()
-        let recentLogs = allHealthLogs.filter { $0.timestamp >= thirtyDaysAgo }
+        let dogId = appState.currentDog?.id ?? "default"
+        let recentLogs = allHealthLogs.filter { $0.dogId == dogId && $0.timestamp >= thirtyDaysAgo }
         
         guard !recentLogs.isEmpty else { return nil }
         
@@ -905,11 +906,10 @@ struct NewChatView: View {
         
         guard var dog = appState.currentDog else { return }
         
-        // Update the dog's profile weight
         dog.weight = newWeight
-        appState.currentDog = dog
+        appState.saveDogLocally(dog)
         
-        // Also add a weight entry to track history
+        WeightTrackingManager.shared.switchDog(dog.id)
         let weightEntry = WeightEntry(
             weight: newWeight,
             date: Date(),
