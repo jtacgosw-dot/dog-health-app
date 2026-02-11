@@ -74,6 +74,9 @@ struct NewOnboardingView: View {
             }
         }
         .buttonStyle(.plain)
+        .onTapGesture {
+            UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+        }
     }
     
     // MARK: - Page 0: Sign Up
@@ -88,8 +91,12 @@ struct NewOnboardingView: View {
                 VStack(spacing: 20) {
                     ZStack {
                         Circle()
+                            .fill(Color.petlyLightGreen)
+                            .frame(width: 120, height: 120)
+                        
+                        Circle()
                             .fill(Color.petlyDarkGreen)
-                            .frame(width: 100, height: 100)
+                            .frame(width: 96, height: 96)
                         
                         Image(systemName: "pawprint.fill")
                             .font(.system(size: 44))
@@ -249,6 +256,7 @@ struct NewOnboardingView: View {
                         .padding(.bottom, 40)
                 }
             }
+            .scrollDismissesKeyboard(.interactively)
         }
     }
     
@@ -280,8 +288,12 @@ struct NewOnboardingView: View {
                 VStack(spacing: 16) {
                     ZStack {
                         Circle()
+                            .fill(Color.petlyLightGreen)
+                            .frame(width: 120, height: 120)
+                        
+                        Circle()
                             .fill(Color.petlyDarkGreen)
-                            .frame(width: 100, height: 100)
+                            .frame(width: 96, height: 96)
                         
                         Image(systemName: "pawprint.fill")
                             .font(.system(size: 40))
@@ -289,16 +301,25 @@ struct NewOnboardingView: View {
                     }
                     .padding(.top, 20)
                     
-                    Text("Tell us about your pet!")
-                        .font(.petlyTitle(28))
-                        .foregroundColor(.petlyDarkGreen)
-                        .padding(.top, 10)
+                    VStack(spacing: 4) {
+                        Text("Tell us about")
+                            .font(.petlyTitle(28))
+                            .foregroundColor(.petlyDarkGreen)
+                        Text("your pet!")
+                            .font(.petlyTitle(28))
+                            .foregroundColor(.petlyDarkGreen)
+                    }
+                    .padding(.top, 10)
+                    
+                    Text("We\u{2019}ll personalize their experience")
+                        .font(.petlyBody(14))
+                        .foregroundColor(.petlyFormIcon)
                     
                     VStack(spacing: 12) {
                         PetFormField(icon: "pawprint.fill", placeholder: "Your Pet's Name", text: $petName)
-                        PetFormField(icon: "clock", placeholder: "Your Pet's Age", text: $petAge, keyboardType: .numberPad)
+                        PetFormField(icon: "clock", placeholder: "Age (years)", text: $petAge, keyboardType: .decimalPad)
                         PetFormField(icon: "hare", placeholder: "Breed", text: $petBreed)
-                        PetFormField(icon: "scalemass", placeholder: "Weight", text: $petWeight, keyboardType: .decimalPad)
+                        PetFormField(icon: "scalemass", placeholder: "Weight (lbs)", text: $petWeight, keyboardType: .decimalPad)
                         PetFormField(icon: "face.smiling", placeholder: "Personality", text: $petPersonality)
                         
                         HStack(spacing: 12) {
@@ -351,6 +372,7 @@ struct NewOnboardingView: View {
                         .padding(.bottom, 40)
                 }
             }
+            .scrollDismissesKeyboard(.interactively)
         }
     }
     
@@ -379,14 +401,16 @@ struct NewOnboardingView: View {
             .padding(.top, 10)
             .padding(.bottom, 20)
             
-            Text("Now, let\u{2019}s pick")
-                .font(.petlyTitle(28))
-                .foregroundColor(.petlyDarkGreen)
-            
-            Text("your interests.")
-                .font(.petlyTitle(28))
-                .foregroundColor(.petlyDarkGreen)
-                .padding(.bottom, 10)
+            VStack(spacing: 4) {
+                Text("Now, let\u{2019}s pick")
+                    .font(.petlyTitle(28))
+                    .foregroundColor(.petlyDarkGreen)
+                
+                Text("your interests.")
+                    .font(.petlyTitle(28))
+                    .foregroundColor(.petlyDarkGreen)
+            }
+            .padding(.bottom, 8)
             
             Text("Personalize your experience to make sure")
                 .font(.petlyBody(13))
@@ -397,6 +421,7 @@ struct NewOnboardingView: View {
                 .foregroundColor(.petlyFormIcon)
                 .padding(.bottom, 20)
             
+            ScrollView {
             LazyVGrid(columns: [GridItem(.flexible(minimum: 150)), GridItem(.flexible(minimum: 150))], spacing: 12) {
                 ForEach(interests, id: \.1) { emoji, title in
                     InterestChip(
@@ -415,6 +440,7 @@ struct NewOnboardingView: View {
                 }
             }
             .padding(.horizontal)
+            }
             
             Spacer()
             
@@ -425,12 +451,12 @@ struct NewOnboardingView: View {
                 }
             }) {
                 Text("COMPLETE")
-                    .font(.petlyBodyMedium(14))
+                    .font(.petlyBodyMedium(16))
                     .foregroundColor(.white)
                     .frame(maxWidth: .infinity)
                     .padding()
                     .background(selectedInterests.isEmpty ? Color.petlyFormIcon : Color.petlyDarkGreen)
-                    .cornerRadius(8)
+                    .cornerRadius(12)
             }
             .disabled(selectedInterests.isEmpty)
             .padding(.horizontal)
@@ -588,41 +614,45 @@ struct NewOnboardingView: View {
         let weightDouble = Double(petWeight)
         let allergiesArray = petAllergies.split(separator: ",").map { $0.trimmingCharacters(in: .whitespaces) }
         let healthConcernsArray = petHealthConditions.split(separator: ",").map { $0.trimmingCharacters(in: .whitespaces) }
+        let personalityArray = petPersonality.isEmpty ? nil : petPersonality.split(separator: ",").map { $0.trimmingCharacters(in: .whitespaces) }
+        
+        let localDog = Dog(
+            name: petName,
+            breed: petBreed,
+            age: ageDouble,
+            weight: weightDouble,
+            healthConcerns: healthConcernsArray,
+            allergies: allergiesArray,
+            personalityTraits: personalityArray,
+            sex: petGender
+        )
+        
+        appState.saveDogLocally(localDog)
+        
+        if let w = weightDouble {
+            WeightTrackingManager.shared.switchDog(localDog.id)
+            let entry = WeightEntry(weight: w, date: Date(), note: "Initial profile weight")
+            WeightTrackingManager.shared.addEntry(entry)
+        }
+        
+        isLoading = false
+        withAnimation(.spring(response: 0.5, dampingFraction: 0.7)) {
+            currentPage = 2
+        }
         
         Task {
             do {
-                let personalityArray = petPersonality.isEmpty ? nil : petPersonality.split(separator: ",").map { $0.trimmingCharacters(in: .whitespaces) }
-                let newDog = Dog(
+                try await APIService.shared.createDogProfile(
                     name: petName,
                     breed: petBreed,
-                    age: ageDouble,
-                    weight: weightDouble,
-                    healthConcerns: healthConcernsArray,
-                    allergies: allergiesArray,
-                    personalityTraits: personalityArray,
-                    sex: petGender
+                    ageYears: Int(ageDouble),
+                    weightLbs: weightDouble,
+                    sex: petGender,
+                    allergies: petAllergies.isEmpty ? nil : petAllergies,
+                    medicalHistory: petHealthConditions.isEmpty ? nil : petHealthConditions
                 )
-                let dog = try await APIService.shared.createDog(dog: newDog)
-                
-                await MainActor.run {
-                    appState.saveDogLocally(dog)
-                    
-                    if let newWeight = dog.weight {
-                        WeightTrackingManager.shared.switchDog(dog.id)
-                        let entry = WeightEntry(weight: newWeight, date: Date(), note: "Initial profile weight")
-                        WeightTrackingManager.shared.addEntry(entry)
-                    }
-                    
-                    isLoading = false
-                    withAnimation(.spring(response: 0.5, dampingFraction: 0.7)) {
-                        currentPage = 2
-                    }
-                }
             } catch {
-                await MainActor.run {
-                    errorMessage = "Failed to save pet: \(error.localizedDescription)"
-                    isLoading = false
-                }
+                print("[Onboarding] Background dog sync failed: \(error)")
             }
         }
     }
