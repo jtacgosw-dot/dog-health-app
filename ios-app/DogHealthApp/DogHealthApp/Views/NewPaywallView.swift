@@ -38,15 +38,17 @@ struct NewPaywallView: View {
             
             VStack(spacing: 0) {
                 HStack {
-                                        Button(action: { dismiss() }) {
-                                            Image(systemName: "chevron.left")
-                                                .font(.system(size: 16, weight: .medium))
-                                                .foregroundColor(.petlyDarkGreen)
-                                                .padding(12)
-                                                .background(Color.petlyLightGreen)
-                                                .clipShape(Circle())
-                                        }
-                                        .buttonStyle(.plain)
+                    Button(action: {
+                        appState.hasActiveSubscription = true
+                    }) {
+                        Image(systemName: "xmark")
+                            .font(.system(size: 14, weight: .medium))
+                            .foregroundColor(.petlyDarkGreen)
+                            .padding(12)
+                            .background(Color.petlyLightGreen)
+                            .clipShape(Circle())
+                    }
+                    .buttonStyle(.plain)
                     
                     Spacer()
                 }
