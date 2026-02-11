@@ -50,6 +50,7 @@ struct NewChatView: View {
     @EnvironmentObject var appState: AppState
     @Environment(\.modelContext) private var modelContext
     @Query(sort: \HealthLogEntry.timestamp, order: .reverse) private var allHealthLogs: [HealthLogEntry]
+    @Query(filter: #Predicate<CarePlan> { $0.isActive == true }) private var activeCarePlans: [CarePlan]
     @Binding var initialPrompt: String
     @State private var messageText = ""
     @State private var messages: [Message] = []
@@ -519,13 +520,15 @@ struct NewChatView: View {
                                                 let messageToSend = currentMessage.trimmingCharacters(in: .whitespacesAndNewlines)
                                                 let finalMessage = messageToSend.isEmpty ? "What do you see in this image?" : messageToSend
                 
+                                                let carePlanContext = buildCarePlanContext()
                                                 let response = try await APIService.shared.sendChatMessage(
                                                     message: finalMessage,
                                                     conversationId: validConversationId,
                                                     dogId: validDogId,
                                                     dogProfile: dogProfile,
                                                     healthLogs: healthLogs,
-                                                    images: currentImages.isEmpty ? nil : currentImages
+                                                    images: currentImages.isEmpty ? nil : currentImages,
+                                                    carePlanContext: carePlanContext
                                                 )
                 
                 await MainActor.run {
@@ -576,6 +579,34 @@ struct NewChatView: View {
             medicalHistory: dog.medicalHistory,
             currentMedications: dog.currentMedications
         )
+    }
+    
+    private func buildCarePlanContext() -> String? {
+        guard !activeCarePlans.isEmpty else { return nil }
+        
+        var context = ""
+        for plan in activeCarePlans {
+            let completedTasks = plan.tasks.filter { $0.isCompleted }.count
+            let totalTasks = plan.tasks.count
+            let daysRemaining = Calendar.current.dateComponents([.day], from: Date(), to: plan.endDate).day ?? 0
+            
+            context += "Plan: \(plan.title) (\(plan.goalType.rawValue))\n"
+            context += "Duration: \(daysRemaining) days remaining, started \(plan.startDate.formatted(date: .abbreviated, time: .omitted))\n"
+            context += "Progress: \(completedTasks)/\(totalTasks) tasks completed\n"
+            context += "Tasks:\n"
+            for task in plan.tasks {
+                let status = task.isCompleted ? "done" : "pending"
+                context += "- [\(status)] \(task.title)"
+                if let desc = task.taskDescription { context += " (\(desc))" }
+                context += "\n"
+            }
+            for milestone in plan.milestones {
+                let status = milestone.isAchieved ? "achieved" : "upcoming"
+                context += "- Milestone Day \(milestone.day): \(milestone.milestoneDescription) [\(status)]\n"
+            }
+            context += "\n"
+        }
+        return context
     }
     
     private func buildHealthLogs()-> [ChatHealthLog]? {
