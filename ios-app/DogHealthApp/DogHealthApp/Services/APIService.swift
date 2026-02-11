@@ -258,6 +258,19 @@ class APIService {
         return response.dog
     }
     
+    func createDogProfile(name: String, breed: String?, ageYears: Int?, ageMonths: Int? = nil, weightLbs: Double?, sex: String?, allergies: String?, medicalHistory: String?) async throws {
+        var body: [String: Any] = ["name": name]
+        if let breed = breed, !breed.isEmpty { body["breed"] = breed }
+        if let ageYears = ageYears { body["ageYears"] = ageYears }
+        if let ageMonths = ageMonths, ageMonths > 0 { body["ageMonths"] = ageMonths }
+        if let weightLbs = weightLbs { body["weightLbs"] = weightLbs }
+        if let sex = sex, !sex.isEmpty { body["sex"] = sex.lowercased() }
+        if let allergies = allergies, !allergies.isEmpty { body["allergies"] = allergies }
+        if let medicalHistory = medicalHistory, !medicalHistory.isEmpty { body["medicalHistory"] = medicalHistory }
+        let data = try JSONSerialization.data(withJSONObject: body)
+        let _: DeleteResponse = try await makeRequest(endpoint: "/dogs", method: "POST", body: data)
+    }
+    
     func updateDog(dog: Dog) async throws -> Dog {
         let data = try JSONEncoder().encode(dog)
         let response: DogResponse = try await makeRequest(endpoint: "/dogs/\(dog.id)", method: "PUT", body: data)
