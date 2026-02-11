@@ -7,6 +7,45 @@ class APIService {
     private var authToken: String?
     private var isRefreshingToken = false
     
+    private static let isoFracFormatter: ISO8601DateFormatter = {
+        let f = ISO8601DateFormatter()
+        f.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        return f
+    }()
+    
+    private static let isoStandardFormatter: ISO8601DateFormatter = {
+        let f = ISO8601DateFormatter()
+        f.formatOptions = [.withInternetDateTime]
+        return f
+    }()
+    
+    private static let noTZFracFormatter: DateFormatter = {
+        let f = DateFormatter()
+        f.locale = Locale(identifier: "en_US_POSIX")
+        f.timeZone = TimeZone(identifier: "UTC")
+        f.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSSSS"
+        return f
+    }()
+    
+    private static let noTZFormatter: DateFormatter = {
+        let f = DateFormatter()
+        f.locale = Locale(identifier: "en_US_POSIX")
+        f.timeZone = TimeZone(identifier: "UTC")
+        f.dateFormat = "yyyy-MM-dd'T'HH:mm:ss"
+        return f
+    }()
+    
+    static func parseServerDate(_ dateString: String) -> Date? {
+        if let d = isoFracFormatter.date(from: dateString) { return d }
+        if let d = isoStandardFormatter.date(from: dateString) { return d }
+        let withZ = dateString + "Z"
+        if let d = isoFracFormatter.date(from: withZ) { return d }
+        if let d = isoStandardFormatter.date(from: withZ) { return d }
+        if let d = noTZFracFormatter.date(from: dateString) { return d }
+        if let d = noTZFormatter.date(from: dateString) { return d }
+        return nil
+    }
+    
     private init() {}
     
     func setAuthToken(_ token: String) {
@@ -176,17 +215,8 @@ class APIService {
     func getConversationMessages(conversationId: String) async throws -> [Message] {
         let response: ConversationMessagesResponse = try await makeRequest(endpoint: "/chat/conversations/\(conversationId)/messages")
         
-        // Create formatter with fractional seconds support (matches server format)
-        let formatter = ISO8601DateFormatter()
-        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-        let standardFormatter = ISO8601DateFormatter()
-        standardFormatter.formatOptions = [.withInternetDateTime]
-        
         return response.messages.map { serverMsg in
-            // Try fractional seconds first, then fall back to standard
-            let timestamp = formatter.date(from: serverMsg.createdAt) 
-                ?? standardFormatter.date(from: serverMsg.createdAt) 
-                ?? Date()
+            let timestamp = APIService.parseServerDate(serverMsg.createdAt) ?? Date()
             
             return Message(
                 id: serverMsg.id,
@@ -514,15 +544,9 @@ struct ServerConversation: Codable {
     }
     
     func toConversation() -> Conversation {
-        let formatter = ISO8601DateFormatter()
-        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-        
-        let standardFormatter = ISO8601DateFormatter()
-        standardFormatter.formatOptions = [.withInternetDateTime]
-        
-        let createdDate = formatter.date(from: createdAt) ?? standardFormatter.date(from: createdAt) ?? Date()
-        let updatedDate = updatedAt.flatMap { formatter.date(from: $0) ?? standardFormatter.date(from: $0) }
-        let lastMsgDate = lastMessageCreatedAt.flatMap { formatter.date(from: $0) ?? standardFormatter.date(from: $0) }
+        let createdDate = APIService.parseServerDate(createdAt) ?? Date()
+        let updatedDate = updatedAt.flatMap { APIService.parseServerDate($0) }
+        let lastMsgDate = lastMessageCreatedAt.flatMap { APIService.parseServerDate($0) }
         
         return Conversation(
             id: id,

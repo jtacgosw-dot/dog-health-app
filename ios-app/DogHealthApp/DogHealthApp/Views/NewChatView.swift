@@ -546,7 +546,7 @@ struct NewChatView: View {
                         conversationId: response.conversationId,
                         role: .assistant,
                         content: response.message.content,
-                        timestamp: Date(),
+                        timestamp: APIService.parseServerDate(response.message.createdAt) ?? Date(),
                         feedback: nil
                     )
                     messages.append(assistantMessage)
