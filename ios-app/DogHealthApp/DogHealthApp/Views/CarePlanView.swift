@@ -535,33 +535,41 @@ struct CreateCarePlanView: View {
         errorMessage = nil
         
         Task {
-            do {
-                let prompt = buildPlanPrompt(goal: goal)
-                let dogProfile = buildDogProfile()
-                let healthLogs = buildHealthLogs()
-                
-                let response = try await APIService.shared.sendChatMessage(
-                    message: prompt,
-                    conversationId: nil,
-                    dogId: appState.currentDog?.id,
-                    dogProfile: dogProfile,
-                    healthLogs: healthLogs
-                )
-                
-                let plan = parsePlanResponse(response.message.content, goal: goal)
-                
-                await MainActor.run {
-                    generatedPlan = plan
-                    isGenerating = false
-                }
-            } catch {
-                print("[CarePlan] Generate failed: \(error)")
-                let fallbackPlan = parsePlanResponse("", goal: goal)
-                
-                await MainActor.run {
-                    generatedPlan = fallbackPlan
-                    errorMessage = "AI was unavailable (\(error.localizedDescription)) — created a default template you can customize."
-                    isGenerating = false
+            let prompt = buildPlanPrompt(goal: goal)
+            let dogProfile = buildDogProfile()
+            let healthLogs = buildHealthLogs()
+            
+            for attempt in 1...2 {
+                do {
+                    print("[CarePlan] Generate attempt \(attempt)")
+                    let response = try await APIService.shared.sendChatMessage(
+                        message: prompt,
+                        conversationId: nil,
+                        dogId: appState.currentDog?.id,
+                        dogProfile: dogProfile,
+                        healthLogs: healthLogs
+                    )
+                    
+                    let plan = parsePlanResponse(response.message.content, goal: goal)
+                    
+                    await MainActor.run {
+                        generatedPlan = plan
+                        isGenerating = false
+                    }
+                    return
+                } catch {
+                    print("[CarePlan] Generate attempt \(attempt) failed: \(error)")
+                    if attempt < 2 {
+                        try? await Task.sleep(nanoseconds: 2_000_000_000)
+                        continue
+                    }
+                    let fallbackPlan = parsePlanResponse("", goal: goal)
+                    
+                    await MainActor.run {
+                        generatedPlan = fallbackPlan
+                        errorMessage = "AI was unavailable (\(error.localizedDescription)) — created a default template you can customize."
+                        isGenerating = false
+                    }
                 }
             }
         }
