@@ -207,6 +207,12 @@ struct NewChatView: View {
                                                 },
                                                 onWeightUpdate: { newWeight in
                                                     handleWeightUpdate(newWeight: newWeight)
+                                                },
+                                                onCarePlanSuggestion: { goalType, duration, title in
+                                                    handleCarePlanSuggestion(goalType: goalType, duration: duration, title: title)
+                                                },
+                                                onCarePlanTaskDone: { taskTitle in
+                                                    handleCarePlanTaskDone(taskTitle: taskTitle)
                                                 }
                                             )
                                         }
@@ -992,8 +998,157 @@ struct NewChatView: View {
             return "Appointments"
         }
         
-        // Default to Notes if no match found
         return "Notes"
+    }
+    
+    private func handleCarePlanSuggestion(goalType: String, duration: Int, title: String) {
+        let generator = UIImpactFeedbackGenerator(style: .medium)
+        generator.impactOccurred()
+        
+        let dogId = appState.currentDog?.id ?? "default"
+        let goal = CarePlanGoalType(rawValue: goalType) ?? .custom
+        let endDate = Calendar.current.date(byAdding: .day, value: duration, to: Date()) ?? Date()
+        
+        let plan = CarePlan(
+            dogId: dogId,
+            title: title,
+            goalType: goal,
+            startDate: Date(),
+            endDate: endDate,
+            planDescription: "Created via AI chat"
+        )
+        
+        modelContext.insert(plan)
+        
+        do {
+            try modelContext.save()
+        } catch {
+            print("[CarePlan] Failed to save plan from chat: \(error)")
+        }
+        
+        Task {
+            let prompt = """
+            Generate 3-5 daily tasks and 2-3 milestones for this care plan:
+            Plan: \(title)
+            Goal: \(goalType)
+            Duration: \(duration) days
+            
+            Respond in this exact format:
+            TASKS:
+            - [Task title]|[Brief description]
+            MILESTONES:
+            - Day [X]: [Milestone description]
+            """
+            
+            let dogProfile = buildDogProfile()
+            let healthLogs = buildHealthLogs()
+            
+            do {
+                let response = try await APIService.shared.sendChatMessage(
+                    message: prompt,
+                    conversationId: nil,
+                    dogId: nil,
+                    dogProfile: dogProfile,
+                    healthLogs: healthLogs
+                )
+                
+                let lines = response.message.content.components(separatedBy: "\n")
+                var inTasks = false
+                var inMilestones = false
+                
+                await MainActor.run {
+                    for line in lines {
+                        let trimmed = line.trimmingCharacters(in: .whitespaces)
+                        
+                        if trimmed.uppercased().contains("TASKS:") {
+                            inTasks = true
+                            inMilestones = false
+                        } else if trimmed.uppercased().contains("MILESTONES:") {
+                            inTasks = false
+                            inMilestones = true
+                        } else if inTasks && trimmed.hasPrefix("-") {
+                            let taskContent = String(trimmed.dropFirst()).trimmingCharacters(in: .whitespaces)
+                            let parts = taskContent.components(separatedBy: "|")
+                            let taskTitle = parts[0].trimmingCharacters(in: .whitespaces)
+                            let taskDesc = parts.count > 1 ? parts[1].trimmingCharacters(in: .whitespaces) : nil
+                            if !taskTitle.isEmpty {
+                                let task = CarePlanTask(title: taskTitle, taskDescription: taskDesc, isDaily: true)
+                                plan.tasks.append(task)
+                            }
+                        } else if inMilestones && trimmed.hasPrefix("-") {
+                            let milestoneContent = String(trimmed.dropFirst()).trimmingCharacters(in: .whitespaces)
+                            if let dayMatch = milestoneContent.range(of: "Day \\d+", options: .regularExpression) {
+                                let dayStr = String(milestoneContent[dayMatch]).replacingOccurrences(of: "Day ", with: "")
+                                if let day = Int(dayStr) {
+                                    let desc = milestoneContent.replacingOccurrences(of: "Day \\d+:?\\s*", with: "", options: .regularExpression)
+                                    if let milestoneDate = Calendar.current.date(byAdding: .day, value: day, to: Date()) {
+                                        let milestone = CarePlanMilestone(day: day, milestoneDescription: desc, targetDate: milestoneDate)
+                                        plan.milestones.append(milestone)
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    
+                    if plan.tasks.isEmpty {
+                        plan.tasks.append(CarePlanTask(title: "Morning check-in", taskDescription: "Observe energy and appetite", isDaily: true))
+                        plan.tasks.append(CarePlanTask(title: "Activity session", taskDescription: "30 minutes of exercise", isDaily: true))
+                        plan.tasks.append(CarePlanTask(title: "Evening log", taskDescription: "Record any changes or concerns", isDaily: true))
+                    }
+                    
+                    if plan.milestones.isEmpty {
+                        if let midDate = Calendar.current.date(byAdding: .day, value: duration / 2, to: Date()) {
+                            plan.milestones.append(CarePlanMilestone(day: duration / 2, milestoneDescription: "Mid-plan check-in", targetDate: midDate))
+                        }
+                        if let endMilestoneDate = Calendar.current.date(byAdding: .day, value: duration, to: Date()) {
+                            plan.milestones.append(CarePlanMilestone(day: duration, milestoneDescription: "Plan completion review", targetDate: endMilestoneDate))
+                        }
+                    }
+                    
+                    try? modelContext.save()
+                }
+            } catch {
+                await MainActor.run {
+                    plan.tasks.append(CarePlanTask(title: "Morning check-in", taskDescription: "Observe energy and appetite", isDaily: true))
+                    plan.tasks.append(CarePlanTask(title: "Activity session", taskDescription: "30 minutes of exercise", isDaily: true))
+                    plan.tasks.append(CarePlanTask(title: "Evening log", taskDescription: "Record any changes or concerns", isDaily: true))
+                    if let midDate = Calendar.current.date(byAdding: .day, value: duration / 2, to: Date()) {
+                        plan.milestones.append(CarePlanMilestone(day: duration / 2, milestoneDescription: "Mid-plan check-in", targetDate: midDate))
+                    }
+                    try? modelContext.save()
+                }
+            }
+        }
+    }
+    
+    private func handleCarePlanTaskDone(taskTitle: String) {
+        let generator = UIImpactFeedbackGenerator(style: .medium)
+        generator.impactOccurred()
+        
+        for plan in activeCarePlans {
+            for task in plan.tasks {
+                if task.title == taskTitle && !task.isCompleted {
+                    task.isCompleted = true
+                    task.completedDate = Date()
+                    
+                    let dogId = appState.currentDog?.id ?? "default"
+                    let logEntry = HealthLogEntry(
+                        dogId: dogId,
+                        logType: "Notes",
+                        timestamp: Date(),
+                        notes: "Care plan task completed: \(taskTitle) (from \(plan.title))"
+                    )
+                    modelContext.insert(logEntry)
+                    
+                    do {
+                        try modelContext.save()
+                    } catch {
+                        print("[CarePlan] Failed to save task completion: \(error)")
+                    }
+                    return
+                }
+            }
+        }
     }
     
 }
@@ -1113,6 +1268,8 @@ struct NewMessageBubble: View {
     var onLogSuggestion: ((String, String) -> Void)?
     var onReminderSuggestion: ((String, String) -> Void)?
     var onWeightUpdate: ((Double) -> Void)?
+    var onCarePlanSuggestion: ((String, Int, String) -> Void)?
+    var onCarePlanTaskDone: ((String) -> Void)?
     @State private var appeared = false
     @State private var showCopiedFeedback = false
     @State private var showFeedbackThanks = false
@@ -1120,6 +1277,8 @@ struct NewMessageBubble: View {
     @State private var dismissedLogSuggestionIndices: Set<Int> = []
     @State private var reminderCreated = false
     @State private var weightUpdated = false
+    @State private var carePlanCreated = false
+    @State private var carePlanTaskMarked = false
     
     private var dismissedSuggestionsKey: String {
         "dismissedLogSuggestions_\(message.id)"
@@ -1140,6 +1299,8 @@ struct NewMessageBubble: View {
         content = content.replacingOccurrences(of: #"\[LOG_SUGGESTION:[^\]]+\]"#, with: "", options: .regularExpression)
         content = content.replacingOccurrences(of: #"\[REMINDER:[^\]]+\]"#, with: "", options: .regularExpression)
         content = content.replacingOccurrences(of: #"\[WEIGHT_UPDATE:[^\]]+\]"#, with: "", options: .regularExpression)
+        content = content.replacingOccurrences(of: #"\[CARE_PLAN_SUGGEST:[^\]]+\]"#, with: "", options: .regularExpression)
+        content = content.replacingOccurrences(of: #"\[CARE_PLAN_TASK_DONE:[^\]]+\]"#, with: "", options: .regularExpression)
         return content.trimmingCharacters(in: .whitespacesAndNewlines)
     }
     
@@ -1173,8 +1334,28 @@ struct NewMessageBubble: View {
     private var weightUpdateSuggestion: Double? {
         guard let match = message.content.range(of: #"\[WEIGHT_UPDATE:([^\]]+)\]"#, options: .regularExpression) else { return nil }
         let matchStr = String(message.content[match])
-        let valueStr = matchStr.dropFirst(15).dropLast(1) // Remove "[WEIGHT_UPDATE:" and "]"
+        let valueStr = matchStr.dropFirst(15).dropLast(1)
         return Double(valueStr)
+    }
+    
+    private var carePlanSuggestion: (goalType: String, duration: Int, title: String)? {
+        let pattern = #"\[CARE_PLAN_SUGGEST:([^:]+):(\d+):([^\]]+)\]"#
+        guard let regex = try? NSRegularExpression(pattern: pattern, options: []) else { return nil }
+        let nsString = message.content as NSString
+        guard let match = regex.firstMatch(in: message.content, options: [], range: NSRange(location: 0, length: nsString.length)),
+              match.numberOfRanges == 4 else { return nil }
+        let goalType = nsString.substring(with: match.range(at: 1))
+        let durationStr = nsString.substring(with: match.range(at: 2))
+        let title = nsString.substring(with: match.range(at: 3))
+        guard let duration = Int(durationStr) else { return nil }
+        return (goalType: goalType, duration: duration, title: title)
+    }
+    
+    private var carePlanTaskDoneSuggestion: String? {
+        let pattern = #"\[CARE_PLAN_TASK_DONE:([^\]]+)\]"#
+        guard let match = message.content.range(of: pattern, options: .regularExpression) else { return nil }
+        let matchStr = String(message.content[match])
+        return String(matchStr.dropFirst(21).dropLast(1))
     }
     
     var body: some View {
@@ -1377,6 +1558,34 @@ struct NewMessageBubble: View {
                     },
                     onDismiss: {
                         withAnimation { weightUpdated = true }
+                    }
+                )
+            }
+            
+            if !isUser, let planSuggestion = carePlanSuggestion, !carePlanCreated {
+                CarePlanSuggestionCard(
+                    goalType: planSuggestion.goalType,
+                    duration: planSuggestion.duration,
+                    title: planSuggestion.title,
+                    onCreate: {
+                        onCarePlanSuggestion?(planSuggestion.goalType, planSuggestion.duration, planSuggestion.title)
+                        withAnimation { carePlanCreated = true }
+                    },
+                    onDismiss: {
+                        withAnimation { carePlanCreated = true }
+                    }
+                )
+            }
+            
+            if !isUser, let taskTitle = carePlanTaskDoneSuggestion, !carePlanTaskMarked {
+                CarePlanTaskDoneCard(
+                    taskTitle: taskTitle,
+                    onMarkDone: {
+                        onCarePlanTaskDone?(taskTitle)
+                        withAnimation { carePlanTaskMarked = true }
+                    },
+                    onDismiss: {
+                        withAnimation { carePlanTaskMarked = true }
                     }
                 )
             }
@@ -1787,6 +1996,138 @@ struct WeightUpdateCard: View {
             }
         }
         .padding(12)
+        .background(Color.white)
+        .cornerRadius(12)
+        .shadow(color: .black.opacity(0.06), radius: 4, x: 0, y: 2)
+    }
+}
+
+struct CarePlanSuggestionCard: View {
+    let goalType: String
+    let duration: Int
+    let title: String
+    let onCreate: () -> Void
+    let onDismiss: () -> Void
+    
+    @ScaledMetric(relativeTo: .body) private var iconSize: CGFloat = 16
+    @ScaledMetric(relativeTo: .body) private var iconFrameSize: CGFloat = 30
+    @ScaledMetric(relativeTo: .body) private var dismissIconSize: CGFloat = 12
+    private var cappedIconSize: CGFloat { min(iconSize, 22) }
+    private var cappedIconFrameSize: CGFloat { min(iconFrameSize, 38) }
+    
+    private var goalIcon: String {
+        let type = CarePlanGoalType(rawValue: goalType)
+        return type?.icon ?? "list.clipboard.fill"
+    }
+    
+    private var goalColor: Color {
+        let type = CarePlanGoalType(rawValue: goalType)
+        return type?.color ?? .blue
+    }
+    
+    var body: some View {
+        HStack(spacing: 8) {
+            Image(systemName: goalIcon)
+                .font(.system(size: cappedIconSize))
+                .foregroundColor(goalColor)
+                .frame(width: cappedIconFrameSize, height: cappedIconFrameSize)
+                .background(goalColor.opacity(0.15))
+                .clipShape(Circle())
+            
+            VStack(alignment: .leading, spacing: 2) {
+                Text("Create care plan?")
+                    .font(.petlyBodyMedium(12))
+                    .foregroundColor(.petlyDarkGreen)
+                    .minimumScaleFactor(0.4)
+                    .lineLimit(2)
+                Text("\(title) (\(duration) days)")
+                    .font(.petlyBody(11))
+                    .foregroundColor(.petlyFormIcon)
+                    .lineLimit(2)
+                    .minimumScaleFactor(0.4)
+            }
+            .layoutPriority(1)
+            
+            Spacer(minLength: 2)
+            
+            Button(action: onCreate) {
+                Text("Create")
+                    .font(.petlyBodyMedium(11))
+                    .foregroundColor(.white)
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 5)
+                    .background(goalColor)
+                    .cornerRadius(14)
+            }
+            .fixedSize()
+            
+            Button(action: onDismiss) {
+                Image(systemName: "xmark")
+                    .font(.system(size: min(dismissIconSize, 14), weight: .medium))
+                    .foregroundColor(.petlyFormIcon)
+            }
+        }
+        .padding(8)
+        .background(Color.white)
+        .cornerRadius(12)
+        .shadow(color: .black.opacity(0.06), radius: 4, x: 0, y: 2)
+    }
+}
+
+struct CarePlanTaskDoneCard: View {
+    let taskTitle: String
+    let onMarkDone: () -> Void
+    let onDismiss: () -> Void
+    
+    @ScaledMetric(relativeTo: .body) private var iconSize: CGFloat = 16
+    @ScaledMetric(relativeTo: .body) private var iconFrameSize: CGFloat = 30
+    @ScaledMetric(relativeTo: .body) private var dismissIconSize: CGFloat = 12
+    private var cappedIconSize: CGFloat { min(iconSize, 22) }
+    private var cappedIconFrameSize: CGFloat { min(iconFrameSize, 38) }
+    
+    var body: some View {
+        HStack(spacing: 8) {
+            Image(systemName: "checkmark.circle.fill")
+                .font(.system(size: cappedIconSize))
+                .foregroundColor(.petlyDarkGreen)
+                .frame(width: cappedIconFrameSize, height: cappedIconFrameSize)
+                .background(Color.petlyLightGreen)
+                .clipShape(Circle())
+            
+            VStack(alignment: .leading, spacing: 2) {
+                Text("Mark task done?")
+                    .font(.petlyBodyMedium(12))
+                    .foregroundColor(.petlyDarkGreen)
+                    .minimumScaleFactor(0.4)
+                    .lineLimit(2)
+                Text(taskTitle)
+                    .font(.petlyBody(11))
+                    .foregroundColor(.petlyFormIcon)
+                    .lineLimit(2)
+                    .minimumScaleFactor(0.4)
+            }
+            .layoutPriority(1)
+            
+            Spacer(minLength: 2)
+            
+            Button(action: onMarkDone) {
+                Text("Done")
+                    .font(.petlyBodyMedium(11))
+                    .foregroundColor(.white)
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 5)
+                    .background(Color.petlyDarkGreen)
+                    .cornerRadius(14)
+            }
+            .fixedSize()
+            
+            Button(action: onDismiss) {
+                Image(systemName: "xmark")
+                    .font(.system(size: min(dismissIconSize, 14), weight: .medium))
+                    .foregroundColor(.petlyFormIcon)
+            }
+        }
+        .padding(8)
         .background(Color.white)
         .cornerRadius(12)
         .shadow(color: .black.opacity(0.06), radius: 4, x: 0, y: 2)

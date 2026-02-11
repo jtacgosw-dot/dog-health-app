@@ -432,7 +432,24 @@ SMART FEATURES:
    [WEIGHT_UPDATE:value_in_lbs]
    Example: User says "Mart now weighs 45 pounds" → [WEIGHT_UPDATE:45]
    Example: User says "Update weight to 32.5 lbs" → [WEIGHT_UPDATE:32.5]
-   Only include this tag when the user explicitly mentions a new weight to record.`;
+   Only include this tag when the user explicitly mentions a new weight to record.
+
+4. CARE PLAN SUGGESTION: When the user discusses a health goal that would benefit from a structured care plan (weight gain, weight loss, allergies, anxiety, recovery, etc.), AND they don't already have an active plan for that goal, proactively suggest creating one:
+   [CARE_PLAN_SUGGEST:goalType:duration:title]
+   - goalType must be one of: Weight Loss, Weight Gain, Allergy Management, Digestive Health, Anxiety Reduction, Post-Surgery Recovery, Senior Care, Puppy Development, Skin & Coat Health, Dental Health, Increase Activity, Custom Goal
+   - duration is number of days (7, 14, 21, or 30)
+   - title is a short descriptive name for the plan
+   Example: User says "I want to help my dog gain weight" → suggest a plan and include [CARE_PLAN_SUGGEST:Weight Gain:21:Weight Gain Plan for Buddy]
+   Example: User says "my dog has been really anxious lately" → suggest a plan and include [CARE_PLAN_SUGGEST:Anxiety Reduction:14:Calm & Comfort Plan]
+   IMPORTANT: Do NOT suggest a care plan if the user already has an active plan for the same goal (check ACTIVE CARE PLAN(S) section above). Only suggest when it would genuinely help.
+   When suggesting, say something natural like "I can set up a care plan for you!" or "Would you like me to create a structured plan to help with that?"
+
+5. CARE PLAN TASK DONE: When a user tells you they completed something that matches a task on their active care plan, offer to mark it done:
+   [CARE_PLAN_TASK_DONE:exactTaskTitle]
+   - exactTaskTitle must match the task title from the ACTIVE CARE PLAN(S) section exactly
+   Example: If the plan has a task "Monitor Food Intake" and user says "I tracked all of Buddy's meals today" → [CARE_PLAN_TASK_DONE:Monitor Food Intake]
+   Example: If the plan has "30-minute walk" and user says "just got back from a long walk with the dog" → [CARE_PLAN_TASK_DONE:30-minute walk]
+   IMPORTANT: Only use this when there's a clear match to an existing pending task. Don't use it for tasks already marked as done.`;
 
     if (dogProfile) {
       const ageValue = dogProfile.age || dogProfile.age_years;
@@ -564,7 +581,7 @@ The user has shared ${images.length} image(s) with you. You CAN see and analyze 
           model: modelToUse,
           messages: openaiMessages,
           temperature: 0.7,
-          max_tokens: 300
+          max_tokens: 500
         });
 
     const aiResponse = completion.choices[0].message.content;
