@@ -109,21 +109,25 @@ class AppState: ObservableObject {
         }
         
         #if DEBUG
-        // For testing: bypass sign-in and create a test dog/user if needed
         if !isSignedIn {
-            setupDebugUserAndDog()
-            print("[AppState] init: Set up debug user and dog, currentDog: \(currentDog?.id ?? "nil")")
+            let hasLocalDogs = UserDefaults.standard.data(forKey: localDogsKey) != nil
+            if hasLocalDogs {
+                setupDebugUserAndDog()
+                print("[AppState] init: Returning user, set up debug user and dog, currentDog: \(currentDog?.id ?? "nil")")
+            } else {
+                hasActiveSubscription = true
+                print("[AppState] init: Fresh install, showing onboarding")
+            }
         }
         
         Task {
             await APIService.shared.ensureDevAuthenticated()
             await MainActor.run {
                 if APIService.shared.getAuthToken() != nil {
-                    self.isSignedIn = true
-                    self.hasCompletedOnboarding = true
-                    // Load local dogs for dev mode too
+                    if self.hasCompletedOnboarding {
+                        self.isSignedIn = true
+                    }
                     self.loadLocalDogs()
-                    // Load pet photo after dogs are loaded
                     self.loadPetPhoto()
                     print("[AppState] init Task: Loaded after dev auth, currentDog: \(self.currentDog?.id ?? "nil")")
                 }
