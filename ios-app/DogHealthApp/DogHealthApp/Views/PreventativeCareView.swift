@@ -275,12 +275,16 @@ struct PreventativeCareView: View {
             return
         }
         
+        let currentDogId = dogId
+        if !currentDogId.isEmpty {
+            WeightTrackingManager.shared.switchDog(currentDogId)
+        }
         let entry = WeightEntry(weight: weight, date: Date(), note: "Logged from: \(reminder.title)")
         WeightTrackingManager.shared.addEntry(entry)
         
         if var dog = appState.currentDog {
             dog.weight = weight
-            appState.currentDog = dog
+            appState.saveDogLocally(dog)
         }
         
         performLog(reminder, weightValue: weight)

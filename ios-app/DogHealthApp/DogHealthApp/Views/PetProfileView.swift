@@ -265,10 +265,17 @@ struct PetProfileView: View {
                     dog = try await APIService.shared.createDog(dog: newDog)
                 }
                 
+                let previousWeight = await MainActor.run { appState.currentDog?.weight }
+                
                 await MainActor.run {
-                    // Save dog locally so it persists across app restarts
-                    // This ensures pet photos can be loaded with the correct dog ID
                     appState.saveDogLocally(dog)
+                    
+                    if let newWeight = dog.weight, previousWeight != newWeight {
+                        WeightTrackingManager.shared.switchDog(dog.id)
+                        let entry = WeightEntry(weight: newWeight, date: Date(), note: "Updated from profile")
+                        WeightTrackingManager.shared.addEntry(entry)
+                    }
+                    
                     isLoading = false
                     withAnimation {
                         showSuccess = true
