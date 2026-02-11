@@ -157,7 +157,7 @@ struct PreventativeCareView: View {
             
             ForEach(dueReminders, id: \.id) { reminder in
                 PreventativeCareReminderCard(reminder: reminder, isDue: true) {
-                    markReminderComplete(reminder)
+                    logAndCompleteReminder(reminder)
                 }
             }
         }
@@ -181,7 +181,7 @@ struct PreventativeCareView: View {
             } else {
                 ForEach(upcomingReminders.prefix(5), id: \.id) { reminder in
                     PreventativeCareReminderCard(reminder: reminder, isDue: false) {
-                        markReminderComplete(reminder)
+                        logAndCompleteReminder(reminder)
                     }
                 }
             }
@@ -233,12 +233,35 @@ struct PreventativeCareView: View {
         }
     }
     
-    private func markReminderComplete(_ reminder: PetReminder) {
+    private func logAndCompleteReminder(_ reminder: PetReminder) {
         let generator = UIImpactFeedbackGenerator(style: .medium)
         generator.impactOccurred()
+        
+        let currentDogId = dogId
+        let logType = healthLogType(for: reminder.type)
+        let logEntry = HealthLogEntry(
+            dogId: currentDogId,
+            logType: logType,
+            timestamp: Date(),
+            notes: reminder.title,
+            supplementName: [.medication, .fleaTick, .heartworm].contains(reminder.type) ? reminder.title : nil,
+            appointmentType: [.vaccination, .vetAppointment].contains(reminder.type) ? reminder.title : nil,
+            groomingType: reminder.type == .grooming ? reminder.title : nil
+        )
+        modelContext.insert(logEntry)
+        
         withAnimation(.easeInOut(duration: 0.3)) {
             reminder.markCompleted()
             try? modelContext.save()
+        }
+    }
+    
+    private func healthLogType(for type: ReminderType) -> String {
+        switch type {
+        case .vaccination, .vetAppointment: return "Upcoming Appointments"
+        case .medication, .fleaTick, .heartworm: return "Supplements"
+        case .grooming: return "Grooming"
+        case .other: return "Notes"
         }
     }
 }
@@ -247,6 +270,7 @@ struct PreventativeCareReminderCard: View {
     let reminder: PetReminder
     let isDue: Bool
     let onComplete: () -> Void
+    @State private var isLogged = false
     
     private var daysText: String {
         let days = reminder.daysUntilDue
@@ -304,16 +328,18 @@ struct PreventativeCareReminderCard: View {
             
             Button {
                 onComplete()
+                withAnimation { isLogged = true }
             } label: {
-                Text("Done")
+                Text(isLogged ? "Logged" : "Log")
                     .font(.caption)
                     .fontWeight(.medium)
                     .foregroundColor(.white)
                     .padding(.horizontal, 12)
                     .padding(.vertical, 6)
-                    .background(Color.petlyDarkGreen)
+                    .background(isLogged ? Color.green : Color.petlyDarkGreen)
                     .cornerRadius(8)
             }
+            .disabled(isLogged)
         }
         .padding()
         .background(Color.white)
