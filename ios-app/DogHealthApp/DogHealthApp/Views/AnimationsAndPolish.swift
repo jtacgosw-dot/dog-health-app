@@ -1388,6 +1388,18 @@ struct TooltipView: View {
     let onDismiss: () -> Void
     
     @State private var isVisible = false
+    @State private var dragOffset: CGFloat = 0
+    
+    private func dismissTooltip() {
+        HapticFeedback.light()
+        withAnimation(.easeOut(duration: 0.2)) {
+            isVisible = false
+            dragOffset = -200
+        }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+            onDismiss()
+        }
+    }
     
     var body: some View {
         HStack(spacing: 12) {
@@ -1402,15 +1414,7 @@ struct TooltipView: View {
             
             Spacer()
             
-            Button(action: {
-                HapticFeedback.light()
-                withAnimation(.easeOut(duration: 0.2)) {
-                    isVisible = false
-                }
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-                    onDismiss()
-                }
-            }) {
+            Button(action: dismissTooltip) {
                 Image(systemName: "xmark.circle.fill")
                     .font(.system(size: 20))
                     .foregroundColor(.white.opacity(0.7))
@@ -1422,8 +1426,26 @@ struct TooltipView: View {
                 .fill(Color.petlyDarkGreen)
                 .shadow(color: .black.opacity(0.2), radius: 8, x: 0, y: 4)
         )
+        .offset(y: dragOffset)
         .scaleEffect(isVisible ? 1 : 0.8)
         .opacity(isVisible ? 1 : 0)
+        .gesture(
+            DragGesture()
+                .onChanged { value in
+                    if value.translation.height < 0 {
+                        dragOffset = value.translation.height
+                    }
+                }
+                .onEnded { value in
+                    if value.translation.height < -50 {
+                        dismissTooltip()
+                    } else {
+                        withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                            dragOffset = 0
+                        }
+                    }
+                }
+        )
         .onAppear {
             withAnimation(.spring(response: 0.4, dampingFraction: 0.7)) {
                 isVisible = true
