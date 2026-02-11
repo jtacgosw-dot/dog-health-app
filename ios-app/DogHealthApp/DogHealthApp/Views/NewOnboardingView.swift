@@ -118,7 +118,7 @@ struct NewOnboardingView: View {
                         .font(.petlyBody(14))
                         .foregroundColor(.petlyFormIcon)
                     
-                    VStack(spacing: 12) {
+                    VStack(spacing: 14) {
                         HStack(spacing: 12) {
                             Image(systemName: "envelope")
                                 .foregroundColor(.petlyFormIcon)
@@ -131,9 +131,10 @@ struct NewOnboardingView: View {
                         .padding()
                         .background(Color.petlyLightGreen)
                         .cornerRadius(12)
+                        .shadow(color: Color.petlyDarkGreen.opacity(0.06), radius: 4, x: 0, y: 2)
                         
                         HStack(spacing: 12) {
-                            Image(systemName: "pawprint.fill")
+                            Image(systemName: "person.fill")
                                 .foregroundColor(.petlyFormIcon)
                                 .frame(width: 24)
                             TextField("Owner's Name", text: $ownerName)
@@ -142,6 +143,7 @@ struct NewOnboardingView: View {
                         .padding()
                         .background(Color.petlyLightGreen)
                         .cornerRadius(12)
+                        .shadow(color: Color.petlyDarkGreen.opacity(0.06), radius: 4, x: 0, y: 2)
                         
                         HStack(spacing: 12) {
                             Image(systemName: "lock.fill")
@@ -158,6 +160,7 @@ struct NewOnboardingView: View {
                         .padding()
                         .background(Color.petlyLightGreen)
                         .cornerRadius(12)
+                        .shadow(color: Color.petlyDarkGreen.opacity(0.06), radius: 4, x: 0, y: 2)
                         
                         HStack(spacing: 12) {
                             Image(systemName: "lock.fill")
@@ -174,6 +177,7 @@ struct NewOnboardingView: View {
                         .padding()
                         .background(Color.petlyLightGreen)
                         .cornerRadius(12)
+                        .shadow(color: Color.petlyDarkGreen.opacity(0.06), radius: 4, x: 0, y: 2)
                     }
                     .padding(.horizontal)
                     
@@ -195,6 +199,7 @@ struct NewOnboardingView: View {
                             .padding()
                             .background(Color.petlyDarkGreen)
                             .cornerRadius(12)
+                            .shadow(color: Color.petlyDarkGreen.opacity(0.3), radius: 8, x: 0, y: 4)
                     }
                     .padding(.horizontal)
                     
@@ -364,6 +369,7 @@ struct NewOnboardingView: View {
                             .padding()
                             .background(Color.petlyDarkGreen)
                             .cornerRadius(12)
+                            .shadow(color: Color.petlyDarkGreen.opacity(0.3), radius: 8, x: 0, y: 4)
                     }
                     .padding(.horizontal)
                     
@@ -457,6 +463,7 @@ struct NewOnboardingView: View {
                     .padding()
                     .background(selectedInterests.isEmpty ? Color.petlyFormIcon : Color.petlyDarkGreen)
                     .cornerRadius(12)
+                    .shadow(color: (selectedInterests.isEmpty ? Color.petlyFormIcon : Color.petlyDarkGreen).opacity(0.3), radius: 8, x: 0, y: 4)
             }
             .disabled(selectedInterests.isEmpty)
             .padding(.horizontal)
@@ -471,7 +478,7 @@ struct NewOnboardingView: View {
     
     var pageIndicator: some View {
         HStack(spacing: 8) {
-            ForEach(0..<3) { index in
+            ForEach(0..<4) { index in
                 Circle()
                     .fill(index == currentPage ? Color.petlyDarkGreen : Color.petlyFormIcon.opacity(0.3))
                     .frame(width: 8, height: 8)

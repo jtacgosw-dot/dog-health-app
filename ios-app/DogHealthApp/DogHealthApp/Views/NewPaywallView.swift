@@ -57,36 +57,50 @@ struct NewPaywallView: View {
                 
                 ScrollView {
                     VStack(spacing: 24) {
-                        Text("PETLY PREMIUM")
-                            .font(.petlyTitle(28))
-                            .foregroundColor(.petlyDarkGreen)
+                        ZStack {
+                            Circle()
+                                .fill(Color.petlyLightGreen)
+                                .frame(width: 120, height: 120)
+                            
+                            Circle()
+                                .fill(Color.petlyDarkGreen)
+                                .frame(width: 96, height: 96)
+                            
+                            Image(systemName: "crown.fill")
+                                .font(.system(size: 44))
+                                .foregroundColor(.white)
+                        }
+                        .padding(.top, 10)
                         
-                        HStack(spacing: 4) {
-                            Text("Try us")
-                                .font(.petlyTitle(32))
+                        VStack(spacing: 4) {
+                            Text("Unlock Premium")
+                                .font(.petlyTitle(28))
                                 .foregroundColor(.petlyDarkGreen)
-                            Text("free")
-                                .font(.petlyTitle(32))
-                                .foregroundColor(.petlyDarkGreen)
-                                .underline()
-                            Text("for 1 week.")
-                                .font(.petlyTitle(32))
+                            Text("for your pet.")
+                                .font(.petlyTitle(28))
                                 .foregroundColor(.petlyDarkGreen)
                         }
-                        .multilineTextAlignment(.center)
-                        .padding(.horizontal)
+                        
+                        Text("Try free for 7 days, cancel anytime")
+                            .font(.petlyBody(14))
+                            .foregroundColor(.petlyFormIcon)
                         
                         VStack(spacing: 12) {
                             ForEach(features, id: \.1) { icon, title in
                                 HStack(spacing: 12) {
-                                    Circle()
-                                        .fill(Color.petlyDarkGreen)
-                                        .frame(width: 40, height: 40)
-                                        .overlay(
-                                            Image(systemName: icon)
-                                                .font(.system(size: 18))
-                                                .foregroundColor(.white)
-                                        )
+                                    ZStack {
+                                        Circle()
+                                            .fill(Color.petlyLightGreen)
+                                            .frame(width: 44, height: 44)
+                                        
+                                        Circle()
+                                            .fill(Color.petlyDarkGreen)
+                                            .frame(width: 36, height: 36)
+                                        
+                                        Image(systemName: icon)
+                                            .font(.system(size: 16))
+                                            .foregroundColor(.white)
+                                    }
                                     
                                     Text(title)
                                         .font(.petlyBody(16))
@@ -97,7 +111,7 @@ struct NewPaywallView: View {
                             }
                         }
                         .padding(.horizontal, 40)
-                        .padding(.vertical, 20)
+                        .padding(.vertical, 16)
                         
                         HStack(spacing: 12) {
                             PlanCard(
@@ -141,7 +155,8 @@ struct NewPaywallView: View {
                                 .frame(maxWidth: .infinity)
                                 .padding()
                                 .background(Color.petlyDarkGreen)
-                                .cornerRadius(25)
+                                .cornerRadius(12)
+                                .shadow(color: Color.petlyDarkGreen.opacity(0.3), radius: 8, x: 0, y: 4)
                         }
                         .padding(.horizontal)
                         .padding(.top, 10)
@@ -176,7 +191,7 @@ struct NewPaywallView: View {
                         HStack(spacing: 8) {
                             ForEach(0..<4) { index in
                                 Circle()
-                                    .fill(index == 2 ? Color.petlyDarkGreen : Color.petlyFormIcon.opacity(0.3))
+                                    .fill(index == 3 ? Color.petlyDarkGreen : Color.petlyFormIcon.opacity(0.3))
                                     .frame(width: 8, height: 8)
                             }
                         }
