@@ -5,6 +5,7 @@ class APIService {
     
     private let baseURL = APIConfig.baseURL
     private var authToken: String?
+    private var isRefreshingToken = false
     
     private init() {}
     
@@ -25,11 +26,39 @@ class APIService {
         UserDefaults.standard.removeObject(forKey: "authToken")
     }
     
+    func setIsGuest(_ isGuest: Bool) {
+        UserDefaults.standard.set(isGuest, forKey: "isGuestUser")
+    }
+    
+    func getIsGuest() -> Bool {
+        return UserDefaults.standard.bool(forKey: "isGuestUser")
+    }
+    
+    private func refreshTokenIfGuest() async -> Bool {
+        guard !isRefreshingToken else { return false }
+        guard getIsGuest() else { return false }
+        
+        isRefreshingToken = true
+        defer { isRefreshingToken = false }
+        
+        do {
+            let deviceId = UserDefaults.standard.string(forKey: "guestDeviceId") ?? UUID().uuidString
+            let response = try await guestSignIn(deviceId: deviceId)
+            setAuthToken(response.token)
+            print("[APIService] Token refreshed successfully for guest user")
+            return true
+        } catch {
+            print("[APIService] Token refresh failed: \(error)")
+            return false
+        }
+    }
+    
     private func makeRequest<T: Decodable>(
         endpoint: String,
         method: String = "GET",
         body: Data? = nil,
-        requiresAuth: Bool = true
+        requiresAuth: Bool = true,
+        isRetry: Bool = false
     ) async throws -> T {
         guard let url = URL(string: baseURL + endpoint) else {
             throw APIError.invalidURL
@@ -54,9 +83,14 @@ class APIService {
         }
         
                 guard (200...299).contains(httpResponse.statusCode) else {
-                    // Log the error response body for debugging
                     if let errorBody = String(data: data, encoding: .utf8) {
                         print("[APIService] HTTP \(httpResponse.statusCode) error: \(errorBody)")
+                    }
+                    if httpResponse.statusCode == 401 && requiresAuth && !isRetry {
+                        let refreshed = await refreshTokenIfGuest()
+                        if refreshed {
+                            return try await makeRequest(endpoint: endpoint, method: method, body: body, requiresAuth: requiresAuth, isRetry: true)
+                        }
                     }
                     throw APIError.httpError(statusCode: httpResponse.statusCode)
                 }

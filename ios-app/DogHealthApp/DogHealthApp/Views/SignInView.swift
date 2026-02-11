@@ -94,9 +94,11 @@ struct SignInView: View {
         Task {
             do {
                 let deviceId = UIDevice.current.identifierForVendor?.uuidString ?? UUID().uuidString
+                UserDefaults.standard.set(deviceId, forKey: "guestDeviceId")
                 let response = try await APIService.shared.guestSignIn(deviceId: deviceId)
                 
                 APIService.shared.setAuthToken(response.token)
+                APIService.shared.setIsGuest(true)
                 
                 await MainActor.run {
                     let statusString = response.user.subscriptionStatus ?? "free"
@@ -152,6 +154,7 @@ struct SignInView: View {
                         )
                         
                         APIService.shared.setAuthToken(response.token)
+                        APIService.shared.setIsGuest(false)
                         
                         await MainActor.run {
                             appState.currentUser = response.user
