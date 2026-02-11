@@ -37,12 +37,15 @@ class APIService {
     private func refreshTokenIfGuest() async -> Bool {
         guard !isRefreshingToken else { return false }
         guard getIsGuest() else { return false }
+        guard let deviceId = UserDefaults.standard.string(forKey: "guestDeviceId") else {
+            print("[APIService] No stored deviceId, cannot refresh guest token")
+            return false
+        }
         
         isRefreshingToken = true
         defer { isRefreshingToken = false }
         
         do {
-            let deviceId = UserDefaults.standard.string(forKey: "guestDeviceId") ?? UUID().uuidString
             let response = try await guestSignIn(deviceId: deviceId)
             setAuthToken(response.token)
             print("[APIService] Token refreshed successfully for guest user")
