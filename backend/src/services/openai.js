@@ -297,7 +297,7 @@ function formatHealthLogsSummary(logs) {
  * @param {Array} images - Array of base64 encoded images (optional)
  * @returns {Promise<object>} AI response with content and metadata
  */
-async function generateAIResponse(userMessage, conversationId, dogProfile = null, healthLogs = null, images = null) {
+async function generateAIResponse(userMessage, conversationId, dogProfile = null, healthLogs = null, images = null, carePlanContext = null) {
   try {
     const { data: messages, error: messagesError } = await supabase
       .from('messages')
@@ -495,6 +495,15 @@ ${healthLogsSummary}`;
       systemPrompt += `
 
 NOTE: No health logs available yet. Encourage the owner to start logging meals, walks, and any symptoms to get personalized insights.`;
+    }
+
+    if (carePlanContext) {
+      systemPrompt += `
+
+ACTIVE CARE PLAN(S):
+The owner has the following active care plan(s) for their pet. Reference these naturally when giving advice. Tailor your suggestions to support the plan goals. If the user asks about their plan or tasks, use this information:
+${carePlanContext}
+IMPORTANT: When the user discusses activities related to their care plan, acknowledge the connection. For example, if they're on a weight gain plan and log extra food, connect it to the plan goal.`;
     }
 
     // Add knowledge base context if available (RAG)

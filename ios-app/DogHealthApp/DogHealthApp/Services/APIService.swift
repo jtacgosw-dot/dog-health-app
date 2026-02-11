@@ -157,8 +157,8 @@ class APIService {
             #endif
         }
     
-                func sendChatMessage(message: String, conversationId: String?, dogId: String?, dogProfile: ChatDogProfile?, healthLogs: [ChatHealthLog]?, images: [String]? = nil) async throws -> ChatResponse {
-                    let body = ChatRequest(message: message, conversationId: conversationId, dogId: dogId, dogProfile: dogProfile, healthLogs: healthLogs, images: images)
+                func sendChatMessage(message: String, conversationId: String?, dogId: String?, dogProfile: ChatDogProfile?, healthLogs: [ChatHealthLog]?, images: [String]? = nil, carePlanContext: String? = nil) async throws -> ChatResponse {
+                    let body = ChatRequest(message: message, conversationId: conversationId, dogId: dogId, dogProfile: dogProfile, healthLogs: healthLogs, images: images, carePlanContext: carePlanContext)
                     let data = try JSONEncoder().encode(body)
                     #if DEBUG
                     if let jsonString = String(data: data, encoding: .utf8) {
@@ -388,6 +388,7 @@ struct ChatRequest: Encodable {
     let dogProfile: ChatDogProfile?
     let healthLogs: [ChatHealthLog]?
     let images: [String]?
+    let carePlanContext: String?
     
     func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
@@ -407,10 +408,13 @@ struct ChatRequest: Encodable {
         if let images = images {
             try container.encode(images, forKey: .images)
         }
+        if let carePlanContext = carePlanContext {
+            try container.encode(carePlanContext, forKey: .carePlanContext)
+        }
     }
     
     private enum CodingKeys: String, CodingKey {
-        case message, conversationId, dogId, dogProfile, healthLogs, images
+        case message, conversationId, dogId, dogProfile, healthLogs, images, carePlanContext
     }
 }
 

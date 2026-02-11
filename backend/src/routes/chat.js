@@ -25,7 +25,7 @@ router.post('/',
         return res.status(400).json({ errors: errors.array() });
       }
 
-            const { message, conversationId, dogId, dogProfile: clientDogProfile, healthLogs: clientHealthLogs, images } = req.body;
+            const { message, conversationId, dogId, dogProfile: clientDogProfile, healthLogs: clientHealthLogs, images, carePlanContext } = req.body;
             const userId = req.user.id;
 
       let currentConversationId = conversationId;
@@ -143,7 +143,7 @@ router.post('/',
         console.log(`Chat request includes ${images.length} image(s), first image length: ${images[0]?.length || 0} chars`);
       }
 
-      const aiResponse = await generateAIResponse(message, currentConversationId, dogProfile, healthLogs, images);
+      const aiResponse = await generateAIResponse(message, currentConversationId, dogProfile, healthLogs, images, carePlanContext);
 
       const { data: assistantMessage, error: aiMsgError } = await supabase
         .from('messages')
