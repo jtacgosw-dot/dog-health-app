@@ -11,6 +11,10 @@ struct PreventativeCareView: View {
     @State private var showingAddReminder = false
     @State private var selectedReminderType: ReminderType = .vaccination
     @State private var scrollProxy: ScrollViewProxy?
+    @State private var showingWeightInput = false
+    @State private var pendingWeightReminder: PetReminder?
+    @State private var weightInputText = ""
+    @State private var loggedReminderIds: Set<String> = []
     
     private var dogId: String {
         appState.currentDog?.id ?? ""
@@ -84,6 +88,21 @@ struct PreventativeCareView: View {
         }
         .buttonStyle(.plain)
         .preferredColorScheme(.light)
+        .alert("Log Weight", isPresented: $showingWeightInput) {
+            TextField("Weight in lbs", text: $weightInputText)
+                .keyboardType(.decimalPad)
+            Button("Log") {
+                if let reminder = pendingWeightReminder {
+                    completeWeightReminder(reminder)
+                }
+            }
+            Button("Cancel", role: .cancel) {
+                pendingWeightReminder = nil
+                weightInputText = ""
+            }
+        } message: {
+            Text("Enter \(dogName)'s current weight")
+        }
     }
     
     private var headerSection: some View {
@@ -156,7 +175,7 @@ struct PreventativeCareView: View {
             }
             
             ForEach(dueReminders, id: \.id) { reminder in
-                PreventativeCareReminderCard(reminder: reminder, isDue: true) {
+                PreventativeCareReminderCard(reminder: reminder, isDue: true, isLogged: loggedReminderIds.contains(reminder.id)) {
                     logAndCompleteReminder(reminder)
                 }
             }
@@ -180,7 +199,7 @@ struct PreventativeCareView: View {
                     .padding()
             } else {
                 ForEach(upcomingReminders.prefix(5), id: \.id) { reminder in
-                    PreventativeCareReminderCard(reminder: reminder, isDue: false) {
+                    PreventativeCareReminderCard(reminder: reminder, isDue: false, isLogged: loggedReminderIds.contains(reminder.id)) {
                         logAndCompleteReminder(reminder)
                     }
                 }
@@ -233,17 +252,54 @@ struct PreventativeCareView: View {
         }
     }
     
+    private func isWeightRelated(_ reminder: PetReminder) -> Bool {
+        reminder.title.localizedCaseInsensitiveContains("weigh")
+    }
+    
     private func logAndCompleteReminder(_ reminder: PetReminder) {
+        if isWeightRelated(reminder) {
+            pendingWeightReminder = reminder
+            weightInputText = ""
+            showingWeightInput = true
+            return
+        }
+        
+        performLog(reminder)
+        loggedReminderIds.insert(reminder.id)
+    }
+    
+    private func completeWeightReminder(_ reminder: PetReminder) {
+        guard let weight = Double(weightInputText), weight > 0 else {
+            pendingWeightReminder = nil
+            weightInputText = ""
+            return
+        }
+        
+        let entry = WeightEntry(weight: weight, date: Date(), note: "Logged from: \(reminder.title)")
+        WeightTrackingManager.shared.addEntry(entry)
+        
+        if var dog = appState.currentDog {
+            dog.weight = weight
+            appState.currentDog = dog
+        }
+        
+        performLog(reminder, weightValue: weight)
+        loggedReminderIds.insert(reminder.id)
+        pendingWeightReminder = nil
+        weightInputText = ""
+    }
+    
+    private func performLog(_ reminder: PetReminder, weightValue: Double? = nil) {
         let generator = UIImpactFeedbackGenerator(style: .medium)
         generator.impactOccurred()
         
         let currentDogId = dogId
-        let logType = healthLogType(for: reminder.type)
+        let logType = weightValue != nil ? "Weight" : healthLogType(for: reminder.type)
         let logEntry = HealthLogEntry(
             dogId: currentDogId,
             logType: logType,
             timestamp: Date(),
-            notes: reminder.title,
+            notes: weightValue != nil ? "\(reminder.title): \(String(format: "%.1f", weightValue!)) lbs" : reminder.title,
             supplementName: [.medication, .fleaTick, .heartworm].contains(reminder.type) ? reminder.title : nil,
             appointmentType: [.vaccination, .vetAppointment].contains(reminder.type) ? reminder.title : nil,
             groomingType: reminder.type == .grooming ? reminder.title : nil
@@ -269,8 +325,8 @@ struct PreventativeCareView: View {
 struct PreventativeCareReminderCard: View {
     let reminder: PetReminder
     let isDue: Bool
+    var isLogged: Bool = false
     let onComplete: () -> Void
-    @State private var isLogged = false
     
     private var daysText: String {
         let days = reminder.daysUntilDue
@@ -328,7 +384,6 @@ struct PreventativeCareReminderCard: View {
             
             Button {
                 onComplete()
-                withAnimation { isLogged = true }
             } label: {
                 Text(isLogged ? "Logged" : "Log")
                     .font(.caption)
