@@ -276,6 +276,7 @@ struct PetFormField: View {
         .padding()
         .background(Color.petlyLightGreen)
         .cornerRadius(12)
+        .shadow(color: Color.petlyDarkGreen.opacity(0.06), radius: 4, x: 0, y: 2)
     }
 }
 
