@@ -6,4 +6,6 @@ struct APIConfig {
     #else
     static let baseURL = "https://dog-health-app.onrender.com/api"
     #endif
+
+    static let googleClientId = ""
 }
