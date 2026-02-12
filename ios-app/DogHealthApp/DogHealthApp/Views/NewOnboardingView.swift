@@ -20,6 +20,7 @@ struct NewOnboardingView: View {
     @State private var petHealthConditions = ""
     @State private var isLoading = false
     @State private var errorMessage: String?
+    @State private var interestsWarning: String?
     
     let interests: [(String, String)] = [
         ("fork.knife", "Nutrition"),
@@ -459,10 +460,25 @@ struct NewOnboardingView: View {
             .padding(.leading, 8)
             .padding(.bottom, -47)
             
+            if let warning = interestsWarning {
+                Text(warning)
+                    .font(.petlyBody(13))
+                    .foregroundColor(.red)
+                    .padding(.horizontal)
+                    .padding(.bottom, 4)
+            }
+            
             Button(action: {
-                UserDefaults.standard.set(Array(selectedInterests), forKey: "userInterests")
-                withAnimation(.spring(response: 0.5, dampingFraction: 0.7)) {
-                    appState.hasCompletedOnboarding = true
+                if selectedInterests.isEmpty {
+                    withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                        interestsWarning = "Please select at least one interest first"
+                    }
+                } else {
+                    interestsWarning = nil
+                    UserDefaults.standard.set(Array(selectedInterests), forKey: "userInterests")
+                    withAnimation(.spring(response: 0.5, dampingFraction: 0.7)) {
+                        appState.hasCompletedOnboarding = true
+                    }
                 }
             }) {
                 Text("NEXT STEP")
@@ -470,11 +486,10 @@ struct NewOnboardingView: View {
                     .foregroundColor(.white)
                     .frame(maxWidth: .infinity)
                     .padding()
-                    .background(selectedInterests.isEmpty ? Color.petlyFormIcon : Color.petlyDarkGreen)
+                    .background(Color.petlyDarkGreen)
                     .cornerRadius(12)
-                    .shadow(color: (selectedInterests.isEmpty ? Color.petlyFormIcon : Color.petlyDarkGreen).opacity(0.3), radius: 8, x: 0, y: 4)
+                    .shadow(color: Color.petlyDarkGreen.opacity(0.3), radius: 8, x: 0, y: 4)
             }
-            .disabled(selectedInterests.isEmpty)
             .padding(.horizontal)
             .padding(.bottom, 10)
             
