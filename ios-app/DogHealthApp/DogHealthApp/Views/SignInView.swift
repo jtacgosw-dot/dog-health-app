@@ -201,12 +201,9 @@ struct SignInView: View {
         errorMessage = nil
         isLoading = true
         
-        let deviceId = UIDevice.current.identifierForVendor?.uuidString ?? UUID().uuidString
-        UserDefaults.standard.set(deviceId, forKey: "guestDeviceId")
-        
         Task {
             do {
-                let response = try await APIService.shared.guestSignIn(deviceId: deviceId)
+                let response = try await APIService.shared.login(email: email, password: password)
                 APIService.shared.setAuthToken(response.token)
                 APIService.shared.setIsGuest(false)
                 
@@ -215,7 +212,7 @@ struct SignInView: View {
                     let status = SubscriptionStatus(rawValue: statusString) ?? .free
                     appState.currentUser = User(
                         id: response.user.id,
-                        email: email,
+                        email: response.user.email,
                         fullName: response.user.fullName ?? "User",
                         subscriptionStatus: status
                     )

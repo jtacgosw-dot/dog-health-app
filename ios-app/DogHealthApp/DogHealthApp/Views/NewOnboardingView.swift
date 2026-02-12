@@ -525,14 +525,11 @@ struct NewOnboardingView: View {
         UserDefaults.standard.set(ownerName, forKey: "ownerName")
         UserDefaults.standard.set(email, forKey: "userEmail")
         
-        let deviceId = UIDevice.current.identifierForVendor?.uuidString ?? UUID().uuidString
-        UserDefaults.standard.set(deviceId, forKey: "guestDeviceId")
-        
         Task {
             do {
-                let response = try await APIService.shared.guestSignIn(deviceId: deviceId)
+                let response = try await APIService.shared.register(email: email, password: password, fullName: ownerName)
                 APIService.shared.setAuthToken(response.token)
-                APIService.shared.setIsGuest(true)
+                APIService.shared.setIsGuest(false)
                 
                 await MainActor.run {
                     let statusString = response.user.subscriptionStatus ?? "free"

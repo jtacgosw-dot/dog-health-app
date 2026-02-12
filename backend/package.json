@@ -13,14 +13,16 @@
   "description": "",
   "dependencies": {
     "@supabase/supabase-js": "^2.77.0",
+    "apple-signin-auth": "^1.7.6",
+    "bcryptjs": "^3.0.3",
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",
     "express": "^5.1.0",
-    "openai": "^4.20.0",
-    "apple-signin-auth": "^1.7.6",
-    "jsonwebtoken": "^9.0.2",
+    "express-rate-limit": "^7.1.5",
     "express-validator": "^7.0.1",
+    "google-auth-library": "^10.5.0",
     "helmet": "^7.1.0",
-    "express-rate-limit": "^7.1.5"
+    "jsonwebtoken": "^9.0.2",
+    "openai": "^4.20.0"
   }
 }

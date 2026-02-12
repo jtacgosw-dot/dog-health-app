@@ -1,9 +1,13 @@
 const express = require('express');
 const router = express.Router();
 const jwt = require('jsonwebtoken');
+const bcrypt = require('bcryptjs');
+const { OAuth2Client } = require('google-auth-library');
 const { verifyAppleToken } = require('../services/apple-auth');
 const { body, validationResult } = require('express-validator');
 const supabase = require('../services/supabase');
+
+const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 /**
  * POST /api/auth/apple
@@ -209,6 +213,267 @@ router.post('/guest',
       res.status(500).json({
         success: false,
         error: 'Guest authentication failed',
+        message: error.message
+      });
+    }
+  }
+);
+
+/**
+ * POST /api/auth/register
+ * Register with email and password
+ */
+router.post('/register',
+  [
+    body('email').isEmail().withMessage('Valid email is required'),
+    body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters'),
+    body('fullName').notEmpty().withMessage('Full name is required')
+  ],
+  async (req, res) => {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+      }
+
+      const { email, password, fullName } = req.body;
+
+      const { data: existingUser } = await supabase
+        .from('users')
+        .select('id')
+        .eq('email', email.toLowerCase())
+        .single();
+
+      if (existingUser) {
+        return res.status(409).json({
+          success: false,
+          error: 'An account with this email already exists'
+        });
+      }
+
+      const salt = await bcrypt.genSalt(10);
+      const passwordHash = await bcrypt.hash(password, salt);
+
+      const userId = require('crypto').randomUUID();
+
+      const { data: newUser, error: createError } = await supabase
+        .from('users')
+        .insert([{
+          id: userId,
+          email: email.toLowerCase(),
+          full_name: fullName,
+          password_hash: passwordHash,
+          auth_provider: 'email',
+          subscription_status: 'free'
+        }])
+        .select()
+        .single();
+
+      if (createError) {
+        console.error('Failed to create user:', createError);
+        return res.status(500).json({ error: 'Failed to create account', details: createError.message });
+      }
+
+      const jwtSecret = process.env.JWT_SECRET;
+      if (!jwtSecret) {
+        return res.status(500).json({ error: 'Server configuration error' });
+      }
+      const token = jwt.sign(
+        { userId: newUser.id, email: newUser.email },
+        jwtSecret,
+        { expiresIn: '30d' }
+      );
+
+      res.status(201).json({
+        success: true,
+        user: {
+          id: newUser.id,
+          email: newUser.email,
+          fullName: newUser.full_name,
+          subscriptionStatus: newUser.subscription_status
+        },
+        token: token
+      });
+    } catch (error) {
+      console.error('Register error:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Registration failed',
+        message: error.message
+      });
+    }
+  }
+);
+
+/**
+ * POST /api/auth/login
+ * Sign in with email and password
+ */
+router.post('/login',
+  [
+    body('email').isEmail().withMessage('Valid email is required'),
+    body('password').notEmpty().withMessage('Password is required')
+  ],
+  async (req, res) => {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+      }
+
+      const { email, password } = req.body;
+
+      const { data: user, error } = await supabase
+        .from('users')
+        .select('*')
+        .eq('email', email.toLowerCase())
+        .single();
+
+      if (error || !user) {
+        return res.status(401).json({
+          success: false,
+          error: 'Invalid email or password'
+        });
+      }
+
+      if (!user.password_hash) {
+        return res.status(401).json({
+          success: false,
+          error: 'This account uses a different sign-in method (Apple or Google)'
+        });
+      }
+
+      const isValidPassword = await bcrypt.compare(password, user.password_hash);
+      if (!isValidPassword) {
+        return res.status(401).json({
+          success: false,
+          error: 'Invalid email or password'
+        });
+      }
+
+      const jwtSecret = process.env.JWT_SECRET;
+      if (!jwtSecret) {
+        return res.status(500).json({ error: 'Server configuration error' });
+      }
+      const token = jwt.sign(
+        { userId: user.id, email: user.email },
+        jwtSecret,
+        { expiresIn: '30d' }
+      );
+
+      res.status(200).json({
+        success: true,
+        user: {
+          id: user.id,
+          email: user.email,
+          fullName: user.full_name,
+          subscriptionStatus: user.subscription_status
+        },
+        token: token
+      });
+    } catch (error) {
+      console.error('Login error:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Login failed',
+        message: error.message
+      });
+    }
+  }
+);
+
+/**
+ * POST /api/auth/google
+ * Sign in with Google ID token
+ */
+router.post('/google',
+  [
+    body('idToken').notEmpty().withMessage('Google ID token is required')
+  ],
+  async (req, res) => {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+      }
+
+      const { idToken } = req.body;
+
+      const ticket = await googleClient.verifyIdToken({
+        idToken: idToken,
+        audience: process.env.GOOGLE_CLIENT_ID
+      });
+      const payload = ticket.getPayload();
+
+      if (!payload || !payload.email) {
+        return res.status(401).json({
+          success: false,
+          error: 'Invalid Google token'
+        });
+      }
+
+      const googleUserId = payload.sub;
+      const googleEmail = payload.email;
+      const googleName = payload.name || '';
+
+      let { data: user } = await supabase
+        .from('users')
+        .select('*')
+        .eq('email', googleEmail.toLowerCase())
+        .single();
+
+      if (!user) {
+        const userId = require('crypto').randomUUID();
+        const { data: newUser, error: createError } = await supabase
+          .from('users')
+          .insert([{
+            id: userId,
+            email: googleEmail.toLowerCase(),
+            full_name: googleName,
+            google_user_id: googleUserId,
+            auth_provider: 'google',
+            subscription_status: 'free'
+          }])
+          .select()
+          .single();
+
+        if (createError) {
+          console.error('Failed to create Google user:', createError);
+          return res.status(500).json({ error: 'Failed to create account', details: createError.message });
+        }
+        user = newUser;
+      } else if (!user.google_user_id) {
+        await supabase
+          .from('users')
+          .update({ google_user_id: googleUserId, auth_provider: user.auth_provider ? user.auth_provider + ',google' : 'google' })
+          .eq('id', user.id);
+      }
+
+      const jwtSecret = process.env.JWT_SECRET;
+      if (!jwtSecret) {
+        return res.status(500).json({ error: 'Server configuration error' });
+      }
+      const token = jwt.sign(
+        { userId: user.id, email: user.email },
+        jwtSecret,
+        { expiresIn: '30d' }
+      );
+
+      res.status(200).json({
+        success: true,
+        user: {
+          id: user.id,
+          email: user.email,
+          fullName: user.full_name,
+          subscriptionStatus: user.subscription_status
+        },
+        token: token
+      });
+    } catch (error) {
+      console.error('Google Sign In error:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Google authentication failed',
         message: error.message
       });
     }
