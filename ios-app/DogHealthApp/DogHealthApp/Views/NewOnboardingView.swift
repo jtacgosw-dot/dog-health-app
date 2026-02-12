@@ -92,7 +92,7 @@ struct NewOnboardingView: View {
                     Image("woofMeow")
                         .resizable()
                         .scaledToFit()
-                        .frame(height: 150)
+                        .frame(height: 160)
                         .padding(.top, 30)
                     
                     VStack(spacing: 4) {
@@ -453,11 +453,11 @@ struct NewOnboardingView: View {
                 Image("dogCatOutline")
                     .resizable()
                     .scaledToFit()
-                    .frame(height: 150)
+                    .frame(height: 165)
                 Spacer()
             }
             .padding(.horizontal)
-            .padding(.bottom, -20)
+            .padding(.bottom, -30)
             
             Button(action: {
                 UserDefaults.standard.set(Array(selectedInterests), forKey: "userInterests")
