@@ -457,7 +457,7 @@ struct NewOnboardingView: View {
                 Spacer()
             }
             .padding(.horizontal)
-            .padding(.bottom, -30)
+            .padding(.bottom, -40)
             
             Button(action: {
                 UserDefaults.standard.set(Array(selectedInterests), forKey: "userInterests")
