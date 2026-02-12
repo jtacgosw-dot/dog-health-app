@@ -557,78 +557,63 @@ struct NewOnboardingView: View {
     }
     
     private func triggerAppleSignIn() {
-        let provider = ASAuthorizationAppleIDProvider()
-        let request = provider.createRequest()
-        request.requestedScopes = [.fullName, .email]
-        let controller = ASAuthorizationController(authorizationRequests: [request])
-        let delegate = AppleSignInDelegate { result in
-            handleAppleSignIn(result)
-        }
-        controller.delegate = delegate
-        controller.presentationContextProvider = delegate
-        objc_setAssociatedObject(controller, "delegate", delegate, .OBJC_ASSOCIATION_RETAIN)
-        controller.performRequests()
-    }
-    
-    private func handleAppleSignIn(_ result: Result<ASAuthorization, Error>) {
         isLoading = true
         errorMessage = nil
-        
-        switch result {
-        case .success(let authorization):
-            if let appleIDCredential = authorization.credential as? ASAuthorizationAppleIDCredential {
-                guard let identityTokenData = appleIDCredential.identityToken,
-                      let identityToken = String(data: identityTokenData, encoding: .utf8),
-                      let authCodeData = appleIDCredential.authorizationCode,
-                      let authCode = String(data: authCodeData, encoding: .utf8) else {
-                    errorMessage = "Failed to get authentication credentials"
-                    isLoading = false
-                    return
-                }
-                
-                let fullName = appleIDCredential.fullName.map { personName in
-                    [personName.givenName, personName.familyName]
-                        .compactMap { $0 }
-                        .joined(separator: " ")
-                }
-                
-                Task {
-                    do {
-                        let response = try await APIService.shared.signInWithApple(
-                            identityToken: identityToken,
-                            authorizationCode: authCode,
-                            fullName: fullName
-                        )
-                        APIService.shared.setAuthToken(response.token)
-                        APIService.shared.setIsGuest(false)
-                        
+        Task {
+            do {
+                let authorization = try await AppleSignInManager.shared.signIn()
+                if let appleIDCredential = authorization.credential as? ASAuthorizationAppleIDCredential {
+                    guard let identityTokenData = appleIDCredential.identityToken,
+                          let identityToken = String(data: identityTokenData, encoding: .utf8),
+                          let authCodeData = appleIDCredential.authorizationCode,
+                          let authCode = String(data: authCodeData, encoding: .utf8) else {
                         await MainActor.run {
-                            appState.currentUser = response.user
-                            appState.isSignedIn = true
+                            errorMessage = "Failed to get authentication credentials"
                             isLoading = false
-                            withAnimation(.spring(response: 0.5, dampingFraction: 0.7)) {
-                                currentPage = 1
-                            }
                         }
-                        await appState.loadUserData()
-                    } catch {
-                        await MainActor.run {
-                            errorMessage = "Sign in failed: \(error.localizedDescription)"
-                            isLoading = false
+                        return
+                    }
+                    let fullName = appleIDCredential.fullName.map { personName in
+                        [personName.givenName, personName.familyName]
+                            .compactMap { $0 }
+                            .joined(separator: " ")
+                    }
+                    let response = try await APIService.shared.signInWithApple(
+                        identityToken: identityToken,
+                        authorizationCode: authCode,
+                        fullName: fullName
+                    )
+                    APIService.shared.setAuthToken(response.token)
+                    APIService.shared.setIsGuest(false)
+                    await MainActor.run {
+                        appState.currentUser = response.user
+                        appState.isSignedIn = true
+                        isLoading = false
+                        withAnimation(.spring(response: 0.5, dampingFraction: 0.7)) {
+                            currentPage = 1
                         }
                     }
+                    await appState.loadUserData()
+                }
+            } catch {
+                await MainActor.run {
+                    if let authError = error as? ASAuthorizationError,
+                       authError.code == .canceled {
+                        isLoading = false
+                        return
+                    }
+                    errorMessage = "Apple sign-in failed: \(error.localizedDescription)"
+                    isLoading = false
                 }
             }
-            
-        case .failure(let error):
-            isLoading = false
-            if let authError = error as? ASAuthorizationError,
-               authError.code == .canceled { return }
-            errorMessage = "Sign in failed: \(error.localizedDescription)"
         }
     }
     
     private func handleGoogleSignIn() {
+        guard !APIConfig.googleClientId.isEmpty else {
+            errorMessage = "Google Sign-In is not configured yet. Please set your Google Client ID in APIConfig."
+            return
+        }
         isLoading = true
         errorMessage = nil
         Task {
@@ -769,30 +754,6 @@ struct InterestChip: View {
         }
         .scaleEffect(isPressed ? 0.98 : 1.0)
         .animation(.spring(response: 0.3, dampingFraction: 0.6), value: isPressed)
-    }
-}
-
-class AppleSignInDelegate: NSObject, ASAuthorizationControllerDelegate, ASAuthorizationControllerPresentationContextProviding {
-    let completion: (Result<ASAuthorization, Error>) -> Void
-    
-    init(completion: @escaping (Result<ASAuthorization, Error>) -> Void) {
-        self.completion = completion
-    }
-    
-    func presentationAnchor(for controller: ASAuthorizationController) -> ASPresentationAnchor {
-        guard let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
-              let window = scene.windows.first else {
-            return ASPresentationAnchor()
-        }
-        return window
-    }
-    
-    func authorizationController(controller: ASAuthorizationController, didCompleteWithAuthorization authorization: ASAuthorization) {
-        completion(.success(authorization))
-    }
-    
-    func authorizationController(controller: ASAuthorizationController, didCompleteWithError error: Error) {
-        completion(.failure(error))
     }
 }
 
