@@ -127,6 +127,21 @@ struct SignInView: View {
                                 }
                             }
                             .disabled(isLoading)
+                            
+                            Button(action: {}) {
+                                ZStack {
+                                    Circle()
+                                        .fill(Color.petlyLightGreen)
+                                        .frame(width: 56, height: 56)
+                                    Circle()
+                                        .fill(Color.petlyDarkGreen)
+                                        .frame(width: 44, height: 44)
+                                    Text("G")
+                                        .font(.system(size: 22, weight: .bold))
+                                        .foregroundColor(.white)
+                                }
+                            }
+                            .disabled(isLoading)
                         }
                         
                         Button(action: handleGuestSignIn) {
@@ -137,6 +152,20 @@ struct SignInView: View {
                         }
                         .disabled(isLoading)
                         .padding(.top, 8)
+                        
+                        HStack(spacing: 4) {
+                            Text("Don\u{2019}t have an account?")
+                                .font(.petlyBody(14))
+                                .foregroundColor(.petlyFormIcon)
+                            Button(action: {
+                                appState.hasCompletedOnboarding = false
+                            }) {
+                                Text("Sign Up")
+                                    .font(.petlyBodyMedium(14))
+                                    .foregroundColor(.petlyDarkGreen)
+                            }
+                        }
+                        .padding(.top, 4)
                         .padding(.bottom, 40)
                     }
                 }
