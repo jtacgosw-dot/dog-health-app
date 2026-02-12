@@ -89,20 +89,11 @@ struct NewOnboardingView: View {
             
             ScrollView(showsIndicators: false) {
                 VStack(spacing: 20) {
-                    ZStack {
-                        Circle()
-                            .fill(Color.petlyLightGreen)
-                            .frame(width: 120, height: 120)
-                        
-                        Circle()
-                            .fill(Color.petlyDarkGreen)
-                            .frame(width: 96, height: 96)
-                        
-                        Image(systemName: "pawprint.fill")
-                            .font(.system(size: 44))
-                            .foregroundColor(.white)
-                    }
-                    .padding(.top, 30)
+                    Image("woofMeow")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(height: 80)
+                        .padding(.top, 40)
                     
                     VStack(spacing: 4) {
                         Text("Your pet\u{2019}s journey")
@@ -458,13 +449,19 @@ struct NewOnboardingView: View {
             
             Spacer()
             
+            Image("dogCatOutline")
+                .resizable()
+                .scaledToFit()
+                .frame(height: 70)
+                .padding(.bottom, 4)
+            
             Button(action: {
                 UserDefaults.standard.set(Array(selectedInterests), forKey: "userInterests")
                 withAnimation(.spring(response: 0.5, dampingFraction: 0.7)) {
                     appState.hasCompletedOnboarding = true
                 }
             }) {
-                Text("COMPLETE")
+                Text("NEXT STEP")
                     .font(.petlyBodyMedium(16))
                     .foregroundColor(.white)
                     .frame(maxWidth: .infinity)
