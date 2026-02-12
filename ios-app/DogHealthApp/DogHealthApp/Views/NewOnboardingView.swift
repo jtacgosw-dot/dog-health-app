@@ -225,7 +225,7 @@ struct NewOnboardingView: View {
                             }
                         }
                         
-                        Button(action: {}) {
+                        Button(action: { handleGoogleSignIn() }) {
                             ZStack {
                                 Circle()
                                     .fill(Color.petlyLightGreen)
@@ -628,6 +628,45 @@ struct NewOnboardingView: View {
         }
     }
     
+    private func handleGoogleSignIn() {
+        isLoading = true
+        errorMessage = nil
+        Task {
+            do {
+                let idToken = try await GoogleSignInManager.shared.signIn()
+                let response = try await APIService.shared.signInWithGoogle(idToken: idToken)
+                APIService.shared.setAuthToken(response.token)
+                APIService.shared.setIsGuest(false)
+                await MainActor.run {
+                    let statusString = response.user.subscriptionStatus ?? "free"
+                    let status = SubscriptionStatus(rawValue: statusString) ?? .free
+                    appState.currentUser = User(
+                        id: response.user.id,
+                        email: response.user.email,
+                        fullName: response.user.fullName ?? "User",
+                        subscriptionStatus: status
+                    )
+                    appState.isSignedIn = true
+                    isLoading = false
+                    withAnimation(.spring(response: 0.5, dampingFraction: 0.7)) {
+                        currentPage = 1
+                    }
+                }
+                await appState.loadUserData()
+            } catch {
+                await MainActor.run {
+                    if let webError = error as? ASWebAuthenticationSessionError,
+                       webError.code == .canceledLogin {
+                        isLoading = false
+                        return
+                    }
+                    errorMessage = "Google sign-in failed: \(error.localizedDescription)"
+                    isLoading = false
+                }
+            }
+        }
+    }
+
     private func handlePetProfile() {
         guard !petName.isEmpty, !petBreed.isEmpty else {
             errorMessage = "Please fill in at least name and breed"
