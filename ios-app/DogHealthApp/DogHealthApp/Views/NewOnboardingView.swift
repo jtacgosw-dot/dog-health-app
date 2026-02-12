@@ -330,7 +330,7 @@ struct NewOnboardingView: View {
                     VStack(spacing: 12) {
                         PetFormField(icon: "pawprint.fill", placeholder: "Your Pet's Name", text: $petName)
                         PetFormField(icon: "clock", placeholder: "Age (years)", text: $petAge, keyboardType: .decimalPad)
-                        PetFormField(icon: "hare", placeholder: "Breed", text: $petBreed)
+                        PetFormField(icon: "dog", placeholder: "Breed", text: $petBreed)
                         PetFormField(icon: "scalemass", placeholder: "Weight (lbs)", text: $petWeight, keyboardType: .decimalPad)
                         PetFormField(icon: "face.smiling", placeholder: "Personality", text: $petPersonality)
                         
