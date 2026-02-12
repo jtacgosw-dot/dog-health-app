@@ -239,6 +239,7 @@ struct SignInView: View {
             handleSignInWithApple(result)
         }
         controller.delegate = delegate
+        controller.presentationContextProvider = delegate
         objc_setAssociatedObject(controller, "delegate", delegate, .OBJC_ASSOCIATION_RETAIN)
         controller.performRequests()
     }
@@ -339,11 +340,19 @@ struct SignInView: View {
     }
 }
 
-class AppleSignInDelegateForSignIn: NSObject, ASAuthorizationControllerDelegate {
+class AppleSignInDelegateForSignIn: NSObject, ASAuthorizationControllerDelegate, ASAuthorizationControllerPresentationContextProviding {
     let completion: (Result<ASAuthorization, Error>) -> Void
     
     init(completion: @escaping (Result<ASAuthorization, Error>) -> Void) {
         self.completion = completion
+    }
+    
+    func presentationAnchor(for controller: ASAuthorizationController) -> ASPresentationAnchor {
+        guard let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+              let window = scene.windows.first else {
+            return ASPresentationAnchor()
+        }
+        return window
     }
     
     func authorizationController(controller: ASAuthorizationController, didCompleteWithAuthorization authorization: ASAuthorization) {
