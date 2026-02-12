@@ -92,8 +92,8 @@ struct NewOnboardingView: View {
                     Image("woofMeow")
                         .resizable()
                         .scaledToFit()
-                        .frame(height: 88)
-                        .padding(.top, 40)
+                        .frame(height: 130)
+                        .padding(.top, 30)
                     
                     VStack(spacing: 4) {
                         Text("Your pet\u{2019}s journey")
@@ -453,7 +453,7 @@ struct NewOnboardingView: View {
                 Image("dogCatOutline")
                     .resizable()
                     .scaledToFit()
-                    .frame(height: 100)
+                    .frame(height: 140)
                 Spacer()
             }
             .padding(.horizontal)
