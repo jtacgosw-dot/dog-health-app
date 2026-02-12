@@ -25,7 +25,7 @@ struct NewOnboardingView: View {
         ("fork.knife", "Nutrition"),
         ("pawprint.fill", "Behavior"),
         ("heart.fill", "Wellness"),
-        ("takeoutbag.and.cup.and.straw.fill", "Recipes"),
+        ("fork.knife.circle.fill", "Recipes"),
         ("scissors", "Grooming"),
         ("figure.walk", "Training"),
         ("chart.bar.fill", "Tracking"),
@@ -709,15 +709,19 @@ struct InterestChip: View {
                 Image(systemName: icon)
                     .font(.system(size: 14))
                     .foregroundColor(isSelected ? .white : .petlyDarkGreen)
-                    .frame(width: 20)
+                    .frame(width: 20, height: 20)
+                    .fixedSize()
                 Text(title)
                     .font(.petlyBodyMedium(14))
                     .foregroundColor(isSelected ? .white : .petlyDarkGreen)
                     .lineLimit(1)
-                Spacer(minLength: 4)
+                    .truncationMode(.tail)
+                Spacer(minLength: 2)
                 Text(isSelected ? "x" : "+")
                     .font(.petlyBodyMedium(14))
                     .foregroundColor(isSelected ? .white : .petlyDarkGreen)
+                    .frame(width: 20)
+                    .fixedSize()
             }
             .frame(maxWidth: .infinity)
             .padding(.horizontal, 16)
