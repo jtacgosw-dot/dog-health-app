@@ -162,15 +162,15 @@ class APIService {
         return try decoder.decode(T.self, from: data)
     }
     
-        func signInWithApple(identityToken: String, authorizationCode: String, fullName: String?) async throws -> AuthResponse {
-            let body = SignInRequest(
-                identityToken: identityToken,
-                authorizationCode: authorizationCode,
-                fullName: fullName
-            )
-            let data = try JSONEncoder().encode(body)
-            return try await makeRequest(endpoint: "/auth/apple", method: "POST", body: data, requiresAuth: false)
-        }
+            func signInWithApple(identityToken: String, authorizationCode: String, fullName: String?) async throws -> EmailAuthResponse {
+                let body = SignInRequest(
+                    identityToken: identityToken,
+                    authorizationCode: authorizationCode,
+                    fullName: fullName
+                )
+                let data = try JSONEncoder().encode(body)
+                return try await makeRequest(endpoint: "/auth/apple", method: "POST", body: data, requiresAuth: false)
+            }
     
         func devSignIn() async throws -> DevAuthResponse {
             return try await makeRequest(endpoint: "/auth/dev", method: "POST", body: nil, requiresAuth: false)
