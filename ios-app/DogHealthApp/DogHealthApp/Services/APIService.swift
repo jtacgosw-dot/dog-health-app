@@ -182,6 +182,24 @@ class APIService {
             return try await makeRequest(endpoint: "/auth/guest", method: "POST", body: data, requiresAuth: false)
         }
     
+    func register(email: String, password: String, fullName: String) async throws -> EmailAuthResponse {
+        let body = RegisterRequest(email: email, password: password, fullName: fullName)
+        let data = try JSONEncoder().encode(body)
+        return try await makeRequest(endpoint: "/auth/register", method: "POST", body: data, requiresAuth: false)
+    }
+    
+    func login(email: String, password: String) async throws -> EmailAuthResponse {
+        let body = LoginRequest(email: email, password: password)
+        let data = try JSONEncoder().encode(body)
+        return try await makeRequest(endpoint: "/auth/login", method: "POST", body: data, requiresAuth: false)
+    }
+    
+    func signInWithGoogle(idToken: String) async throws -> EmailAuthResponse {
+        let body = GoogleSignInRequest(idToken: idToken)
+        let data = try JSONEncoder().encode(body)
+        return try await makeRequest(endpoint: "/auth/google", method: "POST", body: data, requiresAuth: false)
+    }
+    
         func ensureDevAuthenticated() async {
             #if DEBUG
             if getAuthToken() == nil {
@@ -418,6 +436,34 @@ struct GuestAuthResponse: Codable {
 }
 
 struct GuestUser: Codable {
+    let id: String
+    let email: String
+    let fullName: String?
+    let subscriptionStatus: String?
+}
+
+struct RegisterRequest: Codable {
+    let email: String
+    let password: String
+    let fullName: String
+}
+
+struct LoginRequest: Codable {
+    let email: String
+    let password: String
+}
+
+struct GoogleSignInRequest: Codable {
+    let idToken: String
+}
+
+struct EmailAuthResponse: Codable {
+    let success: Bool
+    let token: String
+    let user: EmailAuthUser
+}
+
+struct EmailAuthUser: Codable {
     let id: String
     let email: String
     let fullName: String?
