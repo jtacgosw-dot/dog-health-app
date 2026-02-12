@@ -88,7 +88,7 @@ struct NewPetProfileView: View {
                         VStack(spacing: 12) {
                             PetFormField(icon: "pawprint.fill", placeholder: "Your Pet's Name", text: $name)
                             PetFormField(icon: "clock", placeholder: "Your Pet's Age", text: $age, keyboardType: .numberPad)
-                            PetFormField(icon: "hare", placeholder: "Breed", text: $breed)
+                            PetFormField(icon: "dog", placeholder: "Breed", text: $breed)
                             PetFormField(icon: "scalemass", placeholder: "Weight", text: $weight, keyboardType: .decimalPad)
                             PetFormField(icon: "face.smiling", placeholder: "Personality", text: $personality)
                             
