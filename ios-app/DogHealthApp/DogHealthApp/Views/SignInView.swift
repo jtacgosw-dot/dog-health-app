@@ -210,10 +210,14 @@ struct SignInView: View {
                 await MainActor.run {
                     let statusString = response.user.subscriptionStatus ?? "free"
                     let status = SubscriptionStatus(rawValue: statusString) ?? .free
+                    let name = response.user.fullName?.isEmpty == false ? response.user.fullName : nil
+                    if let name = name {
+                        UserDefaults.standard.set(name, forKey: "ownerName")
+                    }
                     appState.currentUser = User(
                         id: response.user.id,
                         email: response.user.email,
-                        fullName: response.user.fullName ?? "User",
+                        fullName: name,
                         subscriptionStatus: status
                     )
                     UserDefaults.standard.set(email, forKey: "userEmail")
@@ -262,10 +266,15 @@ struct SignInView: View {
                     await MainActor.run {
                         let statusString = response.user.subscriptionStatus ?? "free"
                         let status = SubscriptionStatus(rawValue: statusString) ?? .free
+                        let appleName = fullName?.isEmpty == false ? fullName : response.user.fullName
+                        let resolvedName = appleName?.isEmpty == false ? appleName : nil
+                        if let resolvedName = resolvedName {
+                            UserDefaults.standard.set(resolvedName, forKey: "ownerName")
+                        }
                         appState.currentUser = User(
                             id: response.user.id,
                             email: response.user.email,
-                            fullName: response.user.fullName ?? "User",
+                            fullName: resolvedName,
                             subscriptionStatus: status
                         )
                         appState.isSignedIn = true
@@ -303,10 +312,14 @@ struct SignInView: View {
                 await MainActor.run {
                     let statusString = response.user.subscriptionStatus ?? "free"
                     let status = SubscriptionStatus(rawValue: statusString) ?? .free
+                    let name = response.user.fullName?.isEmpty == false ? response.user.fullName : nil
+                    if let name = name {
+                        UserDefaults.standard.set(name, forKey: "ownerName")
+                    }
                     appState.currentUser = User(
                         id: response.user.id,
                         email: response.user.email,
-                        fullName: response.user.fullName ?? "User",
+                        fullName: name,
                         subscriptionStatus: status
                     )
                     UserDefaults.standard.set(response.user.email, forKey: "userEmail")
@@ -344,10 +357,11 @@ struct SignInView: View {
                 await MainActor.run {
                     let statusString = response.user.subscriptionStatus ?? "free"
                     let status = SubscriptionStatus(rawValue: statusString) ?? .free
+                    let guestName = response.user.fullName?.isEmpty == false ? response.user.fullName : nil
                     appState.currentUser = User(
                         id: response.user.id,
                         email: response.user.email,
-                        fullName: response.user.fullName ?? "Guest User",
+                        fullName: guestName,
                         subscriptionStatus: status
                     )
                     appState.isSignedIn = true

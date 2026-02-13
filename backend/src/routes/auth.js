@@ -495,4 +495,40 @@ router.post('/google',
   }
 );
 
+/**
+ * DELETE /api/auth/account
+ * Delete the authenticated user's account and all associated data
+ */
+const { authenticateToken } = require('../middleware/auth');
+
+router.delete('/account',
+  authenticateToken,
+  async (req, res) => {
+    try {
+      const userId = req.user.id;
+
+      await supabase.from('messages').delete().eq('user_id', userId);
+      await supabase.from('conversations').delete().eq('user_id', userId);
+      await supabase.from('health_logs').delete().eq('user_id', userId);
+      await supabase.from('dogs').delete().eq('user_id', userId);
+      await supabase.from('subscriptions').delete().eq('user_id', userId);
+
+      const { error } = await supabase
+        .from('users')
+        .delete()
+        .eq('id', userId);
+
+      if (error) {
+        console.error('Failed to delete user:', error);
+        return res.status(500).json({ success: false, error: 'Failed to delete account' });
+      }
+
+      res.status(200).json({ success: true, message: 'Account deleted successfully' });
+    } catch (error) {
+      console.error('Delete account error:', error);
+      res.status(500).json({ success: false, error: 'Failed to delete account', message: error.message });
+    }
+  }
+);
+
 module.exports = router;

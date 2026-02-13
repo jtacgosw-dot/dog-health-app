@@ -388,6 +388,10 @@ class APIService {
     func deleteHealthLog(id: String) async throws -> DeleteResponse {
         return try await makeRequest(endpoint: "/health-logs/\(id)", method: "DELETE")
     }
+    
+    func deleteAccount() async throws -> DeleteResponse {
+        return try await makeRequest(endpoint: "/auth/account", method: "DELETE")
+    }
 }
 
 enum APIError: LocalizedError {

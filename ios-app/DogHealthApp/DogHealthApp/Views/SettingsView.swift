@@ -10,6 +10,8 @@ struct SettingsView: View {
     @Query private var reminders: [PetReminder]
     @Query private var carePlans: [CarePlan]
     @State private var showSignOutAlert = false
+    @State private var showDeleteAccountAlert = false
+    @State private var isDeletingAccount = false
     @State private var showNotificationSettings = false
     @State private var showWeightTracking = false
     @State private var showPetReminders = false
@@ -165,6 +167,22 @@ struct SettingsView: View {
                         .padding(.horizontal)
                         .padding(.top, 8)
                         
+                        Button(action: { showDeleteAccountAlert = true }) {
+                            HStack(spacing: 10) {
+                                Image(systemName: "trash.fill")
+                                    .font(.system(size: 18))
+                                Text(isDeletingAccount ? "Deleting..." : "Delete Account")
+                                    .font(.petlyBodyMedium(16))
+                            }
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 16)
+                            .background(Color.red.opacity(0.15))
+                            .foregroundColor(.red)
+                            .cornerRadius(16)
+                        }
+                        .padding(.horizontal)
+                        .disabled(isDeletingAccount)
+                        
                         // Footer
                         VStack(spacing: 4) {
                             Text("Made with love for pet parents")
@@ -199,6 +217,27 @@ struct SettingsView: View {
                 }
             } message: {
                 Text("Are you sure you want to sign out?")
+            }
+            .alert("Delete Account", isPresented: $showDeleteAccountAlert) {
+                Button("Cancel", role: .cancel) { }
+                Button("Delete", role: .destructive) {
+                    isDeletingAccount = true
+                    Task {
+                        do {
+                            let _ = try await APIService.shared.deleteAccount()
+                            await MainActor.run {
+                                isDeletingAccount = false
+                                appState.signOut()
+                            }
+                        } catch {
+                            await MainActor.run {
+                                isDeletingAccount = false
+                            }
+                        }
+                    }
+                }
+            } message: {
+                Text("This will permanently delete your account and all your data. This action cannot be undone.")
             }
             .sheet(isPresented: $showNotificationSettings) {
                 NavigationView {
