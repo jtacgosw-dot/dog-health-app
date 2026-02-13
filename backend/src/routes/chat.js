@@ -258,7 +258,6 @@ router.get('/conversations',
           title,
           created_at,
           updated_at,
-          is_pinned,
           is_archived,
           dog_id,
           dogs (

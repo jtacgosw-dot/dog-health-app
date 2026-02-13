@@ -83,7 +83,6 @@ router.post('/dev',
           .insert([{
             id: devUserId,
             apple_user_id: devAppleUserId,
-            apple_sub: devAppleSub,
             email: devEmail,
             full_name: 'Dev User',
             subscription_status: 'premium',
@@ -168,7 +167,6 @@ router.post('/guest',
           .insert([{
             id: formattedUserId,
             apple_user_id: guestId,
-            apple_sub: guestId,
             email: guestEmail,
             full_name: 'Guest User',
             subscription_status: 'free',
@@ -256,7 +254,7 @@ router.post('/register',
 
       const userId = require('crypto').randomUUID();
 
-      const { data: newUser, error: createError } = await supabase
+      let { data: newUser, error: createError } = await supabase
         .from('users')
         .insert([{
           id: userId,
@@ -264,10 +262,26 @@ router.post('/register',
           full_name: fullName,
           password_hash: passwordHash,
           auth_provider: 'email',
+          apple_user_id: 'email_' + userId,
           subscription_status: 'free'
         }])
         .select()
         .single();
+
+      if (createError && createError.message && createError.message.includes('column')) {
+        console.log('Falling back to minimal insert for email user (pre-migration schema)');
+        ({ data: newUser, error: createError } = await supabase
+          .from('users')
+          .insert([{
+            id: userId,
+            email: email.toLowerCase(),
+            full_name: fullName,
+            apple_user_id: 'email_' + userId,
+            subscription_status: 'free'
+          }])
+          .select()
+          .single());
+      }
 
       if (createError) {
         console.error('Failed to create user:', createError);
@@ -424,7 +438,8 @@ router.post('/google',
 
       if (!user) {
         const userId = require('crypto').randomUUID();
-        const { data: newUser, error: createError } = await supabase
+
+        let { data: newUser, error: createError } = await supabase
           .from('users')
           .insert([{
             id: userId,
@@ -432,20 +447,36 @@ router.post('/google',
             full_name: googleName,
             google_user_id: googleUserId,
             auth_provider: 'google',
+            apple_user_id: 'google_' + googleUserId,
             subscription_status: 'free'
           }])
           .select()
           .single();
+
+        if (createError && createError.message && createError.message.includes('column')) {
+          console.log('Falling back to minimal insert for Google user (pre-migration schema)');
+          ({ data: newUser, error: createError } = await supabase
+            .from('users')
+            .insert([{
+              id: userId,
+              email: googleEmail.toLowerCase(),
+              full_name: googleName,
+              apple_user_id: 'google_' + googleUserId,
+              subscription_status: 'free'
+            }])
+            .select()
+            .single());
+        }
 
         if (createError) {
           console.error('Failed to create Google user:', createError);
           return res.status(500).json({ error: 'Failed to create account', details: createError.message });
         }
         user = newUser;
-      } else if (!user.google_user_id) {
+      } else {
         await supabase
           .from('users')
-          .update({ google_user_id: googleUserId, auth_provider: user.auth_provider ? user.auth_provider + ',google' : 'google' })
+          .update({ last_login_at: new Date().toISOString() })
           .eq('id', user.id);
       }
 

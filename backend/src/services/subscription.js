@@ -1,6 +1,88 @@
 const supabase = require('./supabase');
 
 /**
+ * Process verified receipt info and update subscription in database
+ */
+async function processReceiptInfo(receiptResponse, userId) {
+  const latestReceiptInfo = receiptResponse.latest_receipt_info?.[0];
+  if (!latestReceiptInfo) {
+    throw new Error('No receipt info found');
+  }
+
+  const productId = latestReceiptInfo.product_id;
+  const transactionId = latestReceiptInfo.transaction_id;
+  const originalTransactionId = latestReceiptInfo.original_transaction_id;
+  const purchaseDate = new Date(parseInt(latestReceiptInfo.purchase_date_ms));
+  const expiresDate = latestReceiptInfo.expires_date_ms
+    ? new Date(parseInt(latestReceiptInfo.expires_date_ms))
+    : null;
+  const isTrial = latestReceiptInfo.is_trial_period === 'true';
+
+  const { data: existingSubscription } = await supabase
+    .from('subscriptions')
+    .select('*')
+    .eq('transaction_id', transactionId)
+    .single();
+
+  if (existingSubscription) {
+    const { error: updateError } = await supabase
+      .from('subscriptions')
+      .update({
+        expires_date: expiresDate,
+        is_active: expiresDate ? expiresDate > new Date() : true,
+        receipt_data: receiptResponse,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', existingSubscription.id);
+
+    if (updateError) {
+      throw new Error('Failed to update subscription');
+    }
+  } else {
+    const { error: insertError } = await supabase
+      .from('subscriptions')
+      .insert([{
+        user_id: userId,
+        product_id: productId,
+        transaction_id: transactionId,
+        original_transaction_id: originalTransactionId,
+        purchase_date: purchaseDate,
+        expires_date: expiresDate,
+        is_trial: isTrial,
+        is_active: expiresDate ? expiresDate > new Date() : true,
+        receipt_data: receiptResponse
+      }]);
+
+    if (insertError) {
+      throw new Error('Failed to create subscription record');
+    }
+  }
+
+  const subscriptionStatus = productId === 'pup_monthly' ? 'pup_monthly' : 'pup_annual';
+  const { error: userUpdateError } = await supabase
+    .from('users')
+    .update({
+      subscription_status: subscriptionStatus,
+      subscription_expires_at: expiresDate
+    })
+    .eq('id', userId);
+
+  if (userUpdateError) {
+    throw new Error('Failed to update user subscription status');
+  }
+
+  return {
+    success: true,
+    subscription: {
+      productId,
+      expiresDate,
+      isActive: expiresDate ? expiresDate > new Date() : true,
+      isTrial
+    }
+  };
+}
+
+/**
  * Verify App Store receipt and update subscription status
  * @param {string} receiptData - Base64 encoded receipt data
  * @param {string} userId - User ID
@@ -27,87 +109,25 @@ async function verifyReceipt(receiptData, userId) {
 
     if (receiptResponse.status !== 0) {
       if (receiptResponse.status === 21007 && isProduction) {
-        return verifyReceipt(receiptData, userId); // Retry with sandbox
+        const sandboxResponse = await fetch('https://sandbox.itunes.apple.com/verifyReceipt', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            'receipt-data': receiptData,
+            'password': process.env.APPLE_SHARED_SECRET,
+            'exclude-old-transactions': true
+          })
+        });
+        const sandboxResult = await sandboxResponse.json();
+        if (sandboxResult.status !== 0) {
+          throw new Error(`Receipt verification failed with status: ${sandboxResult.status}`);
+        }
+        return processReceiptInfo(sandboxResult, userId);
       }
       throw new Error(`Receipt verification failed with status: ${receiptResponse.status}`);
     }
 
-    const latestReceiptInfo = receiptResponse.latest_receipt_info?.[0];
-    if (!latestReceiptInfo) {
-      throw new Error('No receipt info found');
-    }
-
-    const productId = latestReceiptInfo.product_id;
-    const transactionId = latestReceiptInfo.transaction_id;
-    const originalTransactionId = latestReceiptInfo.original_transaction_id;
-    const purchaseDate = new Date(parseInt(latestReceiptInfo.purchase_date_ms));
-    const expiresDate = latestReceiptInfo.expires_date_ms
-      ? new Date(parseInt(latestReceiptInfo.expires_date_ms))
-      : null;
-    const isTrial = latestReceiptInfo.is_trial_period === 'true';
-
-    const { data: existingSubscription } = await supabase
-      .from('subscriptions')
-      .select('*')
-      .eq('transaction_id', transactionId)
-      .single();
-
-    if (existingSubscription) {
-      const { error: updateError } = await supabase
-        .from('subscriptions')
-        .update({
-          expires_date: expiresDate,
-          is_active: expiresDate ? expiresDate > new Date() : true,
-          receipt_data: receiptResponse,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', existingSubscription.id);
-
-      if (updateError) {
-        throw new Error('Failed to update subscription');
-      }
-    } else {
-      const { error: insertError } = await supabase
-        .from('subscriptions')
-        .insert([{
-          user_id: userId,
-          product_id: productId,
-          transaction_id: transactionId,
-          original_transaction_id: originalTransactionId,
-          purchase_date: purchaseDate,
-          expires_date: expiresDate,
-          is_trial: isTrial,
-          is_active: expiresDate ? expiresDate > new Date() : true,
-          receipt_data: receiptResponse
-        }]);
-
-      if (insertError) {
-        throw new Error('Failed to create subscription record');
-      }
-    }
-
-    const subscriptionStatus = productId === 'pup_monthly' ? 'pup_monthly' : 'pup_annual';
-    const { error: userUpdateError } = await supabase
-      .from('users')
-      .update({
-        subscription_status: subscriptionStatus,
-        subscription_expires_at: expiresDate
-      })
-      .eq('id', userId);
-
-    if (userUpdateError) {
-      throw new Error('Failed to update user subscription status');
-    }
-
-    return {
-      success: true,
-      subscription: {
-        productId,
-        expiresDate,
-        isActive: expiresDate ? expiresDate > new Date() : true,
-        isTrial
-      }
-    };
+    return processReceiptInfo(receiptResponse, userId);
   } catch (error) {
     console.error('Receipt verification error:', error);
     throw error;
