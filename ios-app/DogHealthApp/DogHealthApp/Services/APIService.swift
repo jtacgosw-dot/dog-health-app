@@ -271,7 +271,7 @@ class APIService {
     }
     
     func createDog(dog: Dog) async throws -> Dog {
-        var body: [String: Any] = ["name": dog.name]
+        var body: [String: Any] = ["name": dog.name, "id": dog.id]
         if !dog.breed.isEmpty { body["breed"] = dog.breed }
         let years = Int(dog.age)
         let months = Int((dog.age - Double(years)) * 12)
@@ -288,8 +288,8 @@ class APIService {
         return response.dog.toDog()
     }
     
-    func createDogProfile(name: String, breed: String?, ageYears: Int?, ageMonths: Int? = nil, weightLbs: Double?, sex: String?, allergies: String?, medicalHistory: String?) async throws {
-        var body: [String: Any] = ["name": name]
+    func createDogProfile(dogId: String, name: String, breed: String?, ageYears: Int?, ageMonths: Int? = nil, weightLbs: Double?, sex: String?, allergies: String?, medicalHistory: String?) async throws {
+        var body: [String: Any] = ["name": name, "id": dogId]
         if let breed = breed, !breed.isEmpty { body["breed"] = breed }
         if let ageYears = ageYears { body["ageYears"] = ageYears }
         if let ageMonths = ageMonths, ageMonths > 0 { body["ageMonths"] = ageMonths }
