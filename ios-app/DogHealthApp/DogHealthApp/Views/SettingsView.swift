@@ -12,6 +12,7 @@ struct SettingsView: View {
     @State private var showSignOutAlert = false
     @State private var showDeleteAccountAlert = false
     @State private var isDeletingAccount = false
+    @State private var deleteAccountError: String?
     @State private var showNotificationSettings = false
     @State private var showWeightTracking = false
     @State private var showPetReminders = false
@@ -232,12 +233,21 @@ struct SettingsView: View {
                         } catch {
                             await MainActor.run {
                                 isDeletingAccount = false
+                                deleteAccountError = "Failed to delete account. Please try again."
                             }
                         }
                     }
                 }
             } message: {
                 Text("This will permanently delete your account and all your data. This action cannot be undone.")
+            }
+            .alert("Error", isPresented: Binding(
+                get: { deleteAccountError != nil },
+                set: { if !$0 { deleteAccountError = nil } }
+            )) {
+                Button("OK", role: .cancel) { deleteAccountError = nil }
+            } message: {
+                Text(deleteAccountError ?? "")
             }
             .sheet(isPresented: $showNotificationSettings) {
                 NavigationView {
