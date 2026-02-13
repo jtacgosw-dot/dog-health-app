@@ -260,10 +260,9 @@ router.post('/register',
         .from('users')
         .insert([{
           id: userId,
+          apple_user_id: 'email_' + userId,
           email: email.toLowerCase(),
           full_name: fullName,
-          password_hash: passwordHash,
-          auth_provider: 'email',
           subscription_status: 'free'
         }])
         .select()
@@ -428,10 +427,9 @@ router.post('/google',
           .from('users')
           .insert([{
             id: userId,
+            apple_user_id: 'google_' + googleUserId,
             email: googleEmail.toLowerCase(),
             full_name: googleName,
-            google_user_id: googleUserId,
-            auth_provider: 'google',
             subscription_status: 'free'
           }])
           .select()
@@ -442,11 +440,6 @@ router.post('/google',
           return res.status(500).json({ error: 'Failed to create account', details: createError.message });
         }
         user = newUser;
-      } else if (!user.google_user_id) {
-        await supabase
-          .from('users')
-          .update({ google_user_id: googleUserId, auth_provider: user.auth_provider ? user.auth_provider + ',google' : 'google' })
-          .eq('id', user.id);
       }
 
       const jwtSecret = process.env.JWT_SECRET;
