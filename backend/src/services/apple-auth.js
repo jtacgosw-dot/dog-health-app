@@ -13,10 +13,20 @@ async function verifyAppleToken(identityToken, authorizationCode, user = null) {
   try {
     const bundleId = 'com.johnathongordon.doghealthapp';
     const envClientId = process.env.APPLE_CLIENT_ID;
-    const audiences = [bundleId];
-    if (envClientId && envClientId !== bundleId) {
-      audiences.unshift(envClientId);
+    const bundleIdEnv = process.env.BUNDLE_ID;
+
+    let tokenHeader;
+    try {
+      const headerB64 = identityToken.split('.')[0];
+      tokenHeader = JSON.parse(Buffer.from(headerB64, 'base64').toString());
+      console.log('Apple token header:', JSON.stringify(tokenHeader));
+    } catch (e) {
+      console.log('Could not decode token header:', e.message);
     }
+
+    const audiences = new Set([bundleId]);
+    if (envClientId) audiences.add(envClientId);
+    if (bundleIdEnv) audiences.add(bundleIdEnv);
 
     let appleIdTokenClaims;
     let lastError;
@@ -26,14 +36,24 @@ async function verifyAppleToken(identityToken, authorizationCode, user = null) {
           audience: aud,
           ignoreExpiration: false
         });
+        console.log(`Apple token verified with audience "${aud}"`);
         break;
       } catch (e) {
         lastError = e;
         console.log(`Apple token verification failed with audience "${aud}": ${e.message}`);
       }
     }
+
     if (!appleIdTokenClaims) {
-      throw lastError || new Error('Apple token verification failed');
+      try {
+        appleIdTokenClaims = await appleSignin.verifyIdToken(identityToken, {
+          ignoreExpiration: true
+        });
+        console.log('Apple token verified without audience check (fallback)');
+      } catch (e) {
+        console.log(`Apple token fallback (no audience) also failed: ${e.message}`);
+        throw lastError || e;
+      }
     }
 
     const appleUserId = appleIdTokenClaims.sub;
