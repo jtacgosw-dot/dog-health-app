@@ -20,6 +20,7 @@
 		HEALTHLOGSYNC001000000001 /* HealthLogSyncService.swift in Sources */ = {isa = PBXBuildFile; fileRef = HEALTHLOGSYNC002000000001 /* HealthLogSyncService.swift */; };
 		GOOGLESIGNIN0001000000001 /* GoogleSignInManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = GOOGLESIGNIN0002000000001 /* GoogleSignInManager.swift */; };
 		APPLESIGNIN00001000000001 /* AppleSignInManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = APPLESIGNIN00002000000001 /* AppleSignInManager.swift */; };
+		STOREKITMGR00001000000001 /* StoreKitManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = STOREKITMGR00002000000001 /* StoreKitManager.swift */; };
 		NOTIFSETTINGS001000000001 /* NotificationSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = NOTIFSETTINGS002000000001 /* NotificationSettingsView.swift */; };
 		WEIGHTTRACK0001000000001 /* WeightTrackingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = WEIGHTTRACK0002000000001 /* WeightTrackingView.swift */; };
 		2789FA520A6842ECA2DA30AB /* HomeDashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E846120EE184CE98CF7FC84 /* HomeDashboardView.swift */; };
@@ -81,6 +82,7 @@
 		HEALTHLOGSYNC002000000001 /* HealthLogSyncService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthLogSyncService.swift; sourceTree = "<group>"; };
 		GOOGLESIGNIN0002000000001 /* GoogleSignInManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GoogleSignInManager.swift; sourceTree = "<group>"; };
 		APPLESIGNIN00002000000001 /* AppleSignInManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppleSignInManager.swift; sourceTree = "<group>"; };
+		STOREKITMGR00002000000001 /* StoreKitManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoreKitManager.swift; sourceTree = "<group>"; };
 		NOTIFSETTINGS002000000001 /* NotificationSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationSettingsView.swift; sourceTree = "<group>"; };
 		WEIGHTTRACK0002000000001 /* WeightTrackingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeightTrackingView.swift; sourceTree = "<group>"; };
 		0E846120EE184CE98CF7FC84 /* HomeDashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeDashboardView.swift; sourceTree = "<group>"; };
@@ -242,6 +244,7 @@
 			HEALTHLOGSYNC002000000001 /* HealthLogSyncService.swift */,
 			GOOGLESIGNIN0002000000001 /* GoogleSignInManager.swift */,
 			APPLESIGNIN00002000000001 /* AppleSignInManager.swift */,
+			STOREKITMGR00002000000001 /* StoreKitManager.swift */,
 		);
 		path = Services;
 		sourceTree = "<group>";
@@ -354,6 +357,7 @@
 				HEALTHLOGSYNC001000000001 /* HealthLogSyncService.swift in Sources */,
 				GOOGLESIGNIN0001000000001 /* GoogleSignInManager.swift in Sources */,
 				APPLESIGNIN00001000000001 /* AppleSignInManager.swift in Sources */,
+				STOREKITMGR00001000000001 /* StoreKitManager.swift in Sources */,
 				NOTIFSETTINGS001000000001 /* NotificationSettingsView.swift in Sources */,
 				WEIGHTTRACK0001000000001 /* WeightTrackingView.swift in Sources */,
 				2789FA520A6842ECA2DA30AB /* HomeDashboardView.swift in Sources */,
