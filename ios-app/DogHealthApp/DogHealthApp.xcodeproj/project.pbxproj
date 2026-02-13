@@ -44,6 +44,13 @@
 		DAILYHEALTHREVIEW0001 /* DailyHealthReviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DAILYHEALTHREVIEW0002 /* DailyHealthReviewView.swift */; };
 		PREVENTATIVECARE00001 /* PreventativeCareView.swift in Sources */ = {isa = PBXBuildFile; fileRef = PREVENTATIVECARE00002 /* PreventativeCareView.swift */; };
 		SMARTINSIGHTSVIEW0001 /* SmartInsightsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = SMARTINSIGHTSVIEW0002 /* SmartInsightsView.swift */; };
+		CHATHISTORYVIEW0000001 /* ChatHistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CHATHISTORYVIEW0000002 /* ChatHistoryView.swift */; };
+		AIINSIGHTSDASH00000001 /* AIInsightsDashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AIINSIGHTSDASH00000002 /* AIInsightsDashboardView.swift */; };
+		HEALTHLOGTEMPL00000001 /* HealthLogTemplatesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = HEALTHLOGTEMPL00000002 /* HealthLogTemplatesView.swift */; };
+		MEDICATIONSCHED0000001 /* MedicationScheduleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = MEDICATIONSCHED0000002 /* MedicationScheduleView.swift */; };
+		CAREPLANSYNC0000000001 /* CarePlanSyncService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAREPLANSYNC0000000002 /* CarePlanSyncService.swift */; };
+		REMINDERSYNC0000000001 /* ReminderSyncService.swift in Sources */ = {isa = PBXBuildFile; fileRef = REMINDERSYNC0000000002 /* ReminderSyncService.swift */; };
+		QUICKLOGINTENTS0000001 /* QuickLogIntents.swift in Sources */ = {isa = PBXBuildFile; fileRef = QUICKLOGINTENTS0000002 /* QuickLogIntents.swift */; };
 		A1000001000000000000001 /* DogHealthAppApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000002000000000000001 /* DogHealthAppApp.swift */; };
 		A1000003000000000000001 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000004000000000000001 /* ContentView.swift */; };
 		A1000005000000000000001 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A1000006000000000000001 /* Assets.xcassets */; };
@@ -106,6 +113,13 @@
 		DAILYHEALTHREVIEW0002 /* DailyHealthReviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DailyHealthReviewView.swift; sourceTree = "<group>"; };
 		PREVENTATIVECARE00002 /* PreventativeCareView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreventativeCareView.swift; sourceTree = "<group>"; };
 		SMARTINSIGHTSVIEW0002 /* SmartInsightsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmartInsightsView.swift; sourceTree = "<group>"; };
+		CHATHISTORYVIEW0000002 /* ChatHistoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatHistoryView.swift; sourceTree = "<group>"; };
+		AIINSIGHTSDASH00000002 /* AIInsightsDashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIInsightsDashboardView.swift; sourceTree = "<group>"; };
+		HEALTHLOGTEMPL00000002 /* HealthLogTemplatesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthLogTemplatesView.swift; sourceTree = "<group>"; };
+		MEDICATIONSCHED0000002 /* MedicationScheduleView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MedicationScheduleView.swift; sourceTree = "<group>"; };
+		CAREPLANSYNC0000000002 /* CarePlanSyncService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CarePlanSyncService.swift; sourceTree = "<group>"; };
+		REMINDERSYNC0000000002 /* ReminderSyncService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReminderSyncService.swift; sourceTree = "<group>"; };
+		QUICKLOGINTENTS0000002 /* QuickLogIntents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuickLogIntents.swift; sourceTree = "<group>"; };
 		A1000017000000000000001 /* DogHealthApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DogHealthApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A1000002000000000000001 /* DogHealthAppApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DogHealthAppApp.swift; sourceTree = "<group>"; };
 		A1000004000000000000001 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -162,6 +176,7 @@
 				A1000052000000000000001 /* Services */,
 				A1000053000000000000001 /* Config */,
 				ENTITLEMENTS0000000000001 /* DogHealthApp.entitlements */,
+				APPINTENTSGRP00000000001 /* AppIntents */,
 );
 			path = DogHealthApp;
 			sourceTree = "<group>";
@@ -208,6 +223,10 @@
 				SYMPTOMTRIAGEVIEW00002 /* SymptomTriageView.swift */,
 				CAREPLANVIEW000000002 /* CarePlanView.swift */,
 				VETVISITPACK000000002 /* VetVisitPackView.swift */,
+				CHATHISTORYVIEW0000002 /* ChatHistoryView.swift */,
+				AIINSIGHTSDASH00000002 /* AIInsightsDashboardView.swift */,
+				HEALTHLOGTEMPL00000002 /* HealthLogTemplatesView.swift */,
+				MEDICATIONSCHED0000002 /* MedicationScheduleView.swift */,
 );
 			path = Views;
 			sourceTree = "<group>";
@@ -244,7 +263,9 @@
 			HEALTHLOGSYNC002000000001 /* HealthLogSyncService.swift */,
 			GOOGLESIGNIN0002000000001 /* GoogleSignInManager.swift */,
 			APPLESIGNIN00002000000001 /* AppleSignInManager.swift */,
-			STOREKITMGR00002000000001 /* StoreKitManager.swift */,
+		STOREKITMGR00002000000001 /* StoreKitManager.swift */,
+			CAREPLANSYNC0000000002 /* CarePlanSyncService.swift */,
+			REMINDERSYNC0000000002 /* ReminderSyncService.swift */,
 		);
 		path = Services;
 		sourceTree = "<group>";
@@ -255,6 +276,14 @@
 			A1000016000000000000001 /* APIConfig.swift */,
 		);
 		path = Config;
+		sourceTree = "<group>";
+	};
+	APPINTENTSGRP00000000001 /* AppIntents */ = {
+		isa = PBXGroup;
+		children = (
+			QUICKLOGINTENTS0000002 /* QuickLogIntents.swift */,
+		);
+		path = AppIntents;
 		sourceTree = "<group>";
 	};
 /* End PBXGroup section */
@@ -388,6 +417,13 @@
 				DAILYHEALTHREVIEW0001 /* DailyHealthReviewView.swift in Sources */,
 				PREVENTATIVECARE00001 /* PreventativeCareView.swift in Sources */,
 				SMARTINSIGHTSVIEW0001 /* SmartInsightsView.swift in Sources */,
+				CHATHISTORYVIEW0000001 /* ChatHistoryView.swift in Sources */,
+				AIINSIGHTSDASH00000001 /* AIInsightsDashboardView.swift in Sources */,
+				HEALTHLOGTEMPL00000001 /* HealthLogTemplatesView.swift in Sources */,
+				MEDICATIONSCHED0000001 /* MedicationScheduleView.swift in Sources */,
+				CAREPLANSYNC0000000001 /* CarePlanSyncService.swift in Sources */,
+				REMINDERSYNC0000000001 /* ReminderSyncService.swift in Sources */,
+				QUICKLOGINTENTS0000001 /* QuickLogIntents.swift in Sources */,
 );
 			runOnlyForDeploymentPostprocessing = 0;
 		};
