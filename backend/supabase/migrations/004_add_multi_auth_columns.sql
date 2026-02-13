@@ -23,6 +23,9 @@ ALTER TABLE users ADD COLUMN IF NOT EXISTS password_hash VARCHAR(255);
 -- (The backend code provides a workaround value, but this is the proper fix)
 ALTER TABLE users ALTER COLUMN apple_user_id DROP NOT NULL;
 
+-- Make apple_sub nullable so non-Apple auth methods can create users
+ALTER TABLE users ALTER COLUMN apple_sub DROP NOT NULL;
+
 -- Add unique index on google_user_id (only for non-null values)
 CREATE UNIQUE INDEX IF NOT EXISTS idx_users_google_user_id
     ON users(google_user_id) WHERE google_user_id IS NOT NULL;
