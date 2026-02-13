@@ -11,8 +11,9 @@ const supabase = require('./supabase');
  */
 async function verifyAppleToken(identityToken, authorizationCode, user = null) {
   try {
+    const clientId = process.env.APPLE_CLIENT_ID || 'com.johnathongordon.doghealthapp';
     const appleIdTokenClaims = await appleSignin.verifyIdToken(identityToken, {
-      audience: process.env.APPLE_CLIENT_ID,
+      audience: clientId,
       ignoreExpiration: false
     });
 
@@ -43,6 +44,7 @@ async function verifyAppleToken(identityToken, authorizationCode, user = null) {
     } else {
       const newUser = {
         apple_user_id: appleUserId,
+        apple_sub: appleUserId,
         email: email || null,
         full_name: user?.name ? `${user.name.firstName || ''} ${user.name.lastName || ''}`.trim() : null,
         subscription_status: 'free',
@@ -73,8 +75,8 @@ async function verifyAppleToken(identityToken, authorizationCode, user = null) {
       token: jwtToken
     };
   } catch (error) {
-    console.error('Apple Sign In verification error:', error);
-    throw new Error('Failed to verify Apple Sign In token');
+    console.error('Apple Sign In verification error:', error.message || error);
+    throw error;
   }
 }
 
