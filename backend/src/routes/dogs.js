@@ -85,6 +85,7 @@ router.post('/',
   authenticateToken,
   [
     body('name').notEmpty().withMessage('Dog name is required'),
+    body('id').optional().isUUID().withMessage('ID must be a valid UUID'),
     body('breed').optional().isString(),
     body('ageYears').optional().isInt({ min: 0 }).withMessage('Age years must be a positive integer'),
     body('ageMonths').optional().isInt({ min: 0, max: 11 }).withMessage('Age months must be between 0 and 11'),
@@ -104,6 +105,7 @@ router.post('/',
 
       const userId = req.user.id;
       const {
+        id: clientId,
         name,
         breed,
         ageYears,
@@ -119,6 +121,7 @@ router.post('/',
       const newDog = {
         user_id: userId,
         name,
+        ...(clientId && { id: clientId }),
         breed: breed || null,
         age_years: ageYears || null,
         age_months: ageMonths || null,

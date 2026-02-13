@@ -716,6 +716,7 @@ struct NewOnboardingView: View {
         Task {
             do {
                 try await APIService.shared.createDogProfile(
+                    dogId: localDog.id,
                     name: petName,
                     breed: petBreed,
                     ageYears: Int(ageDouble),
