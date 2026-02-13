@@ -68,13 +68,15 @@ struct DogHealthAppApp: App {
                         }
                     }
                     
-                    // Check StoreKit subscription status
-                    Task {
-                        await StoreKitManager.shared.updatePurchasedProducts()
-                        await MainActor.run {
-                            appState.hasActiveSubscription = StoreKitManager.shared.hasActiveSubscription
+                        // Check StoreKit subscription status (only upgrade, never downgrade)
+                        Task {
+                            await StoreKitManager.shared.updatePurchasedProducts()
+                            await MainActor.run {
+                                if StoreKitManager.shared.hasActiveSubscription {
+                                    appState.hasActiveSubscription = true
+                                }
+                            }
                         }
-                    }
                 }
         }
     }
@@ -83,7 +85,13 @@ struct DogHealthAppApp: App {
 class AppState: ObservableObject {
     @Published var hasCompletedOnboarding: Bool = false
     @Published var isSignedIn: Bool = false
-    @Published var hasActiveSubscription: Bool = false
+    @Published var hasActiveSubscription: Bool = false {
+        didSet {
+            if hasActiveSubscription {
+                UserDefaults.standard.set(true, forKey: "hasCompletedPaywall")
+            }
+        }
+    }
     @Published var currentUser: User?
     @Published var currentDog: Dog? {
         didSet {
@@ -100,12 +108,13 @@ class AppState: ObservableObject {
         if APIService.shared.getAuthToken() != nil {
             isSignedIn = true
             hasCompletedOnboarding = true
+            hasActiveSubscription = UserDefaults.standard.bool(forKey: "hasCompletedPaywall")
             
             // Load local dogs immediately so currentDog is available for pet photo
             loadLocalDogs()
             // Load pet photo after dogs are loaded
             loadPetPhoto()
-            print("[AppState] init: Loaded from existing auth token, currentDog: \(currentDog?.id ?? "nil")")
+            print("[AppState] init: Loaded from existing auth token, hasActiveSubscription: \(hasActiveSubscription), currentDog: \(currentDog?.id ?? "nil")")
         }
         
         #if DEBUG
@@ -145,7 +154,9 @@ class AppState: ObservableObject {
         do {
             let entitlements = try await APIService.shared.checkEntitlements()
             await MainActor.run {
-                hasActiveSubscription = entitlements.hasActiveSubscription
+                if entitlements.hasActiveSubscription {
+                    hasActiveSubscription = true
+                }
             }
             
             let dogs = try await APIService.shared.getDogs()
@@ -167,6 +178,7 @@ class AppState: ObservableObject {
             APIService.shared.clearAuthToken()
             isSignedIn = false
             hasActiveSubscription = false
+            UserDefaults.standard.removeObject(forKey: "hasCompletedPaywall")
             currentUser = nil
             currentDog = nil
             dogs = []
@@ -309,6 +321,17 @@ class AppState: ObservableObject {
         }
     }
     
+    private func downsampledJPEG(_ data: Data, maxDimension: CGFloat = 600) -> Data {
+        guard let image = UIImage(data: data) else { return data }
+        let size = image.size
+        let ratio = min(maxDimension / size.width, maxDimension / size.height)
+        if ratio >= 1 { return image.jpegData(compressionQuality: 0.7) ?? data }
+        let newSize = CGSize(width: size.width * ratio, height: size.height * ratio)
+        let renderer = UIGraphicsImageRenderer(size: newSize)
+        let resized = renderer.image { _ in image.draw(in: CGRect(origin: .zero, size: newSize)) }
+        return resized.jpegData(compressionQuality: 0.7) ?? data
+    }
+    
     func savePetPhoto(_ data: Data?) {
         guard let dogId = currentDog?.id else {
             print("[AppState] savePetPhoto: No current dog")
@@ -319,8 +342,9 @@ class AppState: ObservableObject {
         
         do {
             if let data = data {
-                try data.write(to: photoURL, options: .atomic)
-                petPhotoData = data
+                let optimized = downsampledJPEG(data)
+                try optimized.write(to: photoURL, options: .atomic)
+                petPhotoData = optimized
                 print("[AppState] savePetPhoto: Saved \(data.count) bytes for dog \(dogId)")
             } else {
                 if FileManager.default.fileExists(atPath: photoURL.path) {
