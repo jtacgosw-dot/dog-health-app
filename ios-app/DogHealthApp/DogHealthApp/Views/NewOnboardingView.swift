@@ -20,6 +20,7 @@ struct NewOnboardingView: View {
     @State private var petHealthConditions = ""
     @State private var isLoading = false
     @State private var errorMessage: String?
+    @State private var showInterestWarning = false
     
     let interests: [(String, String)] = [
         ("fork.knife", "Nutrition"),
@@ -434,13 +435,14 @@ struct NewOnboardingView: View {
                         title: title,
                         isSelected: selectedInterests.contains(title)
                     ) {
-                        withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-                            if selectedInterests.contains(title) {
-                                selectedInterests.remove(title)
-                            } else {
-                                selectedInterests.insert(title)
+                            withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                                if selectedInterests.contains(title) {
+                                    selectedInterests.remove(title)
+                                } else {
+                                    selectedInterests.insert(title)
+                                }
+                                showInterestWarning = false
                             }
-                        }
                     }
                 }
             }
@@ -459,7 +461,21 @@ struct NewOnboardingView: View {
             .padding(.leading, 8)
             .padding(.bottom, -47)
             
+            if showInterestWarning {
+                Text("Please select at least 1 interest")
+                    .font(.petlyBody(12))
+                    .foregroundColor(.red)
+                    .padding(.bottom, 4)
+            }
+            
             Button(action: {
+                if selectedInterests.isEmpty {
+                    withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                        showInterestWarning = true
+                    }
+                    return
+                }
+                showInterestWarning = false
                 UserDefaults.standard.set(Array(selectedInterests), forKey: "userInterests")
                 withAnimation(.spring(response: 0.5, dampingFraction: 0.7)) {
                     appState.hasCompletedOnboarding = true
@@ -470,11 +486,10 @@ struct NewOnboardingView: View {
                     .foregroundColor(.white)
                     .frame(maxWidth: .infinity)
                     .padding()
-                    .background(selectedInterests.isEmpty ? Color.petlyFormIcon : Color.petlyDarkGreen)
+                    .background(Color.petlyDarkGreen)
                     .cornerRadius(12)
-                    .shadow(color: (selectedInterests.isEmpty ? Color.petlyFormIcon : Color.petlyDarkGreen).opacity(0.3), radius: 8, x: 0, y: 4)
+                    .shadow(color: Color.petlyDarkGreen.opacity(0.3), radius: 8, x: 0, y: 4)
             }
-            .disabled(selectedInterests.isEmpty)
             .padding(.horizontal)
             .padding(.bottom, 10)
             
