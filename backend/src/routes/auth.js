@@ -83,6 +83,7 @@ router.post('/dev',
           .insert([{
             id: devUserId,
             apple_user_id: devAppleUserId,
+            apple_sub: devAppleSub,
             email: devEmail,
             full_name: 'Dev User',
             subscription_status: 'premium',
@@ -167,6 +168,7 @@ router.post('/guest',
           .insert([{
             id: formattedUserId,
             apple_user_id: guestId,
+            apple_sub: guestId,
             email: guestEmail,
             full_name: 'Guest User',
             subscription_status: 'free',
@@ -263,6 +265,7 @@ router.post('/register',
           password_hash: passwordHash,
           auth_provider: 'email',
           apple_user_id: 'email_' + userId,
+          apple_sub: 'email_' + userId,
           subscription_status: 'free'
         }])
         .select()
@@ -277,6 +280,7 @@ router.post('/register',
             email: email.toLowerCase(),
             full_name: fullName,
             apple_user_id: 'email_' + userId,
+            apple_sub: 'email_' + userId,
             subscription_status: 'free'
           }])
           .select()
@@ -448,6 +452,7 @@ router.post('/google',
             google_user_id: googleUserId,
             auth_provider: 'google',
             apple_user_id: 'google_' + googleUserId,
+            apple_sub: 'google_' + googleUserId,
             subscription_status: 'free'
           }])
           .select()
@@ -462,6 +467,7 @@ router.post('/google',
               email: googleEmail.toLowerCase(),
               full_name: googleName,
               apple_user_id: 'google_' + googleUserId,
+              apple_sub: 'google_' + googleUserId,
               subscription_status: 'free'
             }])
             .select()
