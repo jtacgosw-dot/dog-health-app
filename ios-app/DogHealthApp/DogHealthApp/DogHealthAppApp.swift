@@ -124,7 +124,6 @@ class AppState: ObservableObject {
                 setupDebugUserAndDog()
                 print("[AppState] init: Returning user, set up debug user and dog, currentDog: \(currentDog?.id ?? "nil")")
             } else {
-                hasActiveSubscription = true
                 print("[AppState] init: Fresh install, showing onboarding")
             }
         }
@@ -161,12 +160,20 @@ class AppState: ObservableObject {
             
             let dogs = try await APIService.shared.getDogs()
             await MainActor.run {
-                self.dogs = dogs
-                if let firstDog = dogs.first {
+                var seen = Set<String>()
+                var uniqueDogs: [Dog] = []
+                for dog in dogs {
+                    let key = dog.name.lowercased().trimmingCharacters(in: .whitespaces)
+                    if !seen.contains(key) {
+                        seen.insert(key)
+                        uniqueDogs.append(dog)
+                    }
+                }
+                self.dogs = uniqueDogs
+                if let firstDog = uniqueDogs.first {
                     self.currentDog = firstDog
                 }
-                // Save dogs locally for offline access and photo persistence
-                saveLocalDogs(dogs)
+                saveLocalDogs(uniqueDogs)
             }
         } catch {
             print("Failed to load user data: \(error)")
@@ -192,9 +199,9 @@ class AppState: ObservableObject {
         }
     
         #if DEBUG
-        private func setupDebugUserAndDog() {
-            hasCompletedOnboarding = true
-            hasActiveSubscription = true
+            private func setupDebugUserAndDog() {
+                hasCompletedOnboarding = true
+                hasActiveSubscription = UserDefaults.standard.bool(forKey: "hasCompletedPaywall")
         
             let savedOwnerName = UserDefaults.standard.string(forKey: "ownerName") ?? "Pet Parent"
         

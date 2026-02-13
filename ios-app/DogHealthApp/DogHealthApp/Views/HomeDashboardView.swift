@@ -179,10 +179,6 @@ struct HomeDashboardView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 20) {
                     VStack(alignment: .leading, spacing: 12) {
-                        if appState.dogs.count > 1 {
-                            PetSwitcherButton(showPetSwitcher: $showPetSwitcher)
-                        }
-                            
                             HStack {
                                 VStack(alignment: .leading, spacing: 4) {
                                     Text("\(greeting), \(userName).")
