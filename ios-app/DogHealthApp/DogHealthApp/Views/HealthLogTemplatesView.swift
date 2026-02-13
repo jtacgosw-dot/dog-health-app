@@ -244,8 +244,8 @@ struct HealthLogTemplatesView: View {
             mealType: template.mealType,
             amount: template.amount,
             duration: template.duration,
-            treatName: template.treatName,
             supplementName: template.supplementName,
+            treatName: template.treatName,
             dosage: template.dosage
         )
         
