@@ -267,13 +267,25 @@ class APIService {
     
     func getDogs() async throws -> [Dog] {
         let response: DogsResponse = try await makeRequest(endpoint: "/dogs")
-        return response.dogs
+        return response.dogs.map { $0.toDog() }
     }
     
     func createDog(dog: Dog) async throws -> Dog {
-        let data = try JSONEncoder().encode(dog)
+        var body: [String: Any] = ["name": dog.name]
+        if !dog.breed.isEmpty { body["breed"] = dog.breed }
+        let years = Int(dog.age)
+        let months = Int((dog.age - Double(years)) * 12)
+        if years > 0 { body["ageYears"] = years }
+        if months > 0 { body["ageMonths"] = months }
+        if let w = dog.weight { body["weightLbs"] = w }
+        if let s = dog.sex { body["sex"] = s }
+        if let n = dog.isNeutered { body["isNeutered"] = n }
+        if let m = dog.medicalHistory, !m.isEmpty { body["medicalHistory"] = m }
+        if !dog.allergies.isEmpty { body["allergies"] = dog.allergies.joined(separator: ", ") }
+        if let c = dog.currentMedications, !c.isEmpty { body["currentMedications"] = c }
+        let data = try JSONSerialization.data(withJSONObject: body)
         let response: DogResponse = try await makeRequest(endpoint: "/dogs", method: "POST", body: data)
-        return response.dog
+        return response.dog.toDog()
     }
     
     func createDogProfile(name: String, breed: String?, ageYears: Int?, ageMonths: Int? = nil, weightLbs: Double?, sex: String?, allergies: String?, medicalHistory: String?) async throws {
@@ -290,9 +302,21 @@ class APIService {
     }
     
     func updateDog(dog: Dog) async throws -> Dog {
-        let data = try JSONEncoder().encode(dog)
+        var body: [String: Any] = ["name": dog.name]
+        body["breed"] = dog.breed
+        let years = Int(dog.age)
+        let months = Int((dog.age - Double(years)) * 12)
+        body["ageYears"] = years
+        body["ageMonths"] = months
+        if let w = dog.weight { body["weightLbs"] = w }
+        if let s = dog.sex { body["sex"] = s }
+        if let n = dog.isNeutered { body["isNeutered"] = n }
+        if let m = dog.medicalHistory { body["medicalHistory"] = m }
+        body["allergies"] = dog.allergies.joined(separator: ", ")
+        if let c = dog.currentMedications { body["currentMedications"] = c }
+        let data = try JSONSerialization.data(withJSONObject: body)
         let response: DogResponse = try await makeRequest(endpoint: "/dogs/\(dog.id)", method: "PUT", body: data)
-        return response.dog
+        return response.dog.toDog()
     }
     
     func checkEntitlements() async throws -> EntitlementsResponse {
@@ -649,12 +673,80 @@ struct ServerMessage: Codable {
     }
 }
 
+struct ServerDog: Codable {
+    let id: String
+    let userId: String?
+    let name: String
+    let breed: String?
+    let ageYears: Int?
+    let ageMonths: Int?
+    let weightLbs: Double?
+    let sex: String?
+    let isNeutered: Bool?
+    let medicalHistory: String?
+    let allergies: String?
+    let currentMedications: String?
+    let isActive: Bool?
+    let createdAt: String
+    let updatedAt: String
+    
+    enum CodingKeys: String, CodingKey {
+        case id
+        case userId = "user_id"
+        case name
+        case breed
+        case ageYears = "age_years"
+        case ageMonths = "age_months"
+        case weightLbs = "weight_lbs"
+        case sex
+        case isNeutered = "is_neutered"
+        case medicalHistory = "medical_history"
+        case allergies
+        case currentMedications = "current_medications"
+        case isActive = "is_active"
+        case createdAt = "created_at"
+        case updatedAt = "updated_at"
+    }
+    
+    func toDog() -> Dog {
+        let ageDouble: Double = {
+            let years = Double(ageYears ?? 0)
+            let months = Double(ageMonths ?? 0) / 12.0
+            return years + months
+        }()
+        
+        let allergiesArray: [String] = {
+            guard let allergies = allergies, !allergies.isEmpty else { return [] }
+            return allergies.split(separator: ",").map { $0.trimmingCharacters(in: .whitespaces) }
+        }()
+        
+        let createdDate = APIService.parseServerDate(createdAt) ?? Date()
+        let updatedDate = APIService.parseServerDate(updatedAt) ?? Date()
+        
+        return Dog(
+            id: id,
+            name: name,
+            breed: breed ?? "Unknown",
+            age: ageDouble,
+            weight: weightLbs,
+            healthConcerns: [],
+            allergies: allergiesArray,
+            createdAt: createdDate,
+            updatedAt: updatedDate,
+            sex: sex,
+            isNeutered: isNeutered,
+            medicalHistory: medicalHistory,
+            currentMedications: currentMedications
+        )
+    }
+}
+
 struct DogsResponse: Codable {
-    let dogs: [Dog]
+    let dogs: [ServerDog]
 }
 
 struct DogResponse: Codable {
-    let dog: Dog
+    let dog: ServerDog
 }
 
 struct EntitlementsResponse: Codable {
