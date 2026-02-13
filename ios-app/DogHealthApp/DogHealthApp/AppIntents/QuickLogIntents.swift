@@ -202,7 +202,7 @@ struct DogHealthAppShortcuts: AppShortcutsProvider {
             phrases: [
                 "Log walk in \(.applicationName)",
                 "Record walk in \(.applicationName)",
-                "Log \(\.$duration) minute walk in \(.applicationName)"
+                "Log a walk in \(.applicationName)"
             ],
             shortTitle: "Log Walk",
             systemImageName: "figure.walk"
@@ -233,7 +233,7 @@ struct DogHealthAppShortcuts: AppShortcutsProvider {
             phrases: [
                 "Log medication in \(.applicationName)",
                 "Record medication in \(.applicationName)",
-                "Log \(\.$medicationName) in \(.applicationName)"
+                "Log a medication in \(.applicationName)"
             ],
             shortTitle: "Log Medication",
             systemImageName: "pills.fill"
