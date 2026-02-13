@@ -6,6 +6,7 @@ const { OAuth2Client } = require('google-auth-library');
 const { verifyAppleToken } = require('../services/apple-auth');
 const { body, validationResult } = require('express-validator');
 const supabase = require('../services/supabase');
+const { authenticateToken } = require('../middleware/auth');
 
 const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
@@ -494,12 +495,6 @@ router.post('/google',
     }
   }
 );
-
-/**
- * DELETE /api/auth/account
- * Delete the authenticated user's account and all associated data
- */
-const { authenticateToken } = require('../middleware/auth');
 
 router.delete('/account',
   authenticateToken,
