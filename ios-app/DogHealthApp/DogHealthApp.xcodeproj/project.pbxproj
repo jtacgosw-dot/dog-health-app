@@ -354,7 +354,7 @@
 				HEALTHLOGSYNC001000000001 /* HealthLogSyncService.swift in Sources */,
 				GOOGLESIGNIN0001000000001 /* GoogleSignInManager.swift in Sources */,
 				APPLESIGNIN00001000000001 /* AppleSignInManager.swift in Sources */,
-				NOTIFSETTINGS001000000001/* NotificationSettingsView.swift in Sources */,
+				NOTIFSETTINGS001000000001 /* NotificationSettingsView.swift in Sources */,
 				WEIGHTTRACK0001000000001 /* WeightTrackingView.swift in Sources */,
 				2789FA520A6842ECA2DA30AB /* HomeDashboardView.swift in Sources */,
 				HEALTHLOG0001000000000001 /* HealthLogEntry.swift in Sources */,
