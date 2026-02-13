@@ -245,8 +245,8 @@ struct HealthLogTemplatesView: View {
             amount: template.amount,
             duration: template.duration,
             supplementName: template.supplementName,
-            treatName: template.treatName,
-            dosage: template.dosage
+            dosage: template.dosage,
+            treatName: template.treatName
         )
         
         modelContext.insert(entry)
