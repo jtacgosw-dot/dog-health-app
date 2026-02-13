@@ -41,8 +41,36 @@ router.post('/verify',
 );
 
 /**
- * GET /api/entitlements
+ * GET / (mounted at /api/entitlements)
  * Check user's subscription entitlements
+ */
+router.get('/',
+  authenticateToken,
+  async (req, res) => {
+    try {
+      const userId = req.user.id;
+
+      const status = await checkSubscriptionStatus(userId);
+
+      res.status(200).json({
+        hasActiveSubscription: status.isSubscribed,
+        subscriptionStatus: status.subscriptionType || 'free',
+        expiresAt: status.expiresAt || null
+      });
+    } catch (error) {
+      console.error('Entitlements check error:', error);
+      res.status(500).json({
+        hasActiveSubscription: false,
+        subscriptionStatus: 'free',
+        error: 'Failed to check entitlements'
+      });
+    }
+  }
+);
+
+/**
+ * GET /entitlements (mounted at /api/iap/entitlements)
+ * Check user's subscription entitlements (legacy path)
  */
 router.get('/entitlements',
   authenticateToken,
@@ -53,15 +81,16 @@ router.get('/entitlements',
       const status = await checkSubscriptionStatus(userId);
 
       res.status(200).json({
-        success: true,
-        entitlements: status
+        hasActiveSubscription: status.isSubscribed,
+        subscriptionStatus: status.subscriptionType || 'free',
+        expiresAt: status.expiresAt || null
       });
     } catch (error) {
       console.error('Entitlements check error:', error);
       res.status(500).json({
-        success: false,
-        error: 'Failed to check entitlements',
-        message: error.message
+        hasActiveSubscription: false,
+        subscriptionStatus: 'free',
+        error: 'Failed to check entitlements'
       });
     }
   }
