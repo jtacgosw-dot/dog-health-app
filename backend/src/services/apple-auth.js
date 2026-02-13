@@ -11,11 +11,30 @@ const supabase = require('./supabase');
  */
 async function verifyAppleToken(identityToken, authorizationCode, user = null) {
   try {
-    const clientId = process.env.APPLE_CLIENT_ID || 'com.johnathongordon.doghealthapp';
-    const appleIdTokenClaims = await appleSignin.verifyIdToken(identityToken, {
-      audience: clientId,
-      ignoreExpiration: false
-    });
+    const bundleId = 'com.johnathongordon.doghealthapp';
+    const envClientId = process.env.APPLE_CLIENT_ID;
+    const audiences = [bundleId];
+    if (envClientId && envClientId !== bundleId) {
+      audiences.unshift(envClientId);
+    }
+
+    let appleIdTokenClaims;
+    let lastError;
+    for (const aud of audiences) {
+      try {
+        appleIdTokenClaims = await appleSignin.verifyIdToken(identityToken, {
+          audience: aud,
+          ignoreExpiration: false
+        });
+        break;
+      } catch (e) {
+        lastError = e;
+        console.log(`Apple token verification failed with audience "${aud}": ${e.message}`);
+      }
+    }
+    if (!appleIdTokenClaims) {
+      throw lastError || new Error('Apple token verification failed');
+    }
 
     const appleUserId = appleIdTokenClaims.sub;
     const email = appleIdTokenClaims.email;
