@@ -176,7 +176,7 @@ struct AIInsightsDashboardView: View {
             }
             
             ForEach(insights) { insight in
-                InsightCard(insight: insight)
+                AIInsightCard(insight: insight)
             }
         }
     }
@@ -360,7 +360,7 @@ struct AIInsightsDashboardView: View {
     }
 }
 
-struct InsightCard: View {
+struct AIInsightCard: View {
     let insight: AIInsight
     
     var body: some View {
